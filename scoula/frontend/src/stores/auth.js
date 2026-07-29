@@ -57,7 +57,8 @@ export const useAuthStore = defineStore('auth', () => {
           creditScore: data.creditScore,
           maxMonthlyPayment: data.maxMonthlyPayment
       };
-      // 강제로 로그인 상태로 만듦
+      // [TODO: 로그인 구현 후 삭제] 강제로 로그인 상태로 만듦
+      // 나중에 실제 로그인 API가 완성되면 아래 가짜 토큰 발급 로직을 완전히 삭제해야 합니다.
       if(!state.value.token) {
          state.value.token = 'demo-token';
       }

@@ -36,6 +36,8 @@ public class MemberController {
      */
     @GetMapping("/me")
     public ResponseEntity<MemberDTO> getMyProfile(Principal principal) {
+        // [TODO: 로그인 구현 후 삭제] 토큰 없는 테스트 환경을 위한 폴백 (1번 유저 반환)
+        // 실제 로그인 연동 후에는 아래 3줄(if문)을 삭제하고 바로 principal.getName()으로 조회해야 합니다.
         if (principal == null) {
             return ResponseEntity.ok(service.getFirst());
         }
@@ -47,6 +49,8 @@ public class MemberController {
      */
     @PatchMapping("/me/credit-score")
     public ResponseEntity<MemberDTO> updateCreditScore(@RequestBody UpdateCreditScoreDTO dto, Principal principal) {
+        // [TODO: 로그인 구현 후 수정] 토큰 없는 환경 폴백 삭제
+        // String email = principal.getName(); 으로 변경해야 합니다.
         String email = principal != null ? principal.getName() : service.getFirst().getEmail();
         return ResponseEntity.ok(service.updateCreditScore(email, dto.getCreditScore()));
     }
@@ -56,6 +60,8 @@ public class MemberController {
      */
     @PatchMapping("/me/max-monthly-payment")
     public ResponseEntity<MemberDTO> updateMaxMonthlyPayment(@RequestBody UpdateMaxPaymentDTO dto, Principal principal) {
+        // [TODO: 로그인 구현 후 수정] 토큰 없는 환경 폴백 삭제
+        // String email = principal.getName(); 으로 변경해야 합니다.
         String email = principal != null ? principal.getName() : service.getFirst().getEmail();
         return ResponseEntity.ok(service.updateMaxMonthlyPayment(email, dto.getMaxMonthlyPayment()));
     }
