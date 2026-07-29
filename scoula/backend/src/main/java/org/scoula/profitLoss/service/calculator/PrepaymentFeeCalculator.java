@@ -38,18 +38,19 @@ public final class PrepaymentFeeCalculator {
             BigDecimal extraPayment = (t == actualRepaymentMonths) ? lastExtraPayment : regularExtraPayment;
             monthlyFeeSum = monthlyFeeSum.add(extraPayment.multiply(PREPAYMENT_FEE_RATE).multiply(remainingTermRatio(termMonths, t)));
         }
-        long monthlyFeeTotal = roundToWon(monthlyFeeSum);
 
-        long lumpSumFee = 0L;
+        BigDecimal lumpSumFeeExact = BigDecimal.ZERO;
         if (lumpSumPrincipal > 0) {
             // 목돈은 정상 스케줄에 없던 상환이므로 전액이 수수료 대상이다 (초과분이 아니라 원금 전체).
-            BigDecimal lumpSumFeeExact = BigDecimal.valueOf(lumpSumPrincipal)
+            lumpSumFeeExact = BigDecimal.valueOf(lumpSumPrincipal)
                     .multiply(PREPAYMENT_FEE_RATE)
                     .multiply(remainingTermRatio(termMonths, depositRemainingMonths));
-            lumpSumFee = roundToWon(lumpSumFeeExact);
         }
 
-        long totalFee = monthlyFeeTotal + lumpSumFee;
+        // 매달 수수료와 목돈 수수료를 각각 반올림해서 더하지 않는다 — 소수 그대로 합산한 뒤 수수료합에서 한 번만 반올림한다.
+        long monthlyFeeTotal = roundToWon(monthlyFeeSum);
+        long lumpSumFee = roundToWon(lumpSumFeeExact);
+        long totalFee = roundToWon(monthlyFeeSum.add(lumpSumFeeExact));
         long loanCost = loanInterest + totalFee;
 
         return new Result(termMonths, roundToWon(pmt), monthlyFeeTotal, lumpSumFee, totalFee, loanCost);
