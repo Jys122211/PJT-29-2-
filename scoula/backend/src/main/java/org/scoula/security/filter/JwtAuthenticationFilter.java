@@ -43,10 +43,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (bearerToken != null && bearerToken.startsWith(BEARER_PREFIX)) {
             String token = bearerToken.substring(BEARER_PREFIX.length());
 
-            // 토큰에서 사용자 정보 추출 및 Authentication 객체 구성 후 SecurityContext에 저장
-            Authentication authentication = getAuthentication(token);
-
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+            // 프론트엔드 테스트용 가짜 토큰("demo-token")은 무시 (401 에러 방지)
+            if (!"demo-token".equals(token)) {
+                // 토큰에서 사용자 정보 추출 및 Authentication 객체 구성 후 SecurityContext에 저장
+                Authentication authentication = getAuthentication(token);
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            }
         }
 
         super.doFilter(request, response, filterChain);

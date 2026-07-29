@@ -41,7 +41,7 @@ public class JwtUsernamePasswordAuthenticationFilter extends UsernamePasswordAut
 
         // 인증 토큰(UsernamePasswordAuthenticationToken) 구성
         UsernamePasswordAuthenticationToken authenticationToken =
-                new UsernamePasswordAuthenticationToken(login.getUsername(), login.getPassword());
+                new UsernamePasswordAuthenticationToken(login.getEmail(), login.getPassword());
 
         // AuthenticationManager에게 인증 요청
         return getAuthenticationManager().authenticate(authenticationToken);

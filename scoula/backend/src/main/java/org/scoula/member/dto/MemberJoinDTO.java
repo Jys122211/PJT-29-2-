@@ -12,17 +12,21 @@ import org.springframework.web.multipart.MultipartFile;
 @AllArgsConstructor
 @Builder
 public class MemberJoinDTO {
-    private String username;
-    private String password;
     private String email;
+    private String password;
+    private String name;
+    private Integer creditScore;
+    private Integer maxMonthlyPayment;
 
     private MultipartFile avatar;
 
     public MemberVO toVO() {
         return MemberVO.builder()
-                .username(username)
-                .password(password)
                 .email(email)
+                .password(password)
+                .name(name)
+                .creditScore(creditScore)
+                .maxMonthlyPayment(maxMonthlyPayment)
                 .build();
     }
 

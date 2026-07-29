@@ -1,6 +1,6 @@
 package org.scoula.member.dto;
 
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,32 +16,42 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class MemberDTO {
-    private String username;
+    private Long userId;
     private String email;
-    private Date regDate;
-    private Date updateDate;
+    private String name;
+    private Integer creditScore;
+    private Integer maxMonthlyPayment;
 
+    private Date createdAt;
+    private Date updatedAt;
+
+    @JsonIgnore
     private MultipartFile avatar;
 
-    private List<String> authList;        // 권한 목록, join 처리 필요
+    private List<String> authList;
 
     public static MemberDTO of(MemberVO m) {
         return MemberDTO.builder()
-                .username(m.getUsername())
+                .userId(m.getUserId())
                 .email(m.getEmail())
-                .regDate(m.getRegDate())
-                .updateDate(m.getUpdateDate())
-                .authList(m.getAuthList().stream().map(a -> a.getAuth()).toList())
+                .name(m.getName())
+                .creditScore(m.getCreditScore())
+                .maxMonthlyPayment(m.getMaxMonthlyPayment())
+                .createdAt(m.getCreatedAt())
+                .updatedAt(m.getUpdatedAt())
+                .authList(m.getAuthList() != null ? m.getAuthList().stream().map(a -> a.getAuth()).toList() : null)
                 .build();
     }
 
     public MemberVO toVO() {
         return MemberVO.builder()
-                .username(username)
+                .userId(userId)
                 .email(email)
-                .regDate(regDate)
-                .updateDate(updateDate)
+                .name(name)
+                .creditScore(creditScore)
+                .maxMonthlyPayment(maxMonthlyPayment)
+                .createdAt(createdAt)
+                .updatedAt(updatedAt)
                 .build();
     }
 }
-

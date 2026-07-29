@@ -95,7 +95,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http
                 .authorizeRequests() // 경로별 접근 권한 설정
                 .antMatchers(HttpMethod.OPTIONS).permitAll()
-                .antMatchers(HttpMethod.PUT, "/api/member", "/api/member/*/changepassword").authenticated()
+                .antMatchers(HttpMethod.GET, "/api/users/first").permitAll()
+                .antMatchers(HttpMethod.GET, "/api/users/me").permitAll()
+                .antMatchers(HttpMethod.PATCH, "/api/users/me/credit-score", "/api/users/me/max-monthly-payment").permitAll()
+                .antMatchers(HttpMethod.PUT, "/api/users", "/api/users/*/changepassword").authenticated()
                 .antMatchers(HttpMethod.POST, "/api/board/**").authenticated()
                 .antMatchers(HttpMethod.PUT, "/api/board/**").authenticated()
                 .antMatchers(HttpMethod.DELETE, "/api/board/**").authenticated()

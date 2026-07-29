@@ -6,9 +6,11 @@ import org.scoula.member.dto.MemberJoinDTO;
 import org.scoula.member.dto.MemberUpdateDTO;
 
 public interface MemberService {
-    boolean checkDuplicate(String username);
+    boolean checkDuplicate(String email);
 
-    MemberDTO get(String username);
+    MemberDTO get(String email);
+
+    MemberDTO getFirst();
 
     MemberDTO join(MemberJoinDTO member);
 
@@ -16,5 +18,8 @@ public interface MemberService {
 
     void changePassword(ChangePasswordDTO changePassword);
 
+    MemberDTO updateCreditScore(String email, Integer creditScore);
+
+    MemberDTO updateMaxMonthlyPayment(String email, Integer maxMonthlyPayment);
 
 }

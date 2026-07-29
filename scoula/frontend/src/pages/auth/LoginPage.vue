@@ -7,23 +7,23 @@ const router = useRouter();
 const auth = useAuthStore();
 
 const member = reactive({
-  username: '',
+  email: '',
   password: '',
 });
 
 const error = ref('');
 
-const disableSubmit = computed(() => !(member.username && member.password));
+const disableSubmit = computed(() => !(member.email && member.password));
 
 const login = async () => {
   console.log(member);
   try {
     await auth.login(member);
-    router.push('/');
+    router.push('/auth/profile');
   } catch (e) {
     // 로그인 에러
     console.log('에러=======', e);
-    error.value = e.response.data;
+    error.value = e.response?.data || '로그인에 실패했습니다.';
   }
 };
 </script>
@@ -37,15 +37,15 @@ const login = async () => {
 
     <form @submit.prevent="login">
       <div class="mb-3 mt-3">
-        <label for="username" class="form-label">
-          <i class="fa-solid fa-user"></i>
-          사용자 ID:
+        <label for="email" class="form-label">
+          <i class="fa-solid fa-envelope"></i>
+          이메일:
         </label>
         <input
-          type="text"
+          type="email"
           class="form-control"
-          placeholder="사용자 ID"
-          v-model="member.username"
+          placeholder="이메일 입력 (예: user@kb.co.kr)"
+          v-model="member.email"
         />
       </div>
 
@@ -62,11 +62,11 @@ const login = async () => {
         />
       </div>
 
-      <div v-if="error" class="text-danger">{{ error }}</div>
+      <div v-if="error" class="text-danger mb-3">{{ error }}</div>
 
       <button
         type="submit"
-        class="btn btn-primary mt-4"
+        class="btn btn-primary mt-2 w-100"
         :disabled="disableSubmit"
       >
         <i class="fa-solid fa-right-to-bracket"></i>
