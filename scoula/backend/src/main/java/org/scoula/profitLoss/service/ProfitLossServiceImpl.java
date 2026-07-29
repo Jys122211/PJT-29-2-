@@ -122,23 +122,50 @@ public class ProfitLossServiceImpl implements ProfitLossService {
 
         mapper.insertComparison(vo);
 
-        return buildResponse(vo, bestResult);
+        return buildResponse(vo, deposit.getPrincipal());
+    }
+
+    @Override
+    public ComparisonResponse getComparison(Long userId, Long comparisonId) {
+        ComparisonVO vo = mapper.selectComparisonById(comparisonId, userId);
+        if (vo == null) {
+            throw new ComparisonNotFoundException("이력을 찾을 수 없거나 본인 소유가 아닙니다.");
+        }
+
+        // withdrawalProfit(= aFinalBalance − 예금원금) 계산에 원금이 필요한데 comparisons 21컬럼에는
+        // 원금이 없다 — 인터페이스 계약서 5-4절이 명시한 대로 user_deposit을 다시 조회한다.
+        UserDepositVO deposit = mapper.selectUserDeposit(vo.getUserDepositId(), userId);
+        if (deposit == null) {
+            throw new DepositNotFoundException("예금을 찾을 수 없거나 본인 소유가 아닙니다.");
+        }
+
+        return buildResponse(vo, deposit.getPrincipal());
     }
 
     // 대출금리(기간) = base(기간) + spread(기간) × 등급배율 − 우대금리(기간, 사용자 적용분)
     // 등급배율 = API_가산(사용자등급) ÷ API_가산(3등급)
     private static BigDecimal resolveFinalRate(LoanProductRateVO rate, BigDecimal totalDiscountRate) {
-        BigDecimal gradeMultiplier = rate.getGradeAverageSpreadRate()
-                .divide(rate.getBaseGradeAverageSpreadRate(), RATE_CALC_SCALE, RoundingMode.HALF_UP);
+        BigDecimal baseGradeRate = rate.getBaseGradeAverageSpreadRate();
+        // 로직 명세서 STEP 3-3 필수 방어: API_가산(3등급)이 0이거나 없으면 등급배율의 분모가 정의되지 않는다.
+        if (baseGradeRate == null || baseGradeRate.compareTo(BigDecimal.ZERO) == 0) {
+            throw new GradeRateUnavailableException("3등급 평균 가산금리가 없어 등급배율을 계산할 수 없습니다.");
+        }
+
+        BigDecimal gradeMultiplier = rate.getGradeAverageSpreadRate().divide(baseGradeRate, RATE_CALC_SCALE, RoundingMode.HALF_UP);
         return rate.getBaseRate()
                 .add(rate.getSpreadRate().multiply(gradeMultiplier))
                 .subtract(totalDiscountRate);
     }
 
-    private ComparisonResponse buildResponse(ComparisonVO vo, ComparisonCalculator.Result result) {
-        long netProfit = vo.getDepositMaintainInterest() - result.loan().cost();
-        long withdrawalProfit = vo.getDepositMaintainInterest() - result.aTotalLoss();
-        boolean isBelowMinimumWage = result.savingAmount() < MinimumWageConstants.DAILY_MINIMUM_WAGE;
+    // POST(방금 계산한 값) / GET(저장된 값 재조회) 양쪽 모두 comparisons 21컬럼 + 예금원금만으로
+    // 모든 파생값을 재계산할 수 있다 — savingAmount/cost/netProfit/withdrawalProfit 어느 것도
+    // 계산기 Result 객체가 따로 필요하지 않다 (아래 각 식 참고).
+    private ComparisonResponse buildResponse(ComparisonVO vo, long depositPrincipal) {
+        long cost = vo.getLoanInterest() + vo.getLoanPenalty();
+        long netProfit = vo.getDepositMaintainInterest() - cost;
+        long withdrawalProfit = vo.getAFinalBalance() - depositPrincipal;
+        long savingAmount = Math.abs(vo.getAFinalBalance() - vo.getBFinalBalance());
+        boolean isBelowMinimumWage = savingAmount < MinimumWageConstants.DAILY_MINIMUM_WAGE;
 
         ComparisonResponse.Warning warning = ComparisonResponse.Warning.builder()
                 .isBelowMinimumWage(isBelowMinimumWage)
@@ -159,7 +186,7 @@ public class ProfitLossServiceImpl implements ProfitLossService {
                 .ratePeriodMonths(vo.getRatePeriodMonths())
                 .interest(vo.getLoanInterest())
                 .penalty(vo.getLoanPenalty())
-                .cost(result.loan().cost())
+                .cost(cost)
                 .isRateEstimated(vo.getLoanType() == LoanType.CREDIT)
                 .finalBalance(vo.getBFinalBalance())
                 .netProfit(netProfit)
@@ -177,7 +204,7 @@ public class ProfitLossServiceImpl implements ProfitLossService {
         return ComparisonResponse.builder()
                 .comparisonId(vo.getComparisonId())
                 .winner(vo.getWinner())
-                .savingAmount(result.savingAmount())
+                .savingAmount(savingAmount)
                 .urgentAmount(vo.getUrgentAmount())
                 .monthlyPayment(vo.getMonthlyPayment())
                 .createdAt(vo.getCreatedAt())

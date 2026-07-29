@@ -6,4 +6,6 @@ import org.scoula.profitLoss.dto.ComparisonResponse;
 public interface ProfitLossService {
 
     ComparisonResponse compare(Long userId, ComparisonRequest request);
+
+    ComparisonResponse getComparison(Long userId, Long comparisonId);
 }
