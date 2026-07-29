@@ -1,69 +1,45 @@
 import { ref } from 'vue';
-
-// TODO(5단계): 여기 목업을 실제 API 응답으로 교체한다. 이 파일만 바꾸면 되도록
-// 컴포넌트는 useComparison()이 돌려주는 반응형 값만 읽는다 (mock을 직접 import하지 않는다).
-// 득실계산기_인터페이스_계약서.md 3장 응답 JSON 예시를 그대로 옮긴 값이다.
-const MOCK_COMPARISON = {
-  comparisonId: 1,
-  winner: 'LOAN',
-  savingAmount: 133931,
-  urgentAmount: 5000000,
-  monthlyPayment: 1500000,
-  createdAt: '2026-07-28T14:30:00',
-
-  badges: {
-    recommended: '신용대출',
-    isPartialAllowed: true,
-    isLumpSum: true,
-  },
-
-  warning: {
-    isBelowMinimumWage: true,
-    minimumWageDaily: 82560,
-    message:
-      '이 차액은 최저임금 하루치보다 적어요. 인지세, 보증료, 서류발급비, 교통비 등 부대비용까지 따져보면 실질적인 이득은 적을 수 있어요.',
-  },
-
-  loan: {
-    name: 'KB STAR 신용대출',
-    type: 'CREDIT',
-    interestRate: 4.81,
-    ratePeriodMonths: 3,
-    interest: 80167,
-    penalty: 20245,
-    cost: 100411,
-    isRateEstimated: true,
-    finalBalance: 15711749,
-    netProfit: 711749,
-  },
-
-  deposit: {
-    name: 'KB Star 정기예금',
-    maintainInterest: 812160,
-    cancelInterestRate: 1.5,
-    cancelInterest: 307098,
-    withdrawalProfit: 577818,
-    finalBalance: 15577818,
-  },
-};
+import { useRouter } from 'vue-router';
+import profitLossApi from '@/api/profitLossApi';
+import { resolveErrorMessage } from '@/constants/errorMessages';
 
 export function useComparison() {
+  const router = useRouter();
+
   const comparison = ref(null);
   const loading = ref(false);
+  const submitting = ref(false);
   const error = ref(null);
 
+  // 결과 화면이 마운트될 때 호출한다. POST 응답을 그대로 쓰지 않고 항상 GET으로 다시 조회해서
+  // 새로고침해도 같은 화면이 나오게 한다.
   const fetchComparison = async (comparisonId) => {
     loading.value = true;
     error.value = null;
     try {
-      // TODO(5단계): await api.get(`/api/comparisons/${comparisonId}`) 로 교체
-      comparison.value = MOCK_COMPARISON;
+      comparison.value = await profitLossApi.getComparison(comparisonId);
     } catch (e) {
-      error.value = e;
+      error.value = resolveErrorMessage(e);
     } finally {
       loading.value = false;
     }
   };
 
-  return { comparison, loading, error, fetchComparison };
+  // "비교하기" 버튼에서 호출한다. 성공하면 응답의 comparisonId로 결과 화면으로 이동한다.
+  const submitComparison = async (payload) => {
+    submitting.value = true;
+    error.value = null;
+    try {
+      const response = await profitLossApi.createComparison(payload);
+      await router.push({ name: 'comparisons/result', params: { comparisonId: response.comparisonId } });
+      return true;
+    } catch (e) {
+      error.value = resolveErrorMessage(e);
+      return false;
+    } finally {
+      submitting.value = false;
+    }
+  };
+
+  return { comparison, loading, submitting, error, fetchComparison, submitComparison };
 }

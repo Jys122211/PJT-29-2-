@@ -4,11 +4,11 @@ import { useRoute } from 'vue-router';
 import { useComparison } from '@/composables/useComparison';
 
 const route = useRoute();
-const { comparison, fetchComparison } = useComparison();
+const { comparison, loading, error, fetchComparison } = useComparison();
 
-onMounted(() => {
-  fetchComparison(route.params.comparisonId);
-});
+const load = () => fetchComparison(route.params.comparisonId);
+
+onMounted(load);
 
 const won = (value) => (value ?? 0).toLocaleString('ko-KR');
 
@@ -274,5 +274,18 @@ const cancelModal = () => {
     </div>
   </div>
 
-  <div v-else class="text-center text-muted py-5">불러오는 중...</div>
+  <div v-else-if="loading" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">불러오는 중...</span>
+    </div>
+    <div class="text-muted mt-2">결과를 불러오는 중이에요...</div>
+  </div>
+
+  <div v-else-if="error" class="text-center py-5">
+    <i class="fa-solid fa-circle-exclamation text-danger fs-1 mb-3"></i>
+    <div class="mb-3">{{ error }}</div>
+    <button type="button" class="btn btn-primary" @click="load">
+      <i class="fa-solid fa-rotate-right me-1"></i> 다시 시도
+    </button>
+  </div>
 </template>
