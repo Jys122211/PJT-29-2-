@@ -1,35 +1,43 @@
-# Vue / Node
-node_modules/
-dist/
-.env
-.env.*
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Java / Spring
-target/
-build/
-*.class
-*.jar
-*.war
-
-# IntelliJ
+# IDE
 .idea/
 *.iml
-
-# Eclipse / STS
+.vscode/
+!.vscode/extensions.json
 .project
 .classpath
 .settings/
 
-# VS Code
-.vscode/
+# Java / Gradle
+# 패턴에 경로를 앞에 붙이면(예: backend/.gradle/) 실제 소스가 scoula/backend/ 아래에
+# 있어서 매칭되지 않는다. 앵커 없는 패턴으로 둬서 scoula/backend/... 깊이든 상관없이 잡는다.
+.gradle/
+build/
+out/
+target/
+*.class
+*.jar
+*.war
 
-# Operating System
+# Node / Vue
+node_modules/
+dist/
+.vite/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 환경·비밀값
+.env
+.env.*
+!.env.example
+**/application-secret.properties
+
+# OS / 로그
 .DS_Store
 Thumbs.db
-
-# Logs
 *.log
 logs/
+
+# 주의: scoula/backend/src/main/resources/application.properties 에 DB 비밀번호(1234)가
+# 평문으로 들어있다. 지금은 로컬 개발용이라 커밋해도 되지만, 배포 계정을 쓰게 되면
+# jdbc.password 를 별도 파일로 분리하고 그 파일을 위 목록에 추가해야 한다.
