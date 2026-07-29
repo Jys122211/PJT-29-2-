@@ -72,15 +72,15 @@ function handleRequiredAmountInput(event) {
   );
 }
 
-const creditScoreModel = computed({
-  get() {
-    return creditScore.value ?? '';
-  },
-  set(value) {
-    const numbers = String(value).replace(/[^0-9]/g, '');
-    creditScore.value = numbers === '' ? null : Number(numbers);
-  },
-});
+function handleCreditScoreInput(event) {
+  const input = event.target;
+  const numbers = String(input.value)
+    .replace(/[^0-9]/g, '')
+    .slice(0, 4);
+
+  input.value = numbers;
+  creditScore.value = numbers === '' ? null : Number(numbers);
+}
 
 const monthlyAmountModel = computed(() =>
   monthlyAvailableAmount.value === null
@@ -129,29 +129,43 @@ const isCreditScoreValid = computed(
     creditScore.value <= 1000,
 );
 
+const creditGrade = computed(() => {
+  if (!isCreditScoreValid.value) return null;
+
+  const score = creditScore.value;
+
+  // 화면 구현용 예시 구간이며 실제 서비스에서는 확정된 KCB 기준을 사용해야 합니다.
+  if (score >= 942) return 1;
+  if (score >= 891) return 2;
+  if (score >= 832) return 3;
+  if (score >= 768) return 4;
+  if (score >= 698) return 5;
+  if (score >= 630) return 6;
+  if (score >= 530) return 7;
+  if (score >= 454) return 8;
+  if (score >= 335) return 9;
+
+  return 10;
+});
+
+const isCreditGradeEligible = computed(
+  () => creditGrade.value !== null && creditGrade.value <= 4,
+);
+
 const creditGradeText = computed(() => {
   if (creditScore.value === null) {
     return '신용점수를 입력해주세요';
   }
 
-  const score = creditScore.value;
-
   if (!isCreditScoreValid.value) {
     return '1~1000점 사이로 입력해주세요';
   }
 
-  // 화면 구현용 예시 구간이며 실제 서비스에서는 확정된 KCB 기준을 사용해야 합니다.
-  if (score >= 942) return '1등급';
-  if (score >= 891) return '2등급';
-  if (score >= 832) return '3등급';
-  if (score >= 768) return '4등급';
-  if (score >= 698) return '5등급';
-  if (score >= 630) return '6등급';
-  if (score >= 530) return '7등급';
-  if (score >= 454) return '8등급';
-  if (score >= 335) return '9등급';
+  if (!isCreditGradeEligible.value) {
+    return `${creditGrade.value}등급 · 1~4등급만 비교할 수 있어요`;
+  }
 
-  return '10등급';
+  return `${creditGrade.value}등급 · 손익 비교 가능`;
 });
 
 function formatKoreanAmount(amount, emptyMessage = '금액을 입력해주세요') {
@@ -206,6 +220,7 @@ const canCompare = computed(
     selectedDeposit.value !== undefined &&
     requiredAmount.value > 0 &&
     isCreditScoreValid.value &&
+    isCreditGradeEligible.value &&
     isMonthlyAmountValid.value,
 );
 
@@ -276,7 +291,13 @@ onMounted(loadDeposits);
   <main class="calculator-page">
     <section class="calculator-card">
       <header class="page-header">
-        <span class="header-icon">💰⚖️</span>
+        <router-link
+          to="/"
+          class="header-home-link"
+          aria-label="홈 화면으로 이동"
+        >
+          <i class="fa-solid fa-house" aria-hidden="true"></i>
+        </router-link>
         <h1>자금 필요 상황 입력</h1>
       </header>
 
@@ -365,10 +386,12 @@ onMounted(loadDeposits);
             <div class="information-input-wrapper">
               <input
                 id="creditScore"
-                v-model="creditScoreModel"
+                :value="creditScore ?? ''"
+                @input="handleCreditScoreInput"
                 class="information-input"
                 type="text"
                 inputmode="numeric"
+                pattern="[0-9]*"
                 maxlength="4"
                 placeholder="예: 942"
                 aria-label="KCB 신용점수"
@@ -377,7 +400,9 @@ onMounted(loadDeposits);
             </div>
             <small
               :class="{
-                error: creditScore !== null && !isCreditScoreValid,
+                error:
+                  creditScore !== null &&
+                  (!isCreditScoreValid || !isCreditGradeEligible),
               }"
             >
               {{ creditGradeText }}
@@ -471,6 +496,7 @@ onMounted(loadDeposits);
     </nav>
   </main>
 </template>
+
 <style scoped>
 :global(*) {
   box-sizing: border-box;
@@ -512,8 +538,21 @@ button {
   font-weight: 700;
 }
 
-.header-icon {
-  font-size: 20px;
+.header-home-link {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  color: var(--kb-text);
+  background: var(--kb-yellow);
+  text-decoration: none;
+  place-items: center;
+}
+
+.header-home-link:focus-visible {
+  outline: 3px solid rgb(255 188 0 / 35%);
+  outline-offset: 2px;
 }
 
 .form-section {
@@ -588,8 +627,8 @@ button {
 
 .empty-deposit {
   display: flex;
-  min-height: 170px;
-  padding: 24px;
+  min-height: 145px;
+  padding: 18px 24px;
   border: 4px solid #eee8dc;
   border-radius: 15px;
   align-items: center;
@@ -620,6 +659,26 @@ button {
 .deposit-list {
   display: grid;
   gap: 9px;
+  max-height: 175px;
+  padding-right: 4px;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-color: #c8bfae transparent;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+}
+
+.deposit-list::-webkit-scrollbar {
+  width: 5px;
+}
+
+.deposit-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.deposit-list::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: #c8bfae;
 }
 
 .deposit-card {

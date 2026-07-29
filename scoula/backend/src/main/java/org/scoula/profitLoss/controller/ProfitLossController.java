@@ -18,7 +18,7 @@ import java.util.List;
 public class ProfitLossController {
     private final ProfitLossService service;
 
-    @GetMapping("/depositList")
+    @GetMapping("/deposits/list")
     public ResponseEntity<List<UserDepositDTO>> getDeposits(Authentication authentication) {
         CustomUser authenticatedUser = (CustomUser) authentication.getPrincipal();
         Long userId = authenticatedUser.getMember().getUserId();

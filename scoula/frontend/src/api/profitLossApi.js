@@ -1,6 +1,5 @@
 import api from '@/api';
-
-const BASE_URL = '/depositList';
+const BASE_URL = '/deposits/list';
 
 export default {
   async getDeposits() {

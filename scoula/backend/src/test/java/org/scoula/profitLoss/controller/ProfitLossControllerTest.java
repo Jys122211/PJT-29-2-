@@ -29,9 +29,7 @@ import org.springframework.web.context.WebApplicationContext;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -68,7 +66,7 @@ class ProfitLossControllerTest {
         Authentication authentication = createAuthentication(targetUserId);
 
         String responseContent = mockMvc.perform(
-                        MockMvcRequestBuilders.get("/depositList")
+                        MockMvcRequestBuilders.get("/deposits/list")
                                 .principal(authentication)
                                 .accept(MediaType.APPLICATION_JSON)
                 )

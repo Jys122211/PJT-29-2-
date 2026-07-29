@@ -20,7 +20,7 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:8080',
       },
-      '/depositList': {
+      '/deposits': {
         target: 'http://localhost:8080',
         changeOrigin: true,
       },

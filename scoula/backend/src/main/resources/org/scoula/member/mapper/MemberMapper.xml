@@ -11,6 +11,7 @@
 
     <resultMap id="memberMap" type="org.scoula.security.account.domain.MemberVO">
         <id property="username" column="username"/>
+        <result property="userId" column="user_id"/>
         <result property="username" column="username"/>
         <result property="password" column="password"/>
         <result property="email" column="email"/>
@@ -37,7 +38,8 @@
     </update>
 
     <select id="get" resultMap="memberMap">
-        SELECT m.username, password, email, reg_date, update_date, auth
+        SELECT m.user_id, m.username, m.password, m.email,
+               m.reg_date, m.update_date, a.auth
         FROM tbl_member m
                  LEFT OUTER JOIN tbl_member_auth a
                                  ON m.username = a.username
@@ -52,8 +54,20 @@
 
 
     <insert id="insert">
-        INSERT INTO tbl_member
-        VALUES (#{username}, #{password}, #{email}, now(), now())
+        INSERT INTO tbl_member (
+            username,
+            password,
+            email,
+            reg_date,
+            update_date
+        )
+        VALUES (
+            #{username},
+            #{password},
+            #{email},
+            now(),
+            now()
+        )
     </insert>
 
     <insert id="insertAuth">
