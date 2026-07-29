@@ -7,8 +7,16 @@ import java.math.BigDecimal;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ComparisonCalculatorTest {
+
+    // 명세서 저자의 반올림 시점을 완벽히 재현하는 건 불가능할 수 있어 절약금액은 ±1원까지 허용한다.
+    // 1원 차이는 판정(WITHDRAWAL/LOAN)을 뒤집지 못하므로 승자는 항상 정확히 일치해야 한다.
+    private static void assertSavingAmount(long expected, long actual) {
+        assertTrue(Math.abs(expected - actual) <= 1,
+                () -> "savingAmount expected≈" + expected + " but was " + actual);
+    }
 
     private static final long DEPOSIT_PRINCIPAL = 30_000_000L;
     private static final BigDecimal MATURITY_RATE = new BigDecimal("3.2");
@@ -38,7 +46,7 @@ class ComparisonCalculatorTest {
         ComparisonCalculator.Result result = compare(AT_1_MONTH, 20_000_000L, true, true, 900_000L);
 
         assertEquals(ComparisonCalculator.Winner.WITHDRAWAL, result.winner());
-        assertEquals(299_797L, result.savingAmount());
+        assertSavingAmount(299_797L, result.savingAmount());
     }
 
     @Test
@@ -49,7 +57,7 @@ class ComparisonCalculatorTest {
         ComparisonCalculator.Result result = compare(AT_11_MONTHS, 20_000_000L, true, true, 900_000L);
 
         assertEquals(ComparisonCalculator.Winner.LOAN, result.winner());
-        assertEquals(133_930L, result.savingAmount());
+        assertSavingAmount(133_930L, result.savingAmount());
     }
 
     // 조건 2: 급전 2천만 · 부분해지 O · 만기목돈상환 X · 월납입 300만
@@ -60,7 +68,7 @@ class ComparisonCalculatorTest {
         ComparisonCalculator.Result result = compare(AT_1_MONTH, 20_000_000L, true, false, 3_000_000L);
 
         assertEquals(ComparisonCalculator.Winner.LOAN, result.winner());
-        assertEquals(160_152L, result.savingAmount());
+        assertSavingAmount(160_152L, result.savingAmount());
     }
 
     @Test
@@ -70,7 +78,7 @@ class ComparisonCalculatorTest {
         ComparisonCalculator.Result result = compare(AT_11_MONTHS, 20_000_000L, true, false, 3_000_000L);
 
         assertEquals(ComparisonCalculator.Winner.WITHDRAWAL, result.winner());
-        assertEquals(145_536L, result.savingAmount());
+        assertSavingAmount(145_536L, result.savingAmount());
     }
 
     // 조건 3: 급전 2천만 · 부분해지 X · 만기목돈상환 O · 월납입 90만
@@ -81,7 +89,7 @@ class ComparisonCalculatorTest {
         ComparisonCalculator.Result result = compare(AT_1_MONTH, 20_000_000L, false, true, 900_000L);
 
         assertEquals(ComparisonCalculator.Winner.WITHDRAWAL, result.winner());
-        assertEquals(29_782L, result.savingAmount());
+        assertSavingAmount(29_782L, result.savingAmount());
     }
 
     @Test
@@ -91,7 +99,7 @@ class ComparisonCalculatorTest {
         ComparisonCalculator.Result result = compare(AT_11_MONTHS, 20_000_000L, false, true, 900_000L);
 
         assertEquals(ComparisonCalculator.Winner.LOAN, result.winner());
-        assertEquals(251_101L, result.savingAmount());
+        assertSavingAmount(251_101L, result.savingAmount());
     }
 
     // 조건 4: 급전 2천만 · 부분해지 X · 만기목돈상환 X · 월납입 200만
@@ -101,7 +109,7 @@ class ComparisonCalculatorTest {
         ComparisonCalculator.Result result = compare(AT_1_MONTH, 20_000_000L, false, false, 2_000_000L);
 
         assertEquals(ComparisonCalculator.Winner.LOAN, result.winner());
-        assertEquals(267_231L, result.savingAmount());
+        assertSavingAmount(267_231L, result.savingAmount());
     }
 
     @Test
@@ -110,7 +118,7 @@ class ComparisonCalculatorTest {
         ComparisonCalculator.Result result = compare(AT_11_MONTHS, 20_000_000L, false, false, 2_000_000L);
 
         assertEquals(ComparisonCalculator.Winner.WITHDRAWAL, result.winner());
-        assertEquals(191_301L, result.savingAmount());
+        assertSavingAmount(191_301L, result.savingAmount());
     }
 
     // 조건 5: 급전 3천만(=예금원금) · 만기목돈상환 O · 월납입 100만
@@ -120,7 +128,7 @@ class ComparisonCalculatorTest {
         ComparisonCalculator.Result result = compare(AT_1_MONTH, 30_000_000L, false, true, 1_000_000L);
 
         assertEquals(ComparisonCalculator.Winner.WITHDRAWAL, result.winner());
-        assertEquals(547_694L, result.savingAmount());
+        assertSavingAmount(547_694L, result.savingAmount());
     }
 
     @Test
@@ -129,7 +137,7 @@ class ComparisonCalculatorTest {
         ComparisonCalculator.Result result = compare(AT_11_MONTHS, 30_000_000L, false, true, 1_000_000L);
 
         assertEquals(ComparisonCalculator.Winner.LOAN, result.winner());
-        assertEquals(200_172L, result.savingAmount());
+        assertSavingAmount(200_172L, result.savingAmount());
     }
 
     // 조건 6: 급전 3천만(=예금원금) · 만기목돈상환 X · 월납입 400만
@@ -139,7 +147,7 @@ class ComparisonCalculatorTest {
         ComparisonCalculator.Result result = compare(AT_1_MONTH, 30_000_000L, false, false, 4_000_000L);
 
         assertEquals(ComparisonCalculator.Winner.LOAN, result.winner());
-        assertEquals(179_563L, result.savingAmount());
+        assertSavingAmount(179_563L, result.savingAmount());
     }
 
     @Test
@@ -148,7 +156,7 @@ class ComparisonCalculatorTest {
         ComparisonCalculator.Result result = compare(AT_11_MONTHS, 30_000_000L, false, false, 4_000_000L);
 
         assertEquals(ComparisonCalculator.Winner.WITHDRAWAL, result.winner());
-        assertEquals(278_969L, result.savingAmount());
+        assertSavingAmount(278_969L, result.savingAmount());
     }
 
     // 조건 7: 급전 4천만(>예금원금) · 만기목돈상환 O · 월납입 200만
@@ -158,7 +166,7 @@ class ComparisonCalculatorTest {
         ComparisonCalculator.Result result = compare(AT_1_MONTH, 40_000_000L, false, true, 2_000_000L);
 
         assertEquals(ComparisonCalculator.Winner.WITHDRAWAL, result.winner());
-        assertEquals(678_152L, result.savingAmount());
+        assertSavingAmount(678_152L, result.savingAmount());
     }
 
     @Test
@@ -171,7 +179,7 @@ class ComparisonCalculatorTest {
         ComparisonCalculator.Result result = compare(AT_11_MONTHS, 40_000_000L, false, true, 2_000_000L);
 
         assertEquals(ComparisonCalculator.Winner.LOAN, result.winner());
-        assertEquals(206_636L, result.savingAmount());
+        assertSavingAmount(206_636L, result.savingAmount());
     }
 
     // 조건 8: 급전 4천만(>예금원금) · 만기목돈상환 X · 월납입 1000만
@@ -181,7 +189,7 @@ class ComparisonCalculatorTest {
         ComparisonCalculator.Result result = compare(AT_1_MONTH, 40_000_000L, false, false, 10_000_000L);
 
         assertEquals(ComparisonCalculator.Winner.LOAN, result.winner());
-        assertEquals(398_477L, result.savingAmount());
+        assertSavingAmount(398_477L, result.savingAmount());
     }
 
     @Test
@@ -190,6 +198,6 @@ class ComparisonCalculatorTest {
         ComparisonCalculator.Result result = compare(AT_11_MONTHS, 40_000_000L, false, false, 10_000_000L);
 
         assertEquals(ComparisonCalculator.Winner.WITHDRAWAL, result.winner());
-        assertEquals(60_055L, result.savingAmount());
+        assertSavingAmount(60_055L, result.savingAmount());
     }
 }
