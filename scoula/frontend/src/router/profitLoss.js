@@ -2,7 +2,7 @@ export default [
   {
     path: '/comparison/input',
     name: 'comparisonInput',
-    component: ProfitLossPage,
+    component: () => import('@/pages/profitLoss/ComparisonInput.vue'),
     meta: {
       layout: 'mobile',
     },
