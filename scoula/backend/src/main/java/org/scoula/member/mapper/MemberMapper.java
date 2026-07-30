@@ -8,6 +8,7 @@ import org.scoula.security.account.domain.MemberVO;
 public interface MemberMapper {
     MemberVO get(String email);
 
+    // [TODO: 로그인 구현 후 삭제] 테스트용 임시 메서드
     MemberVO getFirst();
 
     MemberVO findByEmail(String email);    // email 중복 체크시 사용

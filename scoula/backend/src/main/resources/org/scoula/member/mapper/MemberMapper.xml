@@ -55,6 +55,7 @@
         WHERE email = #{email} AND is_deleted = false
     </select>
 
+    <!-- [TODO: 로그인 구현 후 삭제] 테스트용 임시 쿼리 -->
     <select id="getFirst" resultMap="memberMap">
         SELECT *
         FROM users

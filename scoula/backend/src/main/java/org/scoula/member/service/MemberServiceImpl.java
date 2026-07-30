@@ -40,6 +40,9 @@ public class MemberServiceImpl implements MemberService {
         return MemberDTO.of(member);
     }
 
+    /**
+     * [TODO: 로그인 구현 후 삭제] 테스트용: 첫 번째 유저 정보 가져오기
+     */
     @Override
     public MemberDTO getFirst() {
         MemberVO member = Optional.ofNullable(mapper.getFirst())

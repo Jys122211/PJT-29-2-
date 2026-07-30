@@ -67,7 +67,8 @@ public class MemberController {
     }
 
     /**
-     * 테스트용: 첫 번째 가입 유저 조회
+     * [TODO: 로그인 구현 후 삭제] 테스트용: 첫 번째 가입 유저 조회 API
+     * 실제 로그인 구현 후에는 불필요하므로 이 메서드 전체를 삭제하세요.
      */
     @GetMapping("/first")
     public ResponseEntity<MemberDTO> getFirstProfile() {
