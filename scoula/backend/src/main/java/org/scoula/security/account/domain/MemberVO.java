@@ -15,7 +15,6 @@ import java.util.List;
 public class MemberVO {
     private Long userId;
     private String username;
-    private String password;
     private String email;
     private String password; // password_hash 와 매핑
     private String name;
@@ -28,5 +27,5 @@ public class MemberVO {
     private String updatedBy;
 
     // 권한 목록 (users 테이블 구조상 별도 권한 테이블이 없다면 사용하지 않을 수 있으나 구조 유지를 위해 남겨둠)
-    private List<AuthVO> authList; 
+    private List<AuthVO> authList;
 }

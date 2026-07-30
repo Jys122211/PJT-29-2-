@@ -32,20 +32,18 @@ import org.springframework.web.filter.CorsFilter;
 
 @Configuration
 @EnableWebSecurity
-@MapperScan(basePackages = {"org.scoula.security.account.mapper"})
-@ComponentScan(basePackages = {"org.scoula.security"})
+@MapperScan(basePackages = { "org.scoula.security.account.mapper" })
+@ComponentScan(basePackages = { "org.scoula.security" })
 @RequiredArgsConstructor
 @Log4j2
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private final UserDetailsService userDetailsService;
-
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final AuthenticationErrorFilter authenticationErrorFilter;
 
     private final CustomAccessDeniedHandler accessDeniedHandler;
     private final CustomAuthenticationEntryPoint authenticationEntryPoint;
-
 
     @Autowired
     private JwtUsernamePasswordAuthenticationFilter jwtUsernamePasswordAuthenticationFilter;
@@ -55,13 +53,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return new BCryptPasswordEncoder();
     }
 
-
     // AuthenticationManager 빈 등록
     @Bean
     public AuthenticationManager authenticationManager() throws Exception {
         return super.authenticationManager();
     }
-
 
     // 문자셋 필터
     public CharacterEncodingFilter encodingFilter() {
@@ -71,8 +67,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return encodingFilter;
     }
 
-    @Overriden
-    public void cofigure(HttpSecurity http) throws Exception {
+    @Override
+    public void configure(HttpSecurity http) throws Exception {
         http.addFilterBefore(encodingFilter(), CsrfFilter.class)
                 // 인증 에러 필터
                 .addFilterBefore(authenticationErrorFilter, UsernamePasswordAuthenticationFilter.class)
@@ -86,10 +82,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .authenticationEntryPoint(authenticationEntryPoint)
                 .accessDeniedHandler(accessDeniedHandler);
 
-        http.httpBasic().disable()        // 기본 HTTP 인증 비활성화
+        http.httpBasic().disable() // 기본 HTTP 인증 비활성화
                 .requestCache().disable() // requestCache -> requestCache.disable())
-                .csrf().disable()       // CSRF 비활성화
-                .formLogin().disable()  // formLogin 비활성화  관련 필터 해제
+                .csrf().disable() // CSRF 비활성화
+                .formLogin().disable() // formLogin 비활성화  관련 필터 해제
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS); // 세션 생성 모드 설정
 
         http
@@ -100,10 +96,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.POST, "/api/board/**").authenticated()
                 .antMatchers(HttpMethod.PUT, "/api/board/**").authenticated()
                 .antMatchers(HttpMethod.DELETE, "/api/board/**").authenticated()
-                .anyRequest().permitAll();  // 나머지는 로그인 된 경우 모두 허용
+                .anyRequest().permitAll(); // 나머지는 로그인 된 경우 모두 허용
 
     }
-
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -111,7 +106,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .userDetailsService(userDetailsService)
                 .passwordEncoder(passwordEncoder());
     }
-
 
     // cross origin 접근 허용
     @Bean
@@ -130,11 +124,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     public void configure(WebSecurity web) throws Exception {
         web.ignoring().antMatchers("/assets/**", "/*",
-//                "/api/member/**",
-                "/ swagger-ui.html", "/webjars/**", "/swagger-resources/**", "/v2/api-docs"
-        );
+                // "/api/member/**",
+                "/ swagger-ui.html", "/webjars/**", "/swagger-resources/**", "/v2/api-docs");
     }
 
-
 }
-

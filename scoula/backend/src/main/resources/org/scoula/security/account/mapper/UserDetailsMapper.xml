@@ -11,23 +11,23 @@
     </resultMap>
 
     <resultMap id="memberMap" type="org.scoula.security.account.domain.MemberVO">
-        <id property="username" column="username"/>
+        <id property="email" column="email"/>
         <result property="userId" column="user_id"/>
-        <result property="username" column="username"/>
-        <result property="password" column="password"/>
+        <result property="password" column="password_hash"/>
         <result property="email" column="email"/>
-        <result property="regDate" column="reg_date"/>
-        <result property="updateDate" column="update_date"/>
-
-        <collection property="authList" resultMap="authMap"/>
+        <result property="name" column="name"/>
+        <result property="creditScore" column="credit_score"/>
+        <result property="maxMonthlyPayment" column="max_monthly_payment"/>
+        <result property="isDeleted" column="is_deleted"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="updatedBy" column="updated_by"/>
     </resultMap>
 
     <select id="get" resultMap="memberMap">
-        select m.user_id, m.username, m.password, m.email,
-               m.reg_date, m.update_date, a.auth
-        from tbl_member m
-        left outer join tbl_member_auth a
-            on m.username = a.username
-        where m.username = #{username}
+        select *
+        from users
+        where email = #{email}
     </select>
 </mapper>
