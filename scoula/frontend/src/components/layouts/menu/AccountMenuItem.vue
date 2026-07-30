@@ -1,14 +1,14 @@
 <script setup>
-const props = defineProps({ username: String });
+const props = defineProps({ email: String, name: String });
 
-const avatar = `/api/member/${props.username}/avatar`;
+const avatar = `/api/member/${props.email}/avatar`;
 </script>
 
 <template>
   <li class="nav-item">
     <router-link class="nav-link" to="/auth/profile">
       <img :src="avatar" class="avatar avatar-sm" />
-      {{ username }}
+      {{ name }}
     </router-link>
   </li>
 </template>
