@@ -6,18 +6,18 @@ const { submitting, error, submitComparison } = useComparison();
 
 // TODO: 조윤상님의 입력 화면(자금 입력 → 자격 확인 → 우대금리 확인)이 완성되면 이 하드코딩 대신
 // 그 화면에서 조립한 payload를 받아 submitComparison을 호출한다. 지금은 통합 검증용 임시 화면이라
-// 득실 계산 로직 명세서 "조건1 · 가입1개월차" 시나리오 값을 그대로 채워뒀다.
+// 득실 계산 로직 명세서 "조건1 · 가입1개월차" 시나리오 값을 팀 통합 시드(득실_시드데이터.sql) 기준으로 채워뒀다.
 const payload = reactive({
   userFinancialInfo: {
     monthlyPayment: 900000,
     creditGrade: 3,
   },
   deposit: {
-    userDepositId: 10,
+    userDepositId: 6, // 계산 검산용 예금 (원금 3,000만 / 적용 3.20% / 기본 2.40%)
     isPartialAllowed: true,
   },
   loan: {
-    loanProductId: [100],
+    loanProductId: [1], // KB스타 신용대출Ⅱ(신규)
     loanType: 'CREDIT',
     totalDiscountRate: 0,
   },
