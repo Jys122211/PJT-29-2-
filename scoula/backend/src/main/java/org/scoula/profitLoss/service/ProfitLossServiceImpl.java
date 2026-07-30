@@ -173,8 +173,12 @@ public class ProfitLossServiceImpl implements ProfitLossService {
                 .message(isBelowMinimumWage ? MINIMUM_WAGE_WARNING_MESSAGE : null)
                 .build();
 
+        String recommended = vo.getWinner() == ComparisonCalculator.Winner.WITHDRAWAL
+                ? "예금 중도해지"
+                : vo.getLoanType() == LoanType.CREDIT ? "신용대출" : "전세자금대출";
+
         ComparisonResponse.Badges badges = ComparisonResponse.Badges.builder()
-                .recommended(vo.getLoanType() == LoanType.CREDIT ? "신용대출" : "전세자금대출")
+                .recommended(recommended)
                 .isPartialAllowed(vo.getIsPartialAllowed())
                 .isLumpSum(vo.getIsLumpSum())
                 .build();

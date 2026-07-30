@@ -123,7 +123,7 @@ class ProfitLossControllerIntegrationTest {
         assertEquals(272_130L, response.getDeposit().getWithdrawalProfit());
         assertEquals(30_272_130L, response.getDeposit().getFinalBalance());
 
-        assertEquals("신용대출", response.getBadges().getRecommended());
+        assertEquals("예금 중도해지", response.getBadges().getRecommended());
         assertEquals(Boolean.TRUE, response.getBadges().getIsPartialAllowed());
         assertEquals(Boolean.TRUE, response.getBadges().getIsLumpSum());
 
