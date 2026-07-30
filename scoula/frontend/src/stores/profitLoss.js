@@ -38,7 +38,7 @@ const CREDIT_PREFERENTIAL_GROUPS = [
     options: [
       {
         value: 'OVER_900000',
-        preferentialQuestionId: 1,
+        preferentialQuestionId: 3,
         text: '최근 3개월 KB국민은행 계좌 결제 90만원 이상',
       },
       {
@@ -48,7 +48,7 @@ const CREDIT_PREFERENTIAL_GROUPS = [
       },
       {
         value: 'OVER_300000',
-        preferentialQuestionId: 3,
+        preferentialQuestionId: 1,
         text: '최근 3개월 KB국민은행 계좌 결제 30만원 이상',
       },
       {
@@ -63,32 +63,28 @@ const CREDIT_PREFERENTIAL_GROUPS = [
     type: 'YES_NO',
     title: '우대금리 (2) 급여(연금)이체 관련 실적 우대',
     preferentialQuestionId: 4,
-    text:
-      '최근 3개월 동안 본인 명의의 KB국민은행 계좌로 건별 50만원 이상의 급여 또는 연금을 2회 이상 받으셨나요?',
+    text: '최근 3개월 동안 본인 명의의 KB국민은행 계좌로 건별 50만원 이상의 급여 또는 연금을 2회 이상 받으셨나요?',
   },
   {
     id: 'SAVINGS_ACCOUNT',
     type: 'YES_NO',
     title: '우대금리 (3) 적립식예금(30만원 이상) 보유 우대',
     preferentialQuestionId: 5,
-    text:
-      'KB국민은행 적립식예금 계좌에 30만원 이상의 잔액을 보유하고 계신가요?',
+    text: 'KB국민은행 적립식예금 계좌에 30만원 이상의 잔액을 보유하고 계신가요?',
   },
   {
     id: 'AUTO_TRANSFER',
     type: 'YES_NO',
     title: '우대금리 (4) 자동이체 실적 우대',
     preferentialQuestionId: 6,
-    text:
-      'KB국민은행 계좌에서 아파트 관리비, 공과금 또는 통신비·보험료 중 회사나 기관이 정기적으로 출금하는 자동이체가 3건 이상 있으신가요?',
+    text: 'KB국민은행 계좌에서 아파트 관리비, 공과금 또는 통신비·보험료 중 회사나 기관이 정기적으로 출금하는 자동이체가 3건 이상 있으신가요?',
   },
   {
     id: 'STAR_BANKING',
     type: 'YES_NO',
     title: '우대금리 (5) KB 스타뱅킹 이용 우대',
     preferentialQuestionId: 7,
-    text:
-      'KB 스타뱅킹을 통해 월 1건 이상 이체한 실적이 있으신가요?',
+    text: 'KB 스타뱅킹을 통해 월 1건 이상 이체한 실적이 있으신가요?',
   },
 ];
 
@@ -102,15 +98,15 @@ function copyPreferentialGroups() {
 function calculateCreditGrade(score) {
   if (score === null || score < 1 || score > 1000) return null;
 
-  if (score >= 942) return 1;
-  if (score >= 891) return 2;
-  if (score >= 832) return 3;
-  if (score >= 768) return 4;
-  if (score >= 698) return 5;
-  if (score >= 630) return 6;
-  if (score >= 530) return 7;
-  if (score >= 454) return 8;
-  if (score >= 335) return 9;
+  if (score >= 900) return 1;
+  if (score >= 800) return 2;
+  if (score >= 700) return 3;
+  if (score >= 600) return 4;
+  if (score >= 500) return 5;
+  if (score >= 400) return 6;
+  if (score >= 300) return 7;
+  if (score >= 200) return 8;
+  if (score >= 100) return 9;
 
   return 10;
 }

@@ -1,30 +1,27 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
+import profitLossApi from '@/api/profitLossApi';
 import { useProfitLossStore } from '@/stores/profitLoss';
 
 const router = useRouter();
 const profitLossStore = useProfitLossStore();
+const isSubmitting = ref(false);
+const calculationError = ref('');
 
 const preferentialGroups = computed(
   () => profitLossStore.state.creditPreferential.groups,
 );
 
 const cardUsageGroup = computed(() =>
-  preferentialGroups.value.find(
-    (group) => group.type === 'SINGLE_SELECT',
-  ),
+  preferentialGroups.value.find((group) => group.type === 'SINGLE_SELECT'),
 );
 
 const yesNoGroups = computed(() =>
-  preferentialGroups.value.filter(
-    (group) => group.type === 'YES_NO',
-  ),
+  preferentialGroups.value.filter((group) => group.type === 'YES_NO'),
 );
 
-const isComplete = computed(
-  () => profitLossStore.isCreditPreferentialComplete,
-);
+const isComplete = computed(() => profitLossStore.isCreditPreferentialComplete);
 
 function selectedAnswer(groupId) {
   return profitLossStore.state.creditPreferential.answers[groupId];
@@ -43,17 +40,62 @@ function goBack() {
   router.push({ name: 'creditEligibility' });
 }
 
-function continueToNextStep() {
-  if (!isComplete.value) return;
+async function continueToNextStep() {
+  if (!isComplete.value || isSubmitting.value) return;
 
-  console.log('우대금리 계산 요청값:', {
-    loanProductIds: [
-      ...profitLossStore.state.loan.loanProductId,
-    ],
-    preferentialQuestionIds: [
-      ...profitLossStore.preferentialQuestionIds,
-    ],
-  });
+  const loanProductId = profitLossStore.state.loan.loanProductId[0];
+  const preferentialQuestionIds = [...profitLossStore.preferentialQuestionIds];
+
+  if (loanProductId == null) {
+    calculationError.value = '우대금리를 계산할 대출 상품이 없습니다.';
+    return;
+  }
+
+  isSubmitting.value = true;
+  calculationError.value = '';
+
+  try {
+    const totalDiscountRate = await profitLossApi.getFinalDiscountRate(
+      loanProductId,
+      preferentialQuestionIds,
+    );
+
+    profitLossStore.setTotalDiscountRate(Number(totalDiscountRate));
+
+    console.log('우대금리 계산 완료:', {
+      loanProductId,
+      preferentialQuestionIds,
+      totalDiscountRate: profitLossStore.state.loan.totalDiscountRate,
+    });
+
+    const comparisonResult = await profitLossApi.createComparison(
+      profitLossStore.requestPayload,
+    );
+
+    const comparisonId =
+      comparisonResult?.comparisonId ??
+      comparisonResult?.id ??
+      comparisonResult;
+
+    console.log('손익비교 요청 완료:', comparisonResult);
+
+    if (comparisonId == null || comparisonId === '') {
+      throw new Error('손익비교 응답에 comparisonId가 없습니다.');
+    }
+
+    await router.push({
+      name: 'comparisons/result',
+      params: {
+        comparisonId: String(comparisonId),
+      },
+    });
+  } catch (error) {
+    console.error('손익비교 요청 실패:', error);
+    calculationError.value =
+      '손익비교를 요청하지 못했습니다. 잠시 후 다시 시도해 주세요.';
+  } finally {
+    isSubmitting.value = false;
+  }
 }
 </script>
 
@@ -93,17 +135,12 @@ function continueToNextStep() {
                 type="button"
                 class="card-usage-option"
                 :class="{
-                  selected:
-                    selectedAnswer(cardUsageGroup.id) ===
-                    option.value,
+                  selected: selectedAnswer(cardUsageGroup.id) === option.value,
                 }"
                 :aria-pressed="
-                  selectedAnswer(cardUsageGroup.id) ===
-                  option.value
+                  selectedAnswer(cardUsageGroup.id) === option.value
                 "
-                @click="
-                  answerGroup(cardUsageGroup.id, option.value)
-                "
+                @click="answerGroup(cardUsageGroup.id, option.value)"
               >
                 <span class="radio-icon" aria-hidden="true"></span>
                 <span>{{ option.text }}</span>
@@ -128,9 +165,7 @@ function continueToNextStep() {
                 :class="{
                   selected: selectedAnswer(group.id) === true,
                 }"
-                :aria-pressed="
-                  selectedAnswer(group.id) === true
-                "
+                :aria-pressed="selectedAnswer(group.id) === true"
                 @click="answerGroup(group.id, true)"
               >
                 예
@@ -140,9 +175,7 @@ function continueToNextStep() {
                 :class="{
                   selected: selectedAnswer(group.id) === false,
                 }"
-                :aria-pressed="
-                  selectedAnswer(group.id) === false
-                "
+                :aria-pressed="selectedAnswer(group.id) === false"
                 @click="answerGroup(group.id, false)"
               >
                 아니요
@@ -152,15 +185,39 @@ function continueToNextStep() {
         </article>
       </section>
 
+      <p v-if="calculationError" class="calculation-error">
+        {{ calculationError }}
+      </p>
+
       <button
         class="next-button"
         type="button"
-        :disabled="!isComplete"
+        :disabled="!isComplete || isSubmitting"
         @click="continueToNextStep"
       >
-        {{ isComplete ? '다음' : '모든 항목에 답변해 주세요' }}
+        {{
+          isSubmitting
+            ? '손익비교 계산 중...'
+            : isComplete
+              ? '다음'
+              : '모든 항목에 답변해 주세요'
+        }}
       </button>
     </section>
+
+    <div
+      v-if="isSubmitting"
+      class="loading-overlay"
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
+    >
+      <div class="loading-card">
+        <span class="loading-spinner" aria-hidden="true"></span>
+        <strong>손익비교를 계산 중입니다</strong>
+        <p>잠시만 기다려 주세요</p>
+      </div>
+    </div>
   </main>
 </template>
 
@@ -186,6 +243,7 @@ button {
   min-height: 100vh;
   margin: 0 auto;
   overflow: hidden;
+  position: relative;
   color: var(--kb-text);
   background: #faf9f7;
 }
@@ -389,6 +447,61 @@ button {
   font-weight: 700;
   color: var(--kb-text);
   background: var(--kb-yellow);
+}
+
+.calculation-error {
+  margin: 0 0 8px;
+  flex-shrink: 0;
+  font-size: 11px;
+  color: #d32f2f;
+  text-align: center;
+}
+
+.loading-overlay {
+  position: absolute;
+  z-index: 20;
+  display: grid;
+  inset: 0;
+  padding: 24px;
+  background: rgb(41 39 37 / 34%);
+  place-items: center;
+}
+
+.loading-card {
+  display: flex;
+  width: min(280px, 100%);
+  padding: 24px 20px;
+  border-radius: 16px;
+  align-items: center;
+  flex-direction: column;
+  background: #fff;
+  box-shadow: 0 12px 36px rgb(41 39 37 / 20%);
+}
+
+.loading-card strong {
+  margin-top: 14px;
+  font-size: 14px;
+}
+
+.loading-card p {
+  margin: 5px 0 0;
+  font-size: 11px;
+  color: var(--kb-muted);
+}
+
+.loading-spinner {
+  width: 34px;
+  height: 34px;
+  border: 4px solid #f0e6cf;
+  border-top-color: var(--kb-yellow);
+  border-radius: 50%;
+  animation: loading-spin 0.8s linear infinite;
+}
+
+@keyframes loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .next-button:disabled {
