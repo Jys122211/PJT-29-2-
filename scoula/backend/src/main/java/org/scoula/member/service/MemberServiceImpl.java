@@ -34,21 +34,12 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    public MemberDTO get(String email) {
-        MemberVO member = Optional.ofNullable(mapper.get(email))
+    public MemberDTO get(Long userId) {
+        MemberVO member = Optional.ofNullable(mapper.get(userId))
                 .orElseThrow(NoSuchElementException::new);
         return MemberDTO.of(member);
     }
 
-    /**
-     * [TODO: 로그인 구현 후 삭제] 테스트용: 첫 번째 유저 정보 가져오기
-     */
-    @Override
-    public MemberDTO getFirst() {
-        MemberVO member = Optional.ofNullable(mapper.getFirst())
-                .orElseThrow(NoSuchElementException::new);
-        return MemberDTO.of(member);
-    }
 
     private void saveAvatar(MultipartFile avatar, String email) {
         //아바타 업로드
@@ -74,12 +65,12 @@ public class MemberServiceImpl implements MemberService {
 
         saveAvatar(dto.getAvatar(), member.getEmail());
 
-        return get(member.getEmail());
+        return MemberDTO.of(mapper.findByEmail(member.getEmail()));
     }
 
     @Override
     public MemberDTO update(MemberUpdateDTO member) {
-        MemberVO vo = mapper.get(member.getEmail());
+        MemberVO vo = mapper.findByEmail(member.getEmail());
         // update 시나리오에선 비밀번호 확인 로직을 생략하거나 다른 방법 필요할 수 있음
         // (member.getPassword()가 MemberUpdateDTO에 없으므로)
         // 만약 필요하다면 MemberUpdateDTO에 password 필드를 추가해야함.
@@ -92,13 +83,13 @@ public class MemberServiceImpl implements MemberService {
 
         mapper.update(member.toVO());
         saveAvatar(member.getAvatar(), member.getEmail());
-        return get(member.getEmail());
+        return MemberDTO.of(mapper.findByEmail(member.getEmail()));
 
     }
 
     @Override
     public void changePassword(ChangePasswordDTO changePassword) {
-        MemberVO member = mapper.get(changePassword.getEmail());
+        MemberVO member = mapper.findByEmail(changePassword.getEmail());
 
         if (!passwordEncoder.matches(changePassword.getOldPassword(), member.getPassword())) {
             throw new PasswordMissmatchException();
@@ -111,26 +102,26 @@ public class MemberServiceImpl implements MemberService {
 
     /**
      * 신용점수 수정
-     * @param email 유저 이메일
+     * @param userId 유저 ID
      * @param creditScore 변경할 신용점수
      * @return 업데이트된 유저 정보
      */
     @Override
-    public MemberDTO updateCreditScore(String email, Integer creditScore) {
-        mapper.updateCreditScore(email, creditScore);
-        return get(email);
+    public MemberDTO updateCreditScore(Long userId, Integer creditScore) {
+        mapper.updateCreditScore(userId, creditScore);
+        return get(userId);
     }
 
     /**
      * 월 상환 가능 금액 수정
-     * @param email 유저 이메일
+     * @param userId 유저 ID
      * @param maxMonthlyPayment 변경할 금액
      * @return 업데이트된 유저 정보
      */
     @Override
-    public MemberDTO updateMaxMonthlyPayment(String email, Integer maxMonthlyPayment) {
-        mapper.updateMaxMonthlyPayment(email, maxMonthlyPayment);
-        return get(email);
+    public MemberDTO updateMaxMonthlyPayment(Long userId, Integer maxMonthlyPayment) {
+        mapper.updateMaxMonthlyPayment(userId, maxMonthlyPayment);
+        return get(userId);
     }
 
 }
