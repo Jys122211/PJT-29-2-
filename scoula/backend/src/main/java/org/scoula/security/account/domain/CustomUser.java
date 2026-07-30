@@ -3,9 +3,11 @@ package org.scoula.security.account.domain;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 
 import java.util.Collection;
+import java.util.List;
 
 @Getter
 @Setter
@@ -18,8 +20,7 @@ public class CustomUser extends User {
     }
 
     public CustomUser(MemberVO vo) {
-        super(vo.getUsername(), vo.getPassword(), vo.getAuthList());
+        super(vo.getEmail(), vo.getPassword(), vo.getAuthList() != null ? vo.getAuthList() : List.of(new SimpleGrantedAuthority("ROLE_USER")));
         this.member = vo;
     }
-
 }

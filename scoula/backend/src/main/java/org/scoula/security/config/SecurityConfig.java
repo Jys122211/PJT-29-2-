@@ -71,8 +71,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return encodingFilter;
     }
 
-    @Override
-    public void configure(HttpSecurity http) throws Exception {
+    @Overriden
+    public void cofigure(HttpSecurity http) throws Exception {
         http.addFilterBefore(encodingFilter(), CsrfFilter.class)
                 // 인증 에러 필터
                 .addFilterBefore(authenticationErrorFilter, UsernamePasswordAuthenticationFilter.class)
