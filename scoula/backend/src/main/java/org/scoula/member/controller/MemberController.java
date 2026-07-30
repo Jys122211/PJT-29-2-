@@ -78,9 +78,9 @@ public class MemberController {
     /**
      * 이메일 중복 체크
      */
-    @GetMapping("/checkusername/{email}")
-    public ResponseEntity<Boolean> checkUsername(@PathVariable String email) {
-        return ResponseEntity.ok(service.checkDuplicate(email));
+    @GetMapping("/checkemail/{email}")
+    public ResponseEntity<Boolean> checkEmail(@PathVariable String email) {
+        return ResponseEntity.ok().body(service.checkDuplicate(email));
     }
 
     /**

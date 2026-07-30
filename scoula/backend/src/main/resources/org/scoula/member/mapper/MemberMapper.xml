@@ -5,10 +5,8 @@
 
 <mapper namespace="org.scoula.member.mapper.MemberMapper">
     <resultMap id="memberMap" type="org.scoula.security.account.domain.MemberVO">
-        <id property="username" column="username"/>
+        <id property="email" column="email"/>
         <result property="userId" column="user_id"/>
-        <result property="username" column="username"/>
-        <result property="password" column="password"/>
         <result property="email" column="email"/>
         <result property="password" column="password_hash"/>
         <result property="name" column="name"/>
@@ -52,12 +50,9 @@
     </update>
 
     <select id="get" resultMap="memberMap">
-        SELECT m.user_id, m.username, m.password, m.email,
-               m.reg_date, m.update_date, a.auth
-        FROM tbl_member m
-                 LEFT OUTER JOIN tbl_member_auth a
-                                 ON m.username = a.username
-        where m.username = #{username}
+        SELECT *
+        FROM users
+        where email = #{email}
     </select>
 
     <!-- [TODO: 로그인 구현 후 삭제] 테스트용 임시 쿼리 -->
@@ -76,19 +71,19 @@
     </select>
 
     <insert id="insert">
-        INSERT INTO tbl_member (
-            username,
-            password,
+        INSERT INTO users (
             email,
-            reg_date,
-            update_date
+            password_hash,
+            name,
+            credit_score,
+            max_monthly_payment
         )
         VALUES (
-            #{username},
-            #{password},
             #{email},
-            now(),
-            now()
+            #{password},
+            #{name},
+            #{creditScore},
+            #{maxMonthlyPayment}
         )
     </insert>
 
