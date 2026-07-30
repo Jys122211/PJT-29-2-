@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -31,7 +30,6 @@ import java.util.stream.Collectors;
 public class ProfitLossServiceImpl implements ProfitLossService {
 
     private static final ZoneId DEPOSIT_TIMEZONE = ZoneId.of("Asia/Seoul");
-    private static final int RATE_CALC_SCALE = 20;
     private static final String MINIMUM_WAGE_WARNING_MESSAGE =
             "이 차액은 최저임금 하루치보다 적어요. 인지세, 보증료, 서류발급비, 교통비 등 부대비용까지 따져보면 실질적인 이득은 적을 수 있어요.";
 
@@ -105,7 +103,7 @@ public class ProfitLossServiceImpl implements ProfitLossService {
                 .isPartialAllowed(isPartialAllowed)
                 .isLumpSum(isLumpSum)
                 .loanName(bestProduct.getProductName())
-                .loanType(bestProduct.getLoanType())
+                .loanType(request.getLoan().getLoanType())
                 .loanInterestRate(bestResult.loan().interestRate())
                 .ratePeriodMonths(bestResult.loan().ratePeriodMonths())
                 .loanInterest(bestResult.loan().interest())
@@ -142,18 +140,11 @@ public class ProfitLossServiceImpl implements ProfitLossService {
         return buildResponse(vo, deposit.getPrincipal());
     }
 
-    // 대출금리(기간) = base(기간) + spread(기간) × 등급배율 − 우대금리(기간, 사용자 적용분)
-    // 등급배율 = API_가산(사용자등급) ÷ API_가산(3등급)
+    // 대출금리(기간) = base_rate(기간·등급) + spread_rate(기간·등급) − 우대금리(기간, 사용자 적용분)
+    // credit_loan_grade_rate가 등급별 행을 직접 갖고 있어 등급배율 계산이 필요 없다.
     private static BigDecimal resolveFinalRate(LoanProductRateVO rate, BigDecimal totalDiscountRate) {
-        BigDecimal baseGradeRate = rate.getBaseGradeAverageSpreadRate();
-        // 로직 명세서 STEP 3-3 필수 방어: API_가산(3등급)이 0이거나 없으면 등급배율의 분모가 정의되지 않는다.
-        if (baseGradeRate == null || baseGradeRate.compareTo(BigDecimal.ZERO) == 0) {
-            throw new GradeRateUnavailableException("3등급 평균 가산금리가 없어 등급배율을 계산할 수 없습니다.");
-        }
-
-        BigDecimal gradeMultiplier = rate.getGradeAverageSpreadRate().divide(baseGradeRate, RATE_CALC_SCALE, RoundingMode.HALF_UP);
         return rate.getBaseRate()
-                .add(rate.getSpreadRate().multiply(gradeMultiplier))
+                .add(rate.getSpreadRate())
                 .subtract(totalDiscountRate);
     }
 

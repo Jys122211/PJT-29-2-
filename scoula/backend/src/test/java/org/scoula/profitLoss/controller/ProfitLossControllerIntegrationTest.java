@@ -136,13 +136,9 @@ class ProfitLossControllerIntegrationTest {
         return LoanProductRateVO.builder()
                 .loanProductId(100L)
                 .productName("KB STAR 신용대출")
-                .loanType(LoanType.CREDIT)
                 .ratePeriodMonths(ratePeriodMonths)
                 .baseRate(new BigDecimal(baseRate))
                 .spreadRate(BigDecimal.ZERO)
-                .preferentialRate(BigDecimal.ZERO)
-                .gradeAverageSpreadRate(BigDecimal.ONE)
-                .baseGradeAverageSpreadRate(BigDecimal.ONE)
                 .build();
     }
 }

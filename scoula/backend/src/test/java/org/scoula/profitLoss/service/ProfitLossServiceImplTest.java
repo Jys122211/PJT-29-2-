@@ -56,8 +56,8 @@ class ProfitLossServiceImplTest {
                 .build();
         when(mapper.selectUserDeposit(10L, userId)).thenReturn(deposit);
 
-        // totalDiscountRate=0, 등급배율=1(gradeAverageSpreadRate/baseGradeAverageSpreadRate 동일)이 되도록 목만들어서
-        // baseRate 자체가 최종 대출금리가 되게 한다 — LoanRateResolverTest 등에서 이미 검증된 4.81/5.19/5.71을 그대로 재사용.
+        // totalDiscountRate=0, spreadRate=0이 되도록 목만들어서 baseRate 자체가 최종 대출금리가 되게 한다
+        // — LoanRateResolverTest 등에서 이미 검증된 4.81/5.19/5.71을 그대로 재사용.
         List<LoanProductRateVO> loanRates = List.of(
                 loanRate(3, "4.81"), loanRate(6, "5.19"), loanRate(12, "5.71")
         );
@@ -131,48 +131,13 @@ class ProfitLossServiceImplTest {
         assertEquals(272_130L, response.getDeposit().getWithdrawalProfit());
     }
 
-    // 로직 명세서 STEP 3-3 필수 방어: API_가산(3등급)이 0/없음이면 등급배율을 못 구하므로 에러.
-    @Test
-    void compare_throwsGradeRateUnavailable_whenBaseGradeRateIsZero() {
-        Long userId = 1L;
-
-        when(mapper.selectUserDeposit(10L, userId)).thenReturn(UserDepositVO.builder()
-                .userDepositId(10L).userId(userId).principal(30_000_000L)
-                .maturityRate(new BigDecimal("3.2")).baseRate(new BigDecimal("2.4"))
-                .contractMonths(12).joinDate(LocalDate.now(SEOUL).minusMonths(1))
-                .build());
-
-        LoanProductRateVO brokenRate = LoanProductRateVO.builder()
-                .loanProductId(100L).productName("KB STAR 신용대출").loanType(LoanType.CREDIT)
-                .ratePeriodMonths(12).baseRate(new BigDecimal("5.71")).spreadRate(BigDecimal.ONE)
-                .preferentialRate(BigDecimal.ZERO)
-                .gradeAverageSpreadRate(BigDecimal.ONE)
-                .baseGradeAverageSpreadRate(BigDecimal.ZERO) // 3등급 가산금리 없음
-                .build();
-        when(mapper.selectLoanProducts(List.of(100L), 3)).thenReturn(List.of(brokenRate));
-
-        ComparisonRequest request = ComparisonRequest.builder()
-                .userFinancialInfo(ComparisonRequest.UserFinancialInfo.builder().monthlyPayment(900_000L).creditGrade(3).build())
-                .deposit(ComparisonRequest.DepositCondition.builder().userDepositId(10L).isPartialAllowed(true).build())
-                .loan(ComparisonRequest.LoanCondition.builder().loanProductId(List.of(100L)).loanType(LoanType.CREDIT).totalDiscountRate(BigDecimal.ZERO).build())
-                .comparisonCondition(ComparisonRequest.ComparisonCondition.builder().urgentAmount(20_000_000L).isLumpSum(true).build())
-                .build();
-
-        org.junit.jupiter.api.Assertions.assertThrows(GradeRateUnavailableException.class,
-                () -> service.compare(userId, request));
-    }
-
     private static LoanProductRateVO loanRate(int ratePeriodMonths, String baseRate) {
         return LoanProductRateVO.builder()
                 .loanProductId(100L)
                 .productName("KB STAR 신용대출")
-                .loanType(LoanType.CREDIT)
                 .ratePeriodMonths(ratePeriodMonths)
                 .baseRate(new BigDecimal(baseRate))
                 .spreadRate(BigDecimal.ZERO)
-                .preferentialRate(BigDecimal.ZERO)
-                .gradeAverageSpreadRate(BigDecimal.ONE)
-                .baseGradeAverageSpreadRate(BigDecimal.ONE)
                 .build();
     }
 }

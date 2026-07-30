@@ -28,80 +28,35 @@
           AND user_id = #{userId}
     </select>
 
-    <!--
-      TODO: user_deposit 테이블은 다른 팀원(자금 입력/자격 확인 파트) 담당이라 아직 DDL이 없다.
-      아래는 득실 계산 로직 명세서 STEP 2 "예금 데이터"가 요구하는 값을 기준으로 가정한 스키마다.
-      실제 테이블이 생기면 컬럼명을 맞춰서 고칠 것 (특히 인터페이스 계약서 미결사항 #4:
-      ERD user_deposit vs SQL 메모 user_deposits 테이블명 통일 필요).
-
-      가정 스키마:
-        user_deposit(
-          user_deposit_id BIGINT PK,
-          user_id         BIGINT,
-          product_name    VARCHAR,
-          principal       BIGINT,   -- 예금원금
-          maturity_rate   DECIMAL(5,3), -- 만기이율(우대 포함)
-          base_rate       DECIMAL(5,3), -- 기본이율(중도해지 계산용)
-          contract_months INT,      -- 계약월수
-          join_date       DATE      -- 가입일. 경과월수는 Service에서 오늘(Asia/Seoul) 기준으로 계산한다
-        )
-    -->
     <select id="selectUserDeposit" resultType="org.scoula.profitLoss.vo.UserDepositVO">
         SELECT
             user_deposit_id,
             user_id,
             product_name,
-            principal,
-            maturity_rate,
+            principal_amount                                AS principal,
+            applied_rate                                    AS maturity_rate,
             base_rate,
-            contract_months,
+            TIMESTAMPDIFF(MONTH, join_date, maturity_date)  AS contract_months,
             join_date
-        FROM user_deposit
+        FROM user_deposits
         WHERE user_deposit_id = #{userDepositId}
-          AND user_id = #{userId}
+          AND user_id         = #{userId}
+          AND is_deleted      = 'N'
     </select>
 
-    <!--
-      TODO: credit_loan_products / credit_loan_grade_rate 테이블도 다른 팀원 담당이라 아직 DDL이 없다.
-      득실 계산 로직 명세서 STEP 3 "대출 데이터"를 기준으로 가정한 스키마다.
-
-      가정 스키마:
-        credit_loan_products(
-          loan_product_id    BIGINT,
-          product_name       VARCHAR,
-          loan_type          VARCHAR,      -- CREDIT | JEONSE
-          rate_period_months INT,          -- 3 | 6 | 12 (상품당 3행)
-          base_rate          DECIMAL(5,3), -- KB 크롤링, 등급 무관
-          spread_rate        DECIMAL(5,3), -- KB 크롤링, 등급배율이 곱해지는 값
-          preferential_rate  DECIMAL(5,3), -- KB 크롤링, 등급 무관
-          PRIMARY KEY (loan_product_id, rate_period_months)
-        )
-        credit_loan_grade_rate(
-          credit_grade          TINYINT,   -- 1~4
-          average_spread_rate   DECIMAL(5,3), -- finlife API 신용등급별 평균 가산금리
-          PRIMARY KEY (credit_grade)
-        )
-
-      등급배율(Service에서 계산) = average_spread_rate(사용자등급) / average_spread_rate(3등급).
-      3등급 배율 분모가 0이거나 없으면 GRADE_RATE_UNAVAILABLE 방어가 필요하다(로직 명세서 3-3).
-      creditGrade 파라미터는 명세서 원 시그니처(selectLoanProducts(productIds))에는 없었지만,
-      등급별 가산금리를 실제로 조인하려면 어떤 등급인지 알아야 해서 추가했다.
-    -->
     <select id="selectLoanProducts" resultType="org.scoula.profitLoss.vo.LoanProductRateVO">
         SELECT
-            p.loan_product_id,
+            g.loan_product_id,
             p.product_name,
-            p.loan_type,
-            p.rate_period_months,
-            p.base_rate,
-            p.spread_rate,
-            p.preferential_rate,
-            g.average_spread_rate  AS grade_average_spread_rate,
-            g3.average_spread_rate AS base_grade_average_spread_rate
-        FROM credit_loan_products p
-        JOIN credit_loan_grade_rate g  ON g.credit_grade = #{creditGrade}
-        JOIN credit_loan_grade_rate g3 ON g3.credit_grade = 3
-        WHERE p.loan_product_id IN
+            g.rate_period_months,
+            g.base_rate,
+            g.spread_rate,
+            p.loan_limit
+        FROM credit_loan_grade_rate g
+        JOIN credit_loan_products p
+             ON p.loan_product_id = g.loan_product_id
+        WHERE g.credit_grade = #{creditGrade}
+          AND g.loan_product_id IN
         <foreach collection="productIds" item="productId" open="(" separator="," close=")">
             #{productId}
         </foreach>
