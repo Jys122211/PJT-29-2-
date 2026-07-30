@@ -22,4 +22,44 @@
         ORDER BY ud.maturity_date ASC, ud.user_deposit_id DESC
     </select>
 
+    <select id="selectQualifiedLoanProductIds"
+            parameterType="map"
+            resultType="long">
+        SELECT
+            c.loan_product_id
+        FROM credit_loan_qualification_condition c
+        WHERE
+
+        <choose>
+            <when test="qualificationQuestionIds != null
+                        and qualificationQuestionIdCount > 0">
+                c.credit_loan_qualification_condition_question_id IN
+
+                <foreach collection="qualificationQuestionIds"
+                         item="questionId"
+                         open="("
+                         separator=","
+                         close=")">
+                    #{questionId}
+                </foreach>
+            </when>
+
+            <otherwise>
+                1 = 0
+            </otherwise>
+        </choose>
+
+        GROUP BY c.loan_product_id
+
+        HAVING COUNT(
+            DISTINCT c.credit_loan_qualification_condition_question_id
+        ) = (
+            SELECT COUNT(
+                DISTINCT c2.credit_loan_qualification_condition_question_id
+            )
+            FROM credit_loan_qualification_condition c2
+            WHERE c2.loan_product_id = c.loan_product_id
+        )
+    </select>
+
 </mapper>

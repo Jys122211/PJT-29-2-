@@ -6,4 +6,6 @@ import java.util.List;
 
 public interface ProfitLossService {
     List<UserDepositDTO> getDeposits(Long userId);
+
+    List<Long> getQualifiedLoanProductIds(List<Long> qualificationQuestionIds);
 }

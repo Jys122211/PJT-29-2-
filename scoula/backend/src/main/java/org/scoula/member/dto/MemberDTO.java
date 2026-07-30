@@ -21,7 +21,6 @@ public class MemberDTO {
     private String name;
     private Integer creditScore;
     private Integer maxMonthlyPayment;
-
     private Date createdAt;
     private Date updatedAt;
 

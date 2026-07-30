@@ -3,20 +3,16 @@ package org.scoula.member.controller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.scoula.common.util.UploadFiles;
-import org.scoula.member.dto.ChangePasswordDTO;
-import org.scoula.member.dto.MemberDTO;
-import org.scoula.member.dto.MemberJoinDTO;
-import org.scoula.member.dto.MemberUpdateDTO;
+import org.scoula.member.dto.*;
 import org.scoula.member.service.MemberService;
+import org.scoula.security.account.domain.CustomUser;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.security.Principal;
-
-import org.scoula.member.dto.UpdateCreditScoreDTO;
-import org.scoula.member.dto.UpdateMaxPaymentDTO;
 
 /**
  * 회원 관리 API 컨트롤러
@@ -27,8 +23,18 @@ import org.scoula.member.dto.UpdateMaxPaymentDTO;
 @RequiredArgsConstructor
 @RequestMapping("/api/users")
 public class MemberController {
-    
+
     private final MemberService service;
+
+    private String getAuthenticatedEmail(Principal principal) {
+        if (principal instanceof Authentication) {
+            Object authenticatedPrincipal = ((Authentication) principal).getPrincipal();
+            if (authenticatedPrincipal instanceof CustomUser) {
+                return ((CustomUser) authenticatedPrincipal).getMember().getEmail();
+            }
+        }
+        return principal != null ? principal.getName() : null;
+    }
 
     /**
      * 내 프로필 정보 조회
@@ -41,7 +47,7 @@ public class MemberController {
         if (principal == null) {
             return ResponseEntity.ok(service.getFirst());
         }
-        return ResponseEntity.ok(service.get(principal.getName()));
+        return ResponseEntity.ok(service.get(getAuthenticatedEmail(principal)));
     }
 
     /**
@@ -51,7 +57,7 @@ public class MemberController {
     public ResponseEntity<MemberDTO> updateCreditScore(@RequestBody UpdateCreditScoreDTO dto, Principal principal) {
         // [TODO: 로그인 구현 후 수정] 토큰 없는 환경 폴백 삭제
         // String email = principal.getName(); 으로 변경해야 합니다.
-        String email = principal != null ? principal.getName() : service.getFirst().getEmail();
+        String email = principal != null ? getAuthenticatedEmail(principal) : service.getFirst().getEmail();
         return ResponseEntity.ok(service.updateCreditScore(email, dto.getCreditScore()));
     }
 
@@ -62,7 +68,7 @@ public class MemberController {
     public ResponseEntity<MemberDTO> updateMaxMonthlyPayment(@RequestBody UpdateMaxPaymentDTO dto, Principal principal) {
         // [TODO: 로그인 구현 후 수정] 토큰 없는 환경 폴백 삭제
         // String email = principal.getName(); 으로 변경해야 합니다.
-        String email = principal != null ? principal.getName() : service.getFirst().getEmail();
+        String email = principal != null ? getAuthenticatedEmail(principal) : service.getFirst().getEmail();
         return ResponseEntity.ok(service.updateMaxMonthlyPayment(email, dto.getMaxMonthlyPayment()));
     }
 
@@ -98,7 +104,7 @@ public class MemberController {
     public void getAvatar(@PathVariable String email, HttpServletResponse response) {
         String avatarPath = "c:/upload/avatar/" + email + ".png";
         File file = new File(avatarPath);
-        
+
         // 아바타 이미지가 없을 경우 디폴트 이미지 제공
         if (!file.exists()) {
             file = new File("C:/upload/avatar/unknown.png");
@@ -122,4 +128,6 @@ public class MemberController {
         service.changePassword(changePasswordDTO);
         return ResponseEntity.ok().build();
     }
+
+
 }
