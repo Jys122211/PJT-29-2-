@@ -62,4 +62,37 @@ export default [
       return true;
     },
   },
+  {
+    path: '/comparison/summary',
+    name: 'comparisonSummary',
+    component: () =>
+      import('@/pages/profitLoss/ComparisonSummary.vue'),
+    meta: {
+      layout: 'mobile',
+    },
+    beforeEnter: () => {
+      const profitLossStore = useProfitLossStore();
+
+      if (
+        profitLossStore.state.loan.totalDiscountRate === null
+      ) {
+        return {
+          name: 'comparisonInput',
+          replace: true,
+        };
+      }
+
+      return true;
+    },
+  },
+  {
+    path: '/comparisons/result/:comparisonId',
+    name: 'comparisons/result',
+    component: () =>
+      import('@/pages/profitLoss/ComparisonResultPage.vue'),
+    meta: {
+      layout: 'mobile',
+    },
+    props: true,
+  },
 ];
