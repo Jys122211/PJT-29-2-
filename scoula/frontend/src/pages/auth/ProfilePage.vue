@@ -151,7 +151,10 @@ const initialChar = computed(() => {
         
         <div v-if="!isEditingMaxPayment" class="data-box rounded-3 px-3 py-3 mt-3 d-flex justify-content-between align-items-center">
           <span class="text-secondary fw-semibold">현재 설정 금액</span>
-          <span class="fw-bold fs-5">{{ formatCurrency(auth.maxMonthlyPayment) }}</span>
+          <div class="text-end">
+            <div class="fw-bold fs-5" style="color: #2c4c70;">{{ (auth.maxMonthlyPayment || 0).toLocaleString() }} <span class="text-secondary fs-6">원</span></div>
+            <div class="text-secondary mt-1" style="font-size: 0.9rem;">{{ formatCurrency(auth.maxMonthlyPayment) }}</div>
+          </div>
         </div>
 
         <div v-else class="mt-3">

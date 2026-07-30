@@ -49,16 +49,35 @@ export const useAuthStore = defineStore('auth', () => {
   };
 
   load();
+  const creditScore = computed(() => state.value.user.creditScore);
+  const maxMonthlyPayment = computed(() => state.value.user.maxMonthlyPayment);
+
+  const fetchProfile = async () => {
+    try {
+      const { data } = await axios.get('/api/users/me', {
+        headers: {
+          Authorization: `Bearer ${state.value.token}`
+        }
+      });
+      state.value.user = { ...state.value.user, ...data };
+      localStorage.setItem('auth', JSON.stringify(state.value));
+    } catch (e) {
+      console.error('Failed to fetch profile', e);
+    }
+  };
 
   return {
     state,
     username,
     email,
     name,
+    creditScore,
+    maxMonthlyPayment,
     isLogin,
     changeProfile,
     login,
     logout,
     getToken,
+    fetchProfile,
   };
 });
