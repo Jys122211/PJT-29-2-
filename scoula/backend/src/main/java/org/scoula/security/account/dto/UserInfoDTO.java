@@ -14,16 +14,19 @@ import java.util.List;
 public class UserInfoDTO {
     String username;
     String email;
+    String name;
+    Integer creditScore;
+    Integer maxMonthlyPayment;
     List<String> roles;
 
     public static UserInfoDTO of(MemberVO member) {
         return new UserInfoDTO(
                 member.getUsername(),
                 member.getEmail(),
-                member.getAuthList().stream()
-                        //.map(a-> a.getAuth())
-                        .map(AuthVO::getAuth)
-                        .toList()
+                member.getName(),
+                member.getCreditScore(),
+                member.getMaxMonthlyPayment(),
+                member.getAuthList() != null ? member.getAuthList().stream().map(AuthVO::getAuth).toList() : List.of("ROLE_USER")
         );
     }
 }

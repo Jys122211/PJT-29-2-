@@ -3,15 +3,16 @@ package org.scoula.profitLoss.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.scoula.profitLoss.constant.MinimumWageConstants;
+import org.scoula.profitLoss.domain.UserDepositVO;
 import org.scoula.profitLoss.dto.ComparisonRequest;
 import org.scoula.profitLoss.dto.ComparisonResponse;
+import org.scoula.profitLoss.dto.UserDepositDTO;
 import org.scoula.profitLoss.enums.LoanType;
 import org.scoula.profitLoss.mapper.ProfitLossMapper;
 import org.scoula.profitLoss.service.calculator.ComparisonCalculator;
 import org.scoula.profitLoss.service.calculator.DepositCalculator;
 import org.scoula.profitLoss.vo.ComparisonVO;
 import org.scoula.profitLoss.vo.LoanProductRateVO;
-import org.scoula.profitLoss.vo.UserDepositVO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +23,8 @@ import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Log4j2
@@ -35,6 +38,69 @@ public class ProfitLossServiceImpl implements ProfitLossService {
 
     private final ProfitLossMapper mapper;
 
+    // ── 입력 화면 (자금 입력 → 자격 확인 → 우대금리 확인)
+
+    @Override
+    public List<UserDepositDTO> getDeposits(Long userId) {
+        log.info("getDeposits..........userId={}", userId);
+
+        return mapper.getDepositsByUserId(userId).stream()
+                .map(UserDepositDTO::of)
+                .toList();
+    }
+
+    @Override
+    public List<Long> getQualifiedLoanProductIds(List<Long> qualificationQuestionIds) {
+        List<Long> sanitizedQuestionIds = qualificationQuestionIds == null
+                ? List.of()
+                : qualificationQuestionIds.stream()
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+
+        log.info(
+                "getQualifiedLoanProductIds..........qualificationQuestionIds={}",
+                sanitizedQuestionIds
+        );
+
+        return mapper.selectQualifiedLoanProductIds(
+                sanitizedQuestionIds,
+                sanitizedQuestionIds.size()
+        );
+    }
+
+    @Override
+    public BigDecimal getFinalDiscountRate(
+            Long loanProductId,
+            List<Long> preferentialQuestionIds
+    ) {
+        if (loanProductId == null) {
+            throw new IllegalArgumentException("loanProductId는 필수입니다.");
+        }
+
+        List<Long> sanitizedQuestionIds = preferentialQuestionIds == null
+                ? List.of()
+                : preferentialQuestionIds.stream()
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+
+        log.info(
+                "getFinalDiscountRate..........loanProductId={}, preferentialQuestionIds={}",
+                loanProductId,
+                sanitizedQuestionIds
+        );
+
+        return Optional.ofNullable(
+                mapper.selectFinalDiscountRate(
+                        loanProductId,
+                        sanitizedQuestionIds
+                )
+        ).orElse(BigDecimal.ZERO);
+    }
+
+    // ── 득실 비교
+
     @Override
     @Transactional
     public ComparisonResponse compare(Long userId, ComparisonRequest request) {
@@ -42,6 +108,9 @@ public class ProfitLossServiceImpl implements ProfitLossService {
         if (deposit == null) {
             throw new DepositNotFoundException("예금을 찾을 수 없거나 본인 소유가 아닙니다.");
         }
+
+        // domain/UserDepositVO에는 contractMonths 컬럼이 없어 join_date~maturity_date로 파생시킨다.
+        int contractMonths = (int) ChronoUnit.MONTHS.between(deposit.getJoinDate(), deposit.getMaturityDate());
 
         // STEP 2 경과월수: join_date ~ 오늘, Asia/Seoul 타임존 기준 (타임존이 어긋나면 경과월수가 밀려
         // 중도해지이율 구간이 바뀐다 — CLAUDE.md에 명시된 함정)
@@ -63,8 +132,8 @@ public class ProfitLossServiceImpl implements ProfitLossService {
                 .collect(Collectors.groupingBy(LoanProductRateVO::getLoanProductId));
 
         ComparisonCalculator.DepositInput depositInput = new ComparisonCalculator.DepositInput(
-                deposit.getPrincipal(), deposit.getMaturityRate(), deposit.getBaseRate(),
-                deposit.getContractMonths(), elapsedMonths);
+                deposit.getPrincipalAmount(), deposit.getAppliedRate(), deposit.getBaseRate(),
+                contractMonths, elapsedMonths);
 
         long monthlyPayment = request.getUserFinancialInfo().getMonthlyPayment();
         boolean isPartialAllowed = Boolean.TRUE.equals(request.getDeposit().getIsPartialAllowed());
@@ -94,8 +163,8 @@ public class ProfitLossServiceImpl implements ProfitLossService {
             throw new IllegalArgumentException("비교할 대출 상품이 없습니다.");
         }
 
-        long depositMaturityAmount = deposit.getPrincipal()
-                + DepositCalculator.calculateMaturityInterest(deposit.getPrincipal(), deposit.getMaturityRate(), deposit.getContractMonths());
+        long depositMaturityAmount = deposit.getPrincipalAmount()
+                + DepositCalculator.calculateMaturityInterest(deposit.getPrincipalAmount(), deposit.getAppliedRate(), contractMonths);
 
         // "총자산" 관점의 최종 잔액 = 예금을 그대로 뒀을 때의 만기수령액(기준선) − 총손실.
         // A·B에 같은 기준선을 쓰므로 |aFinalBalance − bFinalBalance|는 항상 STEP6의 |A총손실 − B총손실|과 같다.
@@ -129,7 +198,7 @@ public class ProfitLossServiceImpl implements ProfitLossService {
 
         mapper.insertComparison(vo);
 
-        return buildResponse(vo, deposit.getPrincipal());
+        return buildResponse(vo, deposit.getPrincipalAmount());
     }
 
     @Override
@@ -146,7 +215,7 @@ public class ProfitLossServiceImpl implements ProfitLossService {
             throw new DepositNotFoundException("예금을 찾을 수 없거나 본인 소유가 아닙니다.");
         }
 
-        return buildResponse(vo, deposit.getPrincipal());
+        return buildResponse(vo, deposit.getPrincipalAmount());
     }
 
     // 대출금리(기간) = base_rate(기간·등급) + spread_rate(기간·등급) − 우대금리(기간, 사용자 적용분)

@@ -5,6 +5,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.scoula.profitLoss.domain.UserDepositVO;
 import org.scoula.profitLoss.dto.ComparisonRequest;
 import org.scoula.profitLoss.dto.ComparisonResponse;
 import org.scoula.profitLoss.enums.LoanType;
@@ -13,7 +14,6 @@ import org.scoula.profitLoss.service.ProfitLossServiceImpl;
 import org.scoula.profitLoss.service.calculator.ComparisonCalculator;
 import org.scoula.profitLoss.vo.ComparisonVO;
 import org.scoula.profitLoss.vo.LoanProductRateVO;
-import org.scoula.profitLoss.vo.UserDepositVO;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -42,15 +42,16 @@ class ProfitLossControllerIntegrationTest {
     void condition1_at1Month_postThenGet_matchesSpecValues() {
         Long userId = 1L;
 
+        LocalDate joinDate = LocalDate.now(SEOUL).minusMonths(1);
         when(mapper.selectUserDeposit(10L, userId)).thenReturn(UserDepositVO.builder()
                 .userDepositId(10L)
                 .userId(userId)
                 .productName("KB Star 정기예금")
-                .principal(30_000_000L)
-                .maturityRate(new BigDecimal("3.2"))
+                .principalAmount(30_000_000L)
+                .appliedRate(new BigDecimal("3.2"))
                 .baseRate(new BigDecimal("2.4"))
-                .contractMonths(12)
-                .joinDate(LocalDate.now(SEOUL).minusMonths(1))
+                .joinDate(joinDate)
+                .maturityDate(joinDate.plusMonths(12))
                 .build());
         when(mapper.selectLoanProducts(List.of(100L), 3)).thenReturn(List.of(
                 loanRate(3, "4.81"), loanRate(6, "5.19"), loanRate(12, "5.71")));

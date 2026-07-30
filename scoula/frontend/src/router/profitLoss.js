@@ -1,9 +1,6 @@
-import ComparisonResultPage from '@/pages/profitLoss/ComparisonResultPage.vue';
 import ComparisonSubmitPage from '@/pages/profitLoss/ComparisonSubmitPage.vue';
+import { useProfitLossStore } from '@/stores/profitLoss';
 
-// 기존 '/comparison/input' 라우트는 ProfitLossPage를 import 없이 참조하고 있어
-// 모듈 로드 시 ReferenceError로 라우터 전체가 깨지는 상태였다 (해당 컴포넌트 파일 자체가 없음).
-// 그 컴포넌트가 아직 만들어지지 않아 일단 제거했다 — 입력 화면 담당자가 만들면 다시 추가할 것.
 export default [
   {
     // TODO: 조윤상님 입력 화면(자금 입력→자격확인→우대금리확인)이 완성되면 이 라우트는 지우고
@@ -14,8 +11,97 @@ export default [
     component: ComparisonSubmitPage,
   },
   {
+    path: '/comparison/input',
+    name: 'comparisonInput',
+    component: () => import('@/pages/profitLoss/ComparisonInput.vue'),
+    meta: {
+      layout: 'mobile',
+    },
+  },
+  {
+    path: '/comparison/credit/eligibility',
+    name: 'creditEligibility',
+    component: () => import('@/pages/profitLoss/CreditEligibility.vue'),
+    meta: {
+      layout: 'mobile',
+    },
+    beforeEnter: () => {
+      const profitLossStore = useProfitLossStore();
+      const { state } = profitLossStore;
+
+      const hasPreviousInput =
+        state.deposit.userDepositId !== null &&
+        state.userFinancialInfo.creditGrade !== null &&
+        state.userFinancialInfo.creditGrade <= 4 &&
+        state.userFinancialInfo.monthlyPayment !== null &&
+        state.userFinancialInfo.monthlyPayment > 0 &&
+        state.comparisonCondition.urgentAmount > 0 &&
+        state.loan.loanType === 'CREDIT';
+
+      if (!hasPreviousInput) {
+        return {
+          name: 'comparisonInput',
+          replace: true,
+        };
+      }
+
+      return true;
+    },
+  },
+  {
+    path: '/comparison/credit/preferential',
+    name: 'creditPreferential',
+    component: () => import('@/pages/profitLoss/CreditPreferential.vue'),
+    meta: {
+      layout: 'mobile',
+    },
+    beforeEnter: () => {
+      const profitLossStore = useProfitLossStore();
+
+      if (
+        !profitLossStore.isCreditEligibilityComplete ||
+        profitLossStore.state.loan.loanProductId.length === 0
+      ) {
+        return {
+          name: 'comparisonInput',
+          replace: true,
+        };
+      }
+
+      return true;
+    },
+  },
+  {
+    path: '/comparison/summary',
+    name: 'comparisonSummary',
+    component: () =>
+      import('@/pages/profitLoss/ComparisonSummary.vue'),
+    meta: {
+      layout: 'mobile',
+    },
+    beforeEnter: () => {
+      const profitLossStore = useProfitLossStore();
+
+      if (
+        profitLossStore.state.loan.totalDiscountRate === null
+      ) {
+        return {
+          name: 'comparisonInput',
+          replace: true,
+        };
+      }
+
+      return true;
+    },
+  },
+  {
     path: '/comparisons/result/:comparisonId',
     name: 'comparisons/result',
-    component: ComparisonResultPage,
+    component: () =>
+      import('@/pages/profitLoss/ComparisonResultPage.vue'),
+    meta: {
+      layout: 'mobile',
+    },
+    props: true,
   },
 ];

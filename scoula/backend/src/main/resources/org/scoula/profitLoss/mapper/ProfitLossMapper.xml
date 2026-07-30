@@ -5,6 +5,109 @@
 
 <mapper namespace="org.scoula.profitLoss.mapper.ProfitLossMapper">
 
+    <!-- ── 입력 화면 (조윤상) -->
+
+    <select id="getDepositsByUserId"
+            resultType="org.scoula.profitLoss.domain.UserDepositVO">
+        SELECT
+            ud.user_deposit_id,
+            ud.user_id,
+            ud.bank_name,
+            ud.product_name,
+            ud.join_date,
+            ud.maturity_date,
+            ud.applied_rate,
+            ud.base_rate,
+            ud.principal_amount
+        FROM user_deposits ud
+        WHERE ud.user_id = #{userId}
+        ORDER BY ud.maturity_date ASC, ud.user_deposit_id DESC
+    </select>
+
+    <select id="selectQualifiedLoanProductIds"
+            parameterType="map"
+            resultType="long">
+        SELECT
+            c.loan_product_id
+        FROM credit_loan_qualification_condition c
+        WHERE
+
+        <choose>
+            <when test="qualificationQuestionIds != null
+                        and qualificationQuestionIdCount > 0">
+                c.credit_loan_qualification_condition_question_id IN
+
+                <foreach collection="qualificationQuestionIds"
+                         item="questionId"
+                         open="("
+                         separator=","
+                         close=")">
+                    #{questionId}
+                </foreach>
+            </when>
+
+            <otherwise>
+                1 = 0
+            </otherwise>
+        </choose>
+
+        GROUP BY c.loan_product_id
+
+        HAVING COUNT(
+            DISTINCT c.credit_loan_qualification_condition_question_id
+        ) = (
+            SELECT COUNT(
+                DISTINCT c2.credit_loan_qualification_condition_question_id
+            )
+            FROM credit_loan_qualification_condition c2
+            WHERE c2.loan_product_id = c.loan_product_id
+        )
+    </select>
+
+    <select id="selectFinalDiscountRate"
+            parameterType="map"
+            resultType="java.math.BigDecimal">
+
+        SELECT
+            LEAST(
+                COALESCE(SUM(r.discount_rate), 0),
+                p.max_discount_rate
+            ) AS final_discount_rate
+
+        FROM credit_loan_products p
+
+        LEFT JOIN credit_loan_preferential_rate r
+            ON p.loan_product_id = r.loan_product_id
+
+            <choose>
+                <when test="preferentialQuestionIds != null
+                            and preferentialQuestionIds.size() > 0">
+                    AND r.credit_loan_preferential_condition_question_id IN
+
+                    <foreach collection="preferentialQuestionIds"
+                             item="questionId"
+                             open="("
+                             separator=","
+                             close=")">
+                        #{questionId}
+                    </foreach>
+                </when>
+
+                <otherwise>
+                    AND 1 = 0
+                </otherwise>
+            </choose>
+
+        WHERE p.loan_product_id = #{loanProductId}
+
+        GROUP BY
+            p.loan_product_id,
+            p.max_discount_rate
+
+    </select>
+
+    <!-- ── 득실 비교 (안상우) -->
+
     <!-- comparisons: database.sql에 실제로 존재하는 테이블. mapUnderscoreToCamelCase=true라 resultType만으로 매핑된다. -->
     <insert id="insertComparison" parameterType="org.scoula.profitLoss.vo.ComparisonVO"
             useGeneratedKeys="true" keyProperty="comparisonId" keyColumn="comparison_id">
@@ -28,16 +131,17 @@
           AND user_id = #{userId}
     </select>
 
-    <select id="selectUserDeposit" resultType="org.scoula.profitLoss.vo.UserDepositVO">
+    <select id="selectUserDeposit" resultType="org.scoula.profitLoss.domain.UserDepositVO">
         SELECT
             user_deposit_id,
             user_id,
+            bank_name,
             product_name,
-            principal_amount                                AS principal,
-            applied_rate                                    AS maturity_rate,
+            join_date,
+            maturity_date,
+            applied_rate,
             base_rate,
-            TIMESTAMPDIFF(MONTH, join_date, maturity_date)  AS contract_months,
-            join_date
+            principal_amount
         FROM user_deposits
         WHERE user_deposit_id = #{userDepositId}
           AND user_id         = #{userId}

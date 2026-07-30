@@ -5,13 +5,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.scoula.profitLoss.domain.UserDepositVO;
 import org.scoula.profitLoss.dto.ComparisonRequest;
 import org.scoula.profitLoss.dto.ComparisonResponse;
 import org.scoula.profitLoss.enums.LoanType;
 import org.scoula.profitLoss.mapper.ProfitLossMapper;
 import org.scoula.profitLoss.service.calculator.ComparisonCalculator;
 import org.scoula.profitLoss.vo.LoanProductRateVO;
-import org.scoula.profitLoss.vo.UserDepositVO;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -44,15 +44,16 @@ class ProfitLossServiceImplTest {
     void compare_condition1_at1Month_returnsWithdrawal() {
         Long userId = 1L;
 
+        LocalDate joinDate = LocalDate.now(SEOUL).minusMonths(1);
         UserDepositVO deposit = UserDepositVO.builder()
                 .userDepositId(10L)
                 .userId(userId)
                 .productName("KB Star 정기예금")
-                .principal(30_000_000L)
-                .maturityRate(new BigDecimal("3.2"))
+                .principalAmount(30_000_000L)
+                .appliedRate(new BigDecimal("3.2"))
                 .baseRate(new BigDecimal("2.4"))
-                .contractMonths(12)
-                .joinDate(LocalDate.now(SEOUL).minusMonths(1))
+                .joinDate(joinDate)
+                .maturityDate(joinDate.plusMonths(12))
                 .build();
         when(mapper.selectUserDeposit(10L, userId)).thenReturn(deposit);
 
@@ -99,7 +100,7 @@ class ProfitLossServiceImplTest {
                 .build();
         when(mapper.selectComparisonById(1L, userId)).thenReturn(stored);
         when(mapper.selectUserDeposit(10L, userId)).thenReturn(
-                UserDepositVO.builder().userDepositId(10L).userId(userId).principal(30_000_000L).build());
+                UserDepositVO.builder().userDepositId(10L).userId(userId).principalAmount(30_000_000L).build());
 
         ComparisonResponse response = service.getComparison(userId, 1L);
 
@@ -123,7 +124,7 @@ class ProfitLossServiceImplTest {
                 .build();
         when(mapper.selectComparisonById(1L, userId)).thenReturn(stored);
         when(mapper.selectUserDeposit(10L, userId)).thenReturn(
-                UserDepositVO.builder().userDepositId(10L).userId(userId).principal(30_000_000L).build());
+                UserDepositVO.builder().userDepositId(10L).userId(userId).principalAmount(30_000_000L).build());
 
         ComparisonResponse response = service.getComparison(userId, 1L);
 
@@ -139,7 +140,7 @@ class ProfitLossServiceImplTest {
                 .build();
         when(mapper.selectComparisonById(1L, userId)).thenReturn(stored);
         when(mapper.selectUserDeposit(10L, userId)).thenReturn(
-                UserDepositVO.builder().userDepositId(10L).userId(userId).principal(30_000_000L).build());
+                UserDepositVO.builder().userDepositId(10L).userId(userId).principalAmount(30_000_000L).build());
 
         ComparisonResponse response = service.getComparison(userId, 1L);
 
@@ -176,9 +177,10 @@ class ProfitLossServiceImplTest {
         Long userId = 1L;
 
         when(mapper.selectUserDeposit(10L, userId)).thenReturn(UserDepositVO.builder()
-                .userDepositId(10L).userId(userId).principal(30_000_000L)
-                .maturityRate(new BigDecimal("3.2")).baseRate(new BigDecimal("2.4"))
-                .contractMonths(12).joinDate(LocalDate.now(SEOUL).minusMonths(1))
+                .userDepositId(10L).userId(userId).principalAmount(30_000_000L)
+                .appliedRate(new BigDecimal("3.2")).baseRate(new BigDecimal("2.4"))
+                .joinDate(LocalDate.now(SEOUL).minusMonths(1))
+                .maturityDate(LocalDate.now(SEOUL).minusMonths(1).plusMonths(12))
                 .build());
 
         List<LoanProductRateVO> loanRates = List.of(
@@ -205,9 +207,10 @@ class ProfitLossServiceImplTest {
         Long userId = 1L;
 
         when(mapper.selectUserDeposit(10L, userId)).thenReturn(UserDepositVO.builder()
-                .userDepositId(10L).userId(userId).principal(30_000_000L)
-                .maturityRate(new BigDecimal("3.2")).baseRate(new BigDecimal("2.4"))
-                .contractMonths(12).joinDate(LocalDate.now(SEOUL).minusMonths(1))
+                .userDepositId(10L).userId(userId).principalAmount(30_000_000L)
+                .appliedRate(new BigDecimal("3.2")).baseRate(new BigDecimal("2.4"))
+                .joinDate(LocalDate.now(SEOUL).minusMonths(1))
+                .maturityDate(LocalDate.now(SEOUL).minusMonths(1).plusMonths(12))
                 .build());
 
         List<LoanProductRateVO> loanRates = List.of(
