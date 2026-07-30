@@ -49,6 +49,16 @@ public class ProfitLossServiceImpl implements ProfitLossService {
 
         List<LoanProductRateVO> loanRates = mapper.selectLoanProducts(
                 request.getLoan().getLoanProductId(), request.getUserFinancialInfo().getCreditGrade());
+
+        long urgentAmount = request.getComparisonCondition().getUrgentAmount();
+
+        // 인터페이스 계약서 4장 EXCEED_LOAN_LIMIT: 여러 상품을 비교하는 구조라 하나라도 한도를 만족하면 통과시킨다.
+        long maxLoanLimit = loanRates.stream().mapToLong(LoanProductRateVO::getLoanLimit).max().orElse(0L);
+        if (urgentAmount > maxLoanLimit) {
+            throw new ExceedLoanLimitException(String.format(
+                    "필요금액이 대출 최고한도를 초과합니다. (필요 %d원 / 한도 %d원)", urgentAmount, maxLoanLimit));
+        }
+
         Map<Long, List<LoanProductRateVO>> ratesByProduct = loanRates.stream()
                 .collect(Collectors.groupingBy(LoanProductRateVO::getLoanProductId));
 
@@ -56,7 +66,6 @@ public class ProfitLossServiceImpl implements ProfitLossService {
                 deposit.getPrincipal(), deposit.getMaturityRate(), deposit.getBaseRate(),
                 deposit.getContractMonths(), elapsedMonths);
 
-        long urgentAmount = request.getComparisonCondition().getUrgentAmount();
         long monthlyPayment = request.getUserFinancialInfo().getMonthlyPayment();
         boolean isPartialAllowed = Boolean.TRUE.equals(request.getDeposit().getIsPartialAllowed());
         boolean isLumpSum = Boolean.TRUE.equals(request.getComparisonCondition().getIsLumpSum());

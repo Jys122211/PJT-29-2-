@@ -131,13 +131,78 @@ class ProfitLossServiceImplTest {
         assertEquals(272_130L, response.getDeposit().getWithdrawalProfit());
     }
 
+    // 인터페이스 계약서 4장 EXCEED_LOAN_LIMIT: 조회된 모든 상품의 loanLimit보다 필요금액이 크면 예외.
+    @Test
+    void compare_throwsExceedLoanLimit_whenUrgentAmountExceedsMaxLoanLimit() {
+        Long userId = 1L;
+
+        when(mapper.selectUserDeposit(10L, userId)).thenReturn(UserDepositVO.builder()
+                .userDepositId(10L).userId(userId).principal(30_000_000L)
+                .maturityRate(new BigDecimal("3.2")).baseRate(new BigDecimal("2.4"))
+                .contractMonths(12).joinDate(LocalDate.now(SEOUL).minusMonths(1))
+                .build());
+
+        List<LoanProductRateVO> loanRates = List.of(
+                loanRate(3, "4.81", 10_000_000L),
+                loanRate(6, "5.19", 10_000_000L),
+                loanRate(12, "5.71", 10_000_000L)
+        );
+        when(mapper.selectLoanProducts(List.of(100L), 3)).thenReturn(loanRates);
+
+        ComparisonRequest request = ComparisonRequest.builder()
+                .userFinancialInfo(ComparisonRequest.UserFinancialInfo.builder().monthlyPayment(900_000L).creditGrade(3).build())
+                .deposit(ComparisonRequest.DepositCondition.builder().userDepositId(10L).isPartialAllowed(true).build())
+                .loan(ComparisonRequest.LoanCondition.builder().loanProductId(List.of(100L)).loanType(LoanType.CREDIT).totalDiscountRate(BigDecimal.ZERO).build())
+                .comparisonCondition(ComparisonRequest.ComparisonCondition.builder().urgentAmount(20_000_000L).isLumpSum(true).build())
+                .build();
+
+        org.junit.jupiter.api.Assertions.assertThrows(ExceedLoanLimitException.class,
+                () -> service.compare(userId, request));
+    }
+
+    // 한도 이내(정확히 최고한도와 같은 경우 포함)면 예외 없이 정상적으로 계산이 진행돼야 한다.
+    @Test
+    void compare_succeeds_whenUrgentAmountEqualsMaxLoanLimit() {
+        Long userId = 1L;
+
+        when(mapper.selectUserDeposit(10L, userId)).thenReturn(UserDepositVO.builder()
+                .userDepositId(10L).userId(userId).principal(30_000_000L)
+                .maturityRate(new BigDecimal("3.2")).baseRate(new BigDecimal("2.4"))
+                .contractMonths(12).joinDate(LocalDate.now(SEOUL).minusMonths(1))
+                .build());
+
+        List<LoanProductRateVO> loanRates = List.of(
+                loanRate(3, "4.81", 20_000_000L),
+                loanRate(6, "5.19", 20_000_000L),
+                loanRate(12, "5.71", 20_000_000L)
+        );
+        when(mapper.selectLoanProducts(List.of(100L), 3)).thenReturn(loanRates);
+
+        ComparisonRequest request = ComparisonRequest.builder()
+                .userFinancialInfo(ComparisonRequest.UserFinancialInfo.builder().monthlyPayment(900_000L).creditGrade(3).build())
+                .deposit(ComparisonRequest.DepositCondition.builder().userDepositId(10L).isPartialAllowed(true).build())
+                .loan(ComparisonRequest.LoanCondition.builder().loanProductId(List.of(100L)).loanType(LoanType.CREDIT).totalDiscountRate(BigDecimal.ZERO).build())
+                .comparisonCondition(ComparisonRequest.ComparisonCondition.builder().urgentAmount(20_000_000L).isLumpSum(true).build())
+                .build();
+
+        ComparisonResponse response = service.compare(userId, request);
+
+        assertEquals(ComparisonCalculator.Winner.WITHDRAWAL, response.getWinner());
+        assertSavingAmount(299_798L, response.getSavingAmount());
+    }
+
     private static LoanProductRateVO loanRate(int ratePeriodMonths, String baseRate) {
+        return loanRate(ratePeriodMonths, baseRate, 50_000_000L);
+    }
+
+    private static LoanProductRateVO loanRate(int ratePeriodMonths, String baseRate, long loanLimit) {
         return LoanProductRateVO.builder()
                 .loanProductId(100L)
                 .productName("KB STAR 신용대출")
                 .ratePeriodMonths(ratePeriodMonths)
                 .baseRate(new BigDecimal(baseRate))
                 .spreadRate(BigDecimal.ZERO)
+                .loanLimit(loanLimit)
                 .build();
     }
 }

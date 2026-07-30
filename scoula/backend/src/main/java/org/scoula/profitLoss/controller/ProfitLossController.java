@@ -6,6 +6,7 @@ import org.scoula.profitLoss.dto.ComparisonRequest;
 import org.scoula.profitLoss.dto.ComparisonResponse;
 import org.scoula.profitLoss.service.ComparisonNotFoundException;
 import org.scoula.profitLoss.service.DepositNotFoundException;
+import org.scoula.profitLoss.service.ExceedLoanLimitException;
 import org.scoula.profitLoss.service.GradeRateUnavailableException;
 import org.scoula.profitLoss.service.ProfitLossService;
 import org.scoula.profitLoss.service.calculator.PaymentTooLowException;
@@ -50,6 +51,11 @@ public class ProfitLossController {
     @ExceptionHandler(PaymentTooLowException.class)
     public ResponseEntity<Map<String, String>> handlePaymentTooLow(PaymentTooLowException e) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorBody("PAYMENT_TOO_LOW", e.getMessage()));
+    }
+
+    @ExceptionHandler(ExceedLoanLimitException.class)
+    public ResponseEntity<Map<String, String>> handleExceedLoanLimit(ExceedLoanLimitException e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorBody("EXCEED_LOAN_LIMIT", e.getMessage()));
     }
 
     @ExceptionHandler(GradeRateUnavailableException.class)

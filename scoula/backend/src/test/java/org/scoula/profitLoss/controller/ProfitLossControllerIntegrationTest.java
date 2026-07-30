@@ -139,6 +139,7 @@ class ProfitLossControllerIntegrationTest {
                 .ratePeriodMonths(ratePeriodMonths)
                 .baseRate(new BigDecimal(baseRate))
                 .spreadRate(BigDecimal.ZERO)
+                .loanLimit(50_000_000L)
                 .build();
     }
 }
