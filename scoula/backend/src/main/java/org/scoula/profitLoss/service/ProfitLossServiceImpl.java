@@ -157,6 +157,19 @@ public class ProfitLossServiceImpl implements ProfitLossService {
                 .subtract(totalDiscountRate);
     }
 
+    // badges.recommended = "승자"의 표시명 (API 명세서). 대출 종류(CREDIT/JEONSE) 이름은
+    // winner=LOAN일 때만 의미가 있다.
+    private static String resolveRecommendedLabel(ComparisonVO vo) {
+        switch (vo.getWinner()) {
+            case LOAN:
+                return vo.getLoanType() == LoanType.CREDIT ? "신용대출" : "전세자금대출";
+            case WITHDRAWAL:
+                return "예금 중도해지";
+            default: // TIE
+                return "동일";
+        }
+    }
+
     // POST(방금 계산한 값) / GET(저장된 값 재조회) 양쪽 모두 comparisons 21컬럼 + 예금원금만으로
     // 모든 파생값을 재계산할 수 있다 — savingAmount/cost/netProfit/withdrawalProfit 어느 것도
     // 계산기 Result 객체가 따로 필요하지 않다 (아래 각 식 참고).
@@ -173,12 +186,8 @@ public class ProfitLossServiceImpl implements ProfitLossService {
                 .message(isBelowMinimumWage ? MINIMUM_WAGE_WARNING_MESSAGE : null)
                 .build();
 
-        String recommended = vo.getWinner() == ComparisonCalculator.Winner.WITHDRAWAL
-                ? "예금 중도해지"
-                : vo.getLoanType() == LoanType.CREDIT ? "신용대출" : "전세자금대출";
-
         ComparisonResponse.Badges badges = ComparisonResponse.Badges.builder()
-                .recommended(recommended)
+                .recommended(resolveRecommendedLabel(vo))
                 .isPartialAllowed(vo.getIsPartialAllowed())
                 .isLumpSum(vo.getIsLumpSum())
                 .build();

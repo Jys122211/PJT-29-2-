@@ -93,9 +93,61 @@ class ProfitLossServiceImplTest {
     @Test
     void getComparison_reconstructsDerivedFieldsFromStoredRow() {
         Long userId = 1L;
-        java.time.LocalDateTime createdAt = java.time.LocalDateTime.now(SEOUL);
 
-        org.scoula.profitLoss.vo.ComparisonVO stored = org.scoula.profitLoss.vo.ComparisonVO.builder()
+        org.scoula.profitLoss.vo.ComparisonVO stored = baseStoredComparison(userId)
+                .winner(ComparisonCalculator.Winner.WITHDRAWAL)
+                .build();
+        when(mapper.selectComparisonById(1L, userId)).thenReturn(stored);
+        when(mapper.selectUserDeposit(10L, userId)).thenReturn(
+                UserDepositVO.builder().userDepositId(10L).userId(userId).principal(30_000_000L).build());
+
+        ComparisonResponse response = service.getComparison(userId, 1L);
+
+        assertEquals(ComparisonCalculator.Winner.WITHDRAWAL, response.getWinner());
+        assertSavingAmount(299_797L, response.getSavingAmount());
+        assertEquals(839_827L, response.getLoan().getCost());
+        assertEquals(-27_667L, response.getLoan().getNetProfit());
+        assertEquals(272_130L, response.getDeposit().getWithdrawalProfit());
+        assertEquals("예금 중도해지", response.getBadges().getRecommended());
+    }
+
+    // badges.recommended는 API 명세서상 "승자"의 표시명이어야 한다 — 대출 종류(CREDIT/JEONSE)는
+    // winner=LOAN일 때만 의미가 있고, WITHDRAWAL/TIE는 각각 고정 문구여야 한다.
+    @Test
+    void getComparison_recommendsLoanTypeName_whenLoanWins() {
+        Long userId = 1L;
+
+        org.scoula.profitLoss.vo.ComparisonVO stored = baseStoredComparison(userId)
+                .winner(ComparisonCalculator.Winner.LOAN)
+                .loanType(LoanType.CREDIT)
+                .build();
+        when(mapper.selectComparisonById(1L, userId)).thenReturn(stored);
+        when(mapper.selectUserDeposit(10L, userId)).thenReturn(
+                UserDepositVO.builder().userDepositId(10L).userId(userId).principal(30_000_000L).build());
+
+        ComparisonResponse response = service.getComparison(userId, 1L);
+
+        assertEquals("신용대출", response.getBadges().getRecommended());
+    }
+
+    @Test
+    void getComparison_recommendsTieLabel_whenWinnerIsTie() {
+        Long userId = 1L;
+
+        org.scoula.profitLoss.vo.ComparisonVO stored = baseStoredComparison(userId)
+                .winner(ComparisonCalculator.Winner.TIE)
+                .build();
+        when(mapper.selectComparisonById(1L, userId)).thenReturn(stored);
+        when(mapper.selectUserDeposit(10L, userId)).thenReturn(
+                UserDepositVO.builder().userDepositId(10L).userId(userId).principal(30_000_000L).build());
+
+        ComparisonResponse response = service.getComparison(userId, 1L);
+
+        assertEquals("동일", response.getBadges().getRecommended());
+    }
+
+    private static org.scoula.profitLoss.vo.ComparisonVO.ComparisonVOBuilder baseStoredComparison(Long userId) {
+        return org.scoula.profitLoss.vo.ComparisonVO.builder()
                 .comparisonId(1L)
                 .userId(userId)
                 .userDepositId(10L)
@@ -115,20 +167,7 @@ class ProfitLossServiceImplTest {
                 .depositCancelInterest(307_098L)
                 .aFinalBalance(30_272_130L)
                 .bFinalBalance(29_972_333L)
-                .winner(ComparisonCalculator.Winner.WITHDRAWAL)
-                .createdAt(createdAt)
-                .build();
-        when(mapper.selectComparisonById(1L, userId)).thenReturn(stored);
-        when(mapper.selectUserDeposit(10L, userId)).thenReturn(
-                UserDepositVO.builder().userDepositId(10L).userId(userId).principal(30_000_000L).build());
-
-        ComparisonResponse response = service.getComparison(userId, 1L);
-
-        assertEquals(ComparisonCalculator.Winner.WITHDRAWAL, response.getWinner());
-        assertSavingAmount(299_797L, response.getSavingAmount());
-        assertEquals(839_827L, response.getLoan().getCost());
-        assertEquals(-27_667L, response.getLoan().getNetProfit());
-        assertEquals(272_130L, response.getDeposit().getWithdrawalProfit());
+                .createdAt(java.time.LocalDateTime.now(SEOUL));
     }
 
     // 인터페이스 계약서 4장 EXCEED_LOAN_LIMIT: 조회된 모든 상품의 loanLimit보다 필요금액이 크면 예외.
