@@ -30,5 +30,4 @@
             on m.username = a.username
         where m.username = #{username}
     </select>
-
 </mapper>
