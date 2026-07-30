@@ -71,8 +71,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return encodingFilter;
     }
 
-    @Override
-    public void configure(HttpSecurity http) throws Exception {
+    @Overriden
+    public void cofigure(HttpSecurity http) throws Exception {
         http.addFilterBefore(encodingFilter(), CsrfFilter.class)
                 // 인증 에러 필터
                 .addFilterBefore(authenticationErrorFilter, UsernamePasswordAuthenticationFilter.class)
@@ -95,12 +95,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http
                 .authorizeRequests() // 경로별 접근 권한 설정
                 .antMatchers(HttpMethod.OPTIONS).permitAll()
-                .antMatchers(HttpMethod.GET, "/api/users/first").permitAll()
-                // [TODO: 로그인 구현 후 수정] 내 프로필 열람 API는 실제 로그인 유저만 접근하도록 .authenticated()로 변경해야 합니다.
-                .antMatchers(HttpMethod.GET, "/api/users/me").permitAll()
-                // [TODO: 로그인 구현 후 수정] 내 프로필 수정 API는 실제 로그인 유저만 접근하도록 .authenticated()로 변경해야 합니다.
-                .antMatchers(HttpMethod.PATCH, "/api/users/me/credit-score", "/api/users/me/max-monthly-payment").permitAll()
-                .antMatchers(HttpMethod.PUT, "/api/users", "/api/users/*/changepassword").authenticated()
+                .antMatchers(HttpMethod.PUT, "/api/member", "/api/member/*/changepassword").authenticated()
+                .antMatchers(HttpMethod.GET, "/deposits/list").authenticated()
                 .antMatchers(HttpMethod.POST, "/api/board/**").authenticated()
                 .antMatchers(HttpMethod.PUT, "/api/board/**").authenticated()
                 .antMatchers(HttpMethod.DELETE, "/api/board/**").authenticated()

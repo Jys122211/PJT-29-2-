@@ -5,8 +5,10 @@
 
 <mapper namespace="org.scoula.member.mapper.MemberMapper">
     <resultMap id="memberMap" type="org.scoula.security.account.domain.MemberVO">
-        <id property="email" column="email"/>
+        <id property="username" column="username"/>
         <result property="userId" column="user_id"/>
+        <result property="username" column="username"/>
+        <result property="password" column="password"/>
         <result property="email" column="email"/>
         <result property="password" column="password_hash"/>
         <result property="name" column="name"/>
@@ -50,9 +52,12 @@
     </update>
 
     <select id="get" resultMap="memberMap">
-        SELECT *
-        FROM users
-        WHERE email = #{email} AND is_deleted = false
+        SELECT m.user_id, m.username, m.password, m.email,
+               m.reg_date, m.update_date, a.auth
+        FROM tbl_member m
+                 LEFT OUTER JOIN tbl_member_auth a
+                                 ON m.username = a.username
+        where m.username = #{username}
     </select>
 
     <!-- [TODO: 로그인 구현 후 삭제] 테스트용 임시 쿼리 -->
@@ -71,8 +76,20 @@
     </select>
 
     <insert id="insert">
-        INSERT INTO users (email, password_hash, name, credit_score, max_monthly_payment, is_deleted, created_at, updated_at)
-        VALUES (#{email}, #{password}, #{name}, #{creditScore}, #{maxMonthlyPayment}, false, now(), now())
+        INSERT INTO tbl_member (
+            username,
+            password,
+            email,
+            reg_date,
+            update_date
+        )
+        VALUES (
+            #{username},
+            #{password},
+            #{email},
+            now(),
+            now()
+        )
     </insert>
 
     <!-- 권한 테이블이 없으므로 더미로 처리하거나 삭제 가능하나 인터페이스 유지를 위해 남겨둠 -->

@@ -14,6 +14,8 @@ import java.util.List;
 @Builder
 public class MemberVO {
     private Long userId;
+    private String username;
+    private String password;
     private String email;
     private String password; // password_hash 와 매핑
     private String name;
