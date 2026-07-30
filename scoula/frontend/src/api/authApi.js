@@ -4,26 +4,20 @@ const BASE_URL = '/api/member';
 const headers = { 'Content-Type': 'multipart/form-data' };
 
 export default {
-  // email 중복 체크, true: 중복(사용불가),  false: 사용 가능
-  async checkEmail(email) {
-    const { data } = await api.get(`${BASE_URL}/checkusername/${email}`);
-    console.log('AUTH GET CHECKEMAIL', data);
-    return data;
-  },
-
-  async getMe() {
-    const { data } = await api.get(`${BASE_URL}/me`);
-    console.log('AUTH GET ME', data);
+  // username 중복 체크, true: 중복(사용불가),  false: 사용 가능
+  async checkUsername(username) {
+    const { data } = await api.get(`${BASE_URL}/checkusername/${username}`);
+    console.log('AUTH GET CHECKUSERNAME', data);
     return data;
   },
 
   async create(member) {
+    // 아바타 파일 업로드 – multipart 인코딩 필요  FormData 객체 사용
+
     const formData = new FormData();
+    formData.append('username', member.username);
     formData.append('email', member.email);
     formData.append('password', member.password);
-    formData.append('name', member.name);
-    formData.append('creditScore', member.creditScore);
-    formData.append('maxMonthlyPayment', member.maxMonthlyPayment);
 
     if (member.avatar) {
       formData.append('avatar', member.avatar);
@@ -37,18 +31,16 @@ export default {
 
   async update(member) {
     const formData = new FormData();
+    formData.append('username', member.username);
     formData.append('password', member.password);
     formData.append('email', member.email);
-    formData.append('name', member.name);
-    formData.append('creditScore', member.creditScore);
-    formData.append('maxMonthlyPayment', member.maxMonthlyPayment);
 
     if (member.avatar) {
       formData.append('avatar', member.avatar);
     }
 
     const { data } = await api.put(
-      `${BASE_URL}/${member.email}`,
+      `${BASE_URL}/${member.username}`,
       formData,
       headers,
     );
@@ -58,7 +50,7 @@ export default {
 
   async changePassword(formData) {
     const { data } = await api.put(
-      `${BASE_URL}/${formData.email}/changepassword`,
+      `${BASE_URL}/${formData.username}/changepassword`,
       formData,
     );
     console.log('AUTH PUT: ', data);
