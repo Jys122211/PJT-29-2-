@@ -13,6 +13,12 @@ onMounted(load);
 const won = (value) => (value ?? 0).toLocaleString('ko-KR');
 
 const isLoanWinner = computed(() => comparison.value?.winner === 'LOAN');
+const isDepositWinner = computed(() => comparison.value?.winner === 'WITHDRAWAL');
+const isTie = computed(() => comparison.value?.winner === 'TIE');
+
+const loanTypeLabel = computed(() =>
+  comparison.value?.loan.type === 'CREDIT' ? '신용대출' : '전세자금대출'
+);
 
 const loanDetailOpen = ref(false);
 const depositDetailOpen = ref(false);
@@ -71,10 +77,11 @@ const cancelModal = () => {
       <div class="fs-5">
         <strong>{{ won(comparison.urgentAmount) }}원</strong>이 필요할 때
       </div>
-      <div class="fs-3 fw-bold mt-1">
+      <div v-if="isTie" class="fs-3 fw-bold mt-1">두 방법의 결과가 같습니다</div>
+      <div v-else class="fs-3 fw-bold mt-1">
         가장 남는 선택은
         <span class="text-primary">{{ comparison.badges.recommended }}</span
-        >이<br class="d-block d-sm-none" />
+        ><br class="d-block d-sm-none" />
         <span class="text-primary">{{ won(comparison.savingAmount) }}원</span> 더 이득
       </div>
     </div>
@@ -153,7 +160,7 @@ const cancelModal = () => {
       <div class="col-md-6">
         <div
           class="card h-100"
-          :class="!isLoanWinner ? 'border-primary border-2 shadow-sm' : ''"
+          :class="isDepositWinner ? 'border-primary border-2 shadow-sm' : ''"
         >
           <div class="card-body">
             <div class="d-flex justify-content-between align-items-start mb-2">
@@ -161,7 +168,7 @@ const cancelModal = () => {
                 <i class="fa-solid fa-piggy-bank me-1"></i>
                 {{ comparison.deposit.name }}
               </h5>
-              <span v-if="!isLoanWinner" class="badge bg-primary">추천</span>
+              <span v-if="isDepositWinner" class="badge bg-primary">추천</span>
             </div>
 
             <div class="text-muted mb-2">중도해지이율 연 {{ comparison.deposit.cancelInterestRate }}%</div>
@@ -242,7 +249,7 @@ const cancelModal = () => {
         :class="isLoanWinner ? 'btn-primary' : 'btn-outline-secondary'"
         @click="proceed('LOAN')"
       >
-        {{ comparison.badges.recommended }}로 진행
+        {{ loanTypeLabel }}로 진행
       </button>
       <button
         type="button"
