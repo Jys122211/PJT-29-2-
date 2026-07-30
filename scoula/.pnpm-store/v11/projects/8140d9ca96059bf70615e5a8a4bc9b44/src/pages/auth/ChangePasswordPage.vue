@@ -8,7 +8,7 @@ const router = useRouter();
 const auth = useAuthStore();
 
 const changePassword = reactive({
-  username: auth.username,
+  email: auth.email,
   oldPassword: '',
   newPassword: '',
   newPassword2: '',

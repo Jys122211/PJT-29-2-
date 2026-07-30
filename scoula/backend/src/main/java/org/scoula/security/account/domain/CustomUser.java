@@ -20,7 +20,7 @@ public class CustomUser extends User {
     }
 
     public CustomUser(MemberVO vo) {
-        super(vo.getEmail(), vo.getPassword(), vo.getAuthList() != null ? vo.getAuthList() : List.of(new SimpleGrantedAuthority("ROLE_USER")));
+        super(vo.getUsername(), vo.getPassword(), vo.getAuthList() != null ? vo.getAuthList() : List.of(new SimpleGrantedAuthority("ROLE_USER")));
         this.member = vo;
     }
 }

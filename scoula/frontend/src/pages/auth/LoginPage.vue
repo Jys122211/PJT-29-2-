@@ -23,7 +23,7 @@ const login = async () => {
   } catch (e) {
     // 로그인 에러
     console.log('에러=======', e);
-    error.value = e.response.data;
+    error.value = e.response?.data || '로그인에 실패했습니다.';
   }
 };
 </script>
@@ -45,7 +45,9 @@ const login = async () => {
           type="text"
           class="form-control"
           placeholder="사용자 ID"
-          v-model="member.username"
+          id="username"
+          autocomplete="username"
+          v-model.trim="member.username"
         />
       </div>
 
@@ -58,6 +60,8 @@ const login = async () => {
           type="password"
           class="form-control"
           placeholder="비밀번호"
+          id="password"
+          autocomplete="current-password"
           v-model="member.password"
         />
       </div>

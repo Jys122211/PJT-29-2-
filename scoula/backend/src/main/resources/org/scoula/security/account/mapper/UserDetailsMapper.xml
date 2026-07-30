@@ -6,14 +6,14 @@
 <mapper namespace="org.scoula.security.account.mapper.UserDetailsMapper">
 
     <resultMap id="authMap" type="org.scoula.security.account.domain.AuthVO">
-        <result property="username" column="username"/>
-        <result property="auth" column="auth"/>
+        <id property="auth" column="auth"/>
     </resultMap>
 
     <resultMap id="memberMap" type="org.scoula.security.account.domain.MemberVO">
-        <id property="email" column="email"/>
+        <id property="username" column="username"/>
         <result property="userId" column="user_id"/>
-        <result property="password" column="password_hash"/>
+        <result property="username" column="username"/>
+        <result property="password" column="password"/>
         <result property="email" column="email"/>
         <result property="name" column="name"/>
         <result property="creditScore" column="credit_score"/>
@@ -23,11 +23,19 @@
         <result property="createdBy" column="created_by"/>
         <result property="updatedAt" column="updated_at"/>
         <result property="updatedBy" column="updated_by"/>
+        <collection property="authList" resultMap="authMap"/>
     </resultMap>
 
     <select id="get" resultMap="memberMap">
-        select *
-        from users
-        where email = #{email}
+        SELECT
+            m.user_id,
+            m.username,
+            m.password,
+            m.email,
+            a.auth
+        FROM tbl_member m
+        LEFT JOIN tbl_member_auth a
+            ON a.username = m.username
+        WHERE m.username = #{username}
     </select>
 </mapper>
