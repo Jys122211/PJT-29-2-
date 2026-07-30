@@ -1,0 +1,1 @@
+import{i as s}from"./index-DcyQnec7.js";const o="/deposits/list",i="/credit-loans/qualified",e={async getDeposits(){const{data:t}=await s.get(o);return t},async getQualifiedLoanProductIds(t){const{data:a}=await s.post(i,{qualificationQuestionIds:t});return a}};export{e as p};

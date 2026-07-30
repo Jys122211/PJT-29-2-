@@ -7,6 +7,7 @@ import org.scoula.profitLoss.mapper.ProfitLossMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 
 @Log4j2
 @Service
@@ -21,5 +22,25 @@ public class ProfitLossServiceImpl implements ProfitLossService {
         return mapper.getDepositsByUserId(userId).stream()
                 .map(UserDepositDTO::of)
                 .toList();
+    }
+
+    @Override
+    public List<Long> getQualifiedLoanProductIds(List<Long> qualificationQuestionIds) {
+        List<Long> sanitizedQuestionIds = qualificationQuestionIds == null
+                ? List.of()
+                : qualificationQuestionIds.stream()
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+
+        log.info(
+                "getQualifiedLoanProductIds..........qualificationQuestionIds={}",
+                sanitizedQuestionIds
+        );
+
+        return mapper.selectQualifiedLoanProductIds(
+                sanitizedQuestionIds,
+                sanitizedQuestionIds.size()
+        );
     }
 }

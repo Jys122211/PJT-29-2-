@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.scoula.config.RootConfig;
 import org.scoula.profitLoss.dto.UserDepositDTO;
+import org.scoula.profitLoss.mapper.ProfitLossMapper;
 import org.scoula.security.config.SecurityConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -29,6 +30,9 @@ public class ProfitLossServiceImplTest {
 
     @Autowired
     private DataSource dataSource;
+
+    @Autowired
+    private ProfitLossMapper mapper;
 
     @Test
     @DisplayName("사용자 ID가 1인 사용자의 보유예금 목록 불러오기")
@@ -56,5 +60,23 @@ public class ProfitLossServiceImplTest {
         assertEquals(expectedDepositIds, actualDepositIds);
         assertTrue(deposits.stream().allMatch(deposit -> deposit.getBalance() > 0));
         deposits.forEach(log::info);
+    }
+
+    @Test
+    @DisplayName("신청 자격 질문 ID로 조건을 만족하는 신용대출 상품 ID 불러오기")
+    public void getQualifiedLoanProductIds() {
+        List<Long> qualificationQuestionIds = List.of(1L, 2L);
+        List<Long> expectedLoanProductIds =
+                mapper.selectQualifiedLoanProductIds(
+                        qualificationQuestionIds,
+                        qualificationQuestionIds.size()
+                );
+
+        List<Long> actualLoanProductIds =
+                service.getQualifiedLoanProductIds(qualificationQuestionIds);
+
+        assertNotNull(actualLoanProductIds);
+        assertEquals(expectedLoanProductIds, actualLoanProductIds);
+        actualLoanProductIds.forEach(log::info);
     }
 }

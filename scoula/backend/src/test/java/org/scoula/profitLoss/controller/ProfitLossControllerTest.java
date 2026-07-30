@@ -86,6 +86,49 @@ class ProfitLossControllerTest {
         log.info("responseContent={}", responseContent);
     }
 
+    @Test
+    @DisplayName("신청 자격 질문 ID 1, 2로 조건을 만족하는 신용대출 상품 ID HTTP 조회")
+    void getQualifiedLoanProductIds() throws Exception {
+        List<Long> qualificationQuestionIds = List.of(1L, 2L);
+        List<Long> expectedLoanProductIds =
+                service.getQualifiedLoanProductIds(qualificationQuestionIds);
+        Authentication authentication = createAuthentication(1L);
+
+        String requestBody = new ObjectMapper().writeValueAsString(
+                java.util.Map.of(
+                        "qualificationQuestionIds",
+                        qualificationQuestionIds
+                )
+        );
+
+        String responseContent = mockMvc.perform(
+                        MockMvcRequestBuilders.post("/credit-loans/qualified")
+                                .principal(authentication)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .accept(MediaType.APPLICATION_JSON)
+                                .content(requestBody)
+                )
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        JsonNode responseBody = new ObjectMapper().readTree(responseContent);
+        assertTrue(responseBody.isArray());
+        assertEquals(expectedLoanProductIds.size(), responseBody.size());
+
+        for (int index = 0; index < responseBody.size(); index++) {
+            assertEquals(
+                    expectedLoanProductIds.get(index).longValue(),
+                    responseBody.get(index).asLong()
+            );
+        }
+
+        log.info("responseContent={}", responseContent);
+    }
+
     private Authentication createAuthentication(Long userId) {
         AuthVO memberAuthority = new AuthVO();
         memberAuthority.setUsername("deposit-user");
