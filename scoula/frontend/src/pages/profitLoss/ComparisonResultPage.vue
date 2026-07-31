@@ -331,6 +331,8 @@ button {
   padding: 18px 16px 28px;
   color: var(--gs-text);
   background: var(--gs-bg);
+  border-right: 1px solid var(--gs-line);
+  border-left: 1px solid var(--gs-line);
 }
 
 .gold {
