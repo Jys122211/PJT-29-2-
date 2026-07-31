@@ -17,17 +17,31 @@ const isEditingMaxPayment = ref(false);  // 월 상환 금액 수정 모드 여�
 
 const tempCreditScore = ref(0); // 수정 중인 신용점수 임시 저장
 const tempMaxPayment = ref(0);  // 수정 중인 월 상환 금액 임시 저장
+const creditScoreError = ref('');
 const maxPaymentError = ref('');
 
+const MAX_CREDIT_SCORE = 1000;
 const MAX_MONTHLY_AVAILABLE_AMOUNT = 100_000_000_000;
 
 const handleCreditScoreInput = (event) => {
-  const digits = String(event.target.value)
-    .replace(/[^0-9]/g, '')
-    .slice(0, 4);
+  const digits = String(event.target.value).replace(/[^0-9]/g, '');
 
-  event.target.value = digits;
-  tempCreditScore.value = digits === '' ? 0 : Number(digits);
+  if (digits === '') {
+    event.target.value = '';
+    tempCreditScore.value = 0;
+    creditScoreError.value = '';
+    return;
+  }
+
+  const inputScore = Number(digits);
+  const limitedScore = Math.min(inputScore, MAX_CREDIT_SCORE);
+
+  event.target.value = String(limitedScore);
+  tempCreditScore.value = limitedScore;
+  creditScoreError.value =
+    inputScore > MAX_CREDIT_SCORE
+      ? `신용점수는 최대 ${MAX_CREDIT_SCORE.toLocaleString('ko-KR')}점까지 입력할 수 있어요`
+      : '';
 };
 
 const handleMaxPaymentInput = (event) => {
@@ -58,11 +72,16 @@ const handleMaxPaymentInput = (event) => {
 
 // --- 신용점수 수정 관련 ---
 const editCreditScore = () => {
-  tempCreditScore.value = auth.creditScore || 0;
+  tempCreditScore.value = Math.min(
+    auth.creditScore || 0,
+    MAX_CREDIT_SCORE,
+  );
+  creditScoreError.value = '';
   isEditingCreditScore.value = true;
 };
 
 const cancelCreditScore = () => {
+  creditScoreError.value = '';
   isEditingCreditScore.value = false;
 };
 
@@ -177,17 +196,25 @@ const initialChar = computed(() => {
         <div v-else class="mt-3">
           <div class="data-box rounded-3 px-3 py-3 d-flex justify-content-between align-items-center mb-3 edit-input-wrapper">
             <span class="text-secondary fw-semibold">현재 설정 점수</span>
-            <div class="d-flex align-items-center">
-              <input
-                type="text"
-                inputmode="numeric"
-                pattern="[0-9]*"
-                maxlength="4"
-                class="form-control text-end border-0 bg-transparent fw-bold fs-5 p-0 me-1 edit-input"
-                :value="tempCreditScore"
-                @input="handleCreditScoreInput"
-              />
-              <span class="fw-bold fs-5">점</span>
+            <div class="text-end">
+              <div class="d-flex align-items-center justify-content-end">
+                <input
+                  type="text"
+                  inputmode="numeric"
+                  pattern="[0-9]*"
+                  maxlength="4"
+                  class="form-control text-end border-0 bg-transparent fw-bold fs-5 p-0 me-1 edit-input"
+                  :value="tempCreditScore"
+                  @input="handleCreditScoreInput"
+                />
+                <span class="fw-bold fs-5">점</span>
+              </div>
+              <div
+                v-if="creditScoreError"
+                class="text-danger mt-1 input-message"
+              >
+                {{ creditScoreError }}
+              </div>
             </div>
           </div>
           <div class="d-flex gap-2">
@@ -220,15 +247,15 @@ const initialChar = computed(() => {
         </div>
 
         <div v-else class="mt-3">
-          <div class="data-box rounded-3 px-3 py-3 d-flex justify-content-between align-items-center mb-3 edit-input-wrapper">
-            <span class="text-secondary fw-semibold">현재 설정 금액</span>
-            <div class="text-end">
-              <div class="d-flex align-items-center">
+          <div class="data-box rounded-3 px-3 py-3 d-flex justify-content-between align-items-center gap-3 mb-3 edit-input-wrapper">
+            <span class="text-secondary fw-semibold flex-shrink-0">현재 설정 금액</span>
+            <div class="text-end monthly-edit-value">
+              <div class="d-flex align-items-center justify-content-end">
                 <input
                   type="text"
                   inputmode="numeric"
                   pattern="[0-9]*"
-                  class="form-control text-end border-0 bg-transparent fw-bold fs-5 p-0 me-1 edit-input"
+                  class="form-control text-end border-0 bg-transparent fw-bold fs-5 p-0 me-1 edit-input amount-edit-input"
                   :value="tempMaxPayment"
                   @input="handleMaxPaymentInput"
                 />
@@ -355,6 +382,24 @@ const initialChar = computed(() => {
 .edit-input {
   width: 100px;
 }
+
+.monthly-edit-value {
+  flex: 1 1 220px;
+  min-width: 0;
+  max-width: 260px;
+}
+
+.amount-edit-input {
+  width: 190px;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.input-message {
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
 .edit-input:focus {
   box-shadow: none;
 }
