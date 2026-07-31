@@ -356,14 +356,15 @@ button {
 
 .back-button {
   display: grid;
-  width: 40px;
-  height: 40px;
-  border: 0;
-  border-radius: 12px;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--gs-line);
+  border-radius: 9px;
   flex-shrink: 0;
-  font-size: 20px;
+  font-size: 23px;
   line-height: 1;
-  color: var(--gs-text);
+  color: #716a62;
   background: #fff;
   place-items: center;
 }
@@ -373,7 +374,7 @@ button {
   font-size: 17px;
   font-weight: 700;
   flex: 1;
-  text-align: center;
+  text-align: left;
 }
 
 .header-hint {
