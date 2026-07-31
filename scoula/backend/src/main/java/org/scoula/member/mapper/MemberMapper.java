@@ -6,10 +6,7 @@ import org.scoula.security.account.domain.AuthVO;
 import org.scoula.security.account.domain.MemberVO;
 
 public interface MemberMapper {
-    MemberVO get(String email);
-
-    // [TODO: 로그인 구현 후 삭제] 테스트용 임시 메서드
-    MemberVO getFirst();
+    MemberVO get(Long userId);
 
     MemberVO findByEmail(String email);    // email 중복 체크시 사용
 
@@ -21,8 +18,8 @@ public interface MemberMapper {
 
     int updatePassword(ChangePasswordDTO changePasswordDTO);
 
-    int updateCreditScore(@Param("email") String email, @Param("creditScore") Integer creditScore);
+    int updateCreditScore(@Param("userId") Long userId, @Param("creditScore") Integer creditScore);
 
-    int updateMaxMonthlyPayment(@Param("email") String email, @Param("maxMonthlyPayment") Integer maxMonthlyPayment);
+    int updateMaxMonthlyPayment(@Param("userId") Long userId, @Param("maxMonthlyPayment") Long maxMonthlyPayment);
 
 }

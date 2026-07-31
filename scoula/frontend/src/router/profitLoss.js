@@ -1,17 +1,8 @@
-import ComparisonSubmitPage from '@/pages/profitLoss/ComparisonSubmitPage.vue';
 import { useProfitLossStore } from '@/stores/profitLoss';
 
 export default [
   {
-    // TODO: 조윤상님 입력 화면(자금 입력→자격확인→우대금리확인)이 완성되면 이 라우트는 지우고
-    // 그쪽 마지막 화면의 "비교하기" 버튼이 useComparison().submitComparison을 호출하도록 연결한다.
-    // 지금은 통합 검증용 임시 제출 화면이다.
-    path: '/comparisons/submit',
-    name: 'comparisons/submit',
-    component: ComparisonSubmitPage,
-  },
-  {
-    path: '/comparison/input',
+    path: '/comparisons/input',
     name: 'comparisonInput',
     component: () => import('@/pages/profitLoss/ComparisonInput.vue'),
     meta: {
@@ -74,17 +65,14 @@ export default [
   {
     path: '/comparison/summary',
     name: 'comparisonSummary',
-    component: () =>
-      import('@/pages/profitLoss/ComparisonSummary.vue'),
+    component: () => import('@/pages/profitLoss/ComparisonSummary.vue'),
     meta: {
       layout: 'mobile',
     },
     beforeEnter: () => {
       const profitLossStore = useProfitLossStore();
 
-      if (
-        profitLossStore.state.loan.totalDiscountRate === null
-      ) {
+      if (profitLossStore.state.loan.totalDiscountRate === null) {
         return {
           name: 'comparisonInput',
           replace: true,
@@ -97,8 +85,7 @@ export default [
   {
     path: '/comparisons/result/:comparisonId',
     name: 'comparisons/result',
-    component: () =>
-      import('@/pages/profitLoss/ComparisonResultPage.vue'),
+    component: () => import('@/pages/profitLoss/ComparisonResultPage.vue'),
     meta: {
       layout: 'mobile',
     },

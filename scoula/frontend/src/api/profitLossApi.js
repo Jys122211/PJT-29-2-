@@ -11,6 +11,11 @@ export default {
     return data;
   },
 
+  async getUserFinancialInfo() {
+    const { data } = await api.get('/api/users/me');
+    return data;
+  },
+
   async getQualifiedLoanProductIds(qualificationQuestionIds) {
     const { data } = await api.post(QUALIFIED_LOANS_URL, {
       qualificationQuestionIds,
@@ -19,10 +24,7 @@ export default {
     return data;
   },
 
-  async getFinalDiscountRate(
-    loanProductId,
-    preferentialQuestionIds,
-  ) {
+  async getFinalDiscountRate(loanProductId, preferentialQuestionIds) {
     const { data } = await api.post(PREFERENTIAL_RATE_URL, {
       loanProductId,
       preferentialQuestionIds,
@@ -31,9 +33,11 @@ export default {
     return data;
   },
 
-  async createComparison(payload) {
-    const { data } = await api.post(COMPARISONS_URL, payload);
-    console.log('COMPARISON POST: ', data);
+  async createComparison(requestPayload) {
+    const { data } = await api.post(COMPARISONS_URL, requestPayload, {
+      timeout: 30_000,
+    });
+
     return data;
   },
 
