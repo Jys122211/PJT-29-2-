@@ -3,6 +3,7 @@ import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import profitLossApi from '@/api/profitLossApi';
 import { useProfitLossStore } from '@/stores/profitLoss';
+import AlertModal from '@/components/AlertModal.vue';
 
 const router = useRouter();
 const profitLossStore = useProfitLossStore();
@@ -200,31 +201,13 @@ async function continueToNextStep() {
       </button>
     </section>
 
-    <Teleport to="body">
-      <div
-        v-if="isResultModalOpen"
-        class="eligibility-modal-overlay"
-        @click.self="closeResultModal"
-      >
-        <section
-          class="eligibility-modal"
-          role="alertdialog"
-          aria-modal="true"
-          aria-labelledby="eligibility-modal-title"
-          aria-describedby="eligibility-modal-message"
-        >
-          <h2 id="eligibility-modal-title">
-            {{ resultModalTitle }}
-          </h2>
-          <p id="eligibility-modal-message">
-            {{ resultModalMessage }}
-          </p>
-          <button type="button" @click="closeResultModal">
-            확인
-          </button>
-        </section>
-      </div>
-    </Teleport>
+    <AlertModal
+      :visible="isResultModalOpen"
+      :title="resultModalTitle"
+      :message="resultModalMessage"
+      @confirm="closeResultModal"
+      @close="closeResultModal"
+    />
   </main>
 </template>
 
@@ -385,49 +368,5 @@ button {
 .next-button:disabled {
   color: #8c857a;
   background: #ddd5c3;
-}
-
-.eligibility-modal-overlay {
-  position: fixed;
-  z-index: 1000;
-  inset: 0;
-  display: grid;
-  padding: 24px;
-  background: rgb(41 39 37 / 45%);
-  place-items: center;
-}
-
-.eligibility-modal {
-  width: 100%;
-  max-width: 320px;
-  padding: 24px 20px 18px;
-  border-radius: 16px;
-  color: #292725;
-  background: #fff;
-  box-shadow: 0 16px 40px rgb(0 0 0 / 18%);
-  text-align: center;
-}
-
-.eligibility-modal h2 {
-  margin: 0;
-  font-size: 17px;
-  font-weight: 700;
-}
-
-.eligibility-modal p {
-  margin: 10px 0 20px;
-  font-size: 13px;
-  line-height: 1.6;
-  color: #716a62;
-}
-
-.eligibility-modal button {
-  width: 100%;
-  height: 44px;
-  border: 0;
-  border-radius: 11px;
-  font-weight: 700;
-  color: #292725;
-  background: var(--kb-yellow, #ffbc00);
 }
 </style>

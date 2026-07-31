@@ -1,8 +1,8 @@
 import api from '@/api';
 
-const DEPOSITS_URL = '/deposits/list';
-const QUALIFIED_LOANS_URL = '/credit-loans/qualified';
-const PREFERENTIAL_RATE_URL = '/credit-loans/preferential-rate';
+const DEPOSITS_URL = '/api/deposits/list';
+const QUALIFIED_LOANS_URL = '/api/credit-loans/qualified';
+const PREFERENTIAL_RATE_URL = '/api/credit-loans/preferential-rate';
 const COMPARISONS_URL = '/api/comparisons';
 
 // 전세대출
