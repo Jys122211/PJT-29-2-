@@ -39,29 +39,20 @@
         UPDATE users
         SET credit_score = #{creditScore},
             updated_at = now()
-        WHERE email = #{email}
+        WHERE user_id = #{userId}
     </update>
 
     <update id="updateMaxMonthlyPayment">
         UPDATE users
         SET max_monthly_payment = #{maxMonthlyPayment},
             updated_at = now()
-        WHERE email = #{email}
+        WHERE user_id = #{userId}
     </update>
 
     <select id="get" resultMap="memberMap">
         SELECT *
         FROM users
-        where email = #{email}
-    </select>
-
-    <!-- [TODO: 로그인 구현 후 삭제] 테스트용 임시 쿼리 -->
-    <select id="getFirst" resultMap="memberMap">
-        SELECT *
-        FROM users
-        WHERE is_deleted = false
-        ORDER BY user_id ASC
-        LIMIT 1
+        where user_id = #{userId}
     </select>
 
     <select id="findByEmail" resultMap="memberMap">

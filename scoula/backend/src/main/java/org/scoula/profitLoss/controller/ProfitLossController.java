@@ -2,14 +2,19 @@ package org.scoula.profitLoss.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.scoula.profitLoss.dto.CreditLoanPreferentialRateRequestDTO;
+import org.scoula.profitLoss.dto.CreditLoanQualificationRequestDTO;
 import org.scoula.profitLoss.dto.UserDepositDTO;
 import org.scoula.profitLoss.service.ProfitLossService;
 import org.scoula.security.account.domain.CustomUser;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -23,5 +28,28 @@ public class ProfitLossController {
         CustomUser authenticatedUser = (CustomUser) authentication.getPrincipal();
         Long userId = authenticatedUser.getMember().getUserId();
         return ResponseEntity.ok(service.getDeposits(userId));
+    }
+
+    @PostMapping("/credit-loans/qualified")
+    public ResponseEntity<List<Long>> getQualifiedLoanProductIds(
+            @RequestBody CreditLoanQualificationRequestDTO request
+    ) {
+        return ResponseEntity.ok(
+                service.getQualifiedLoanProductIds(
+                        request.getQualificationQuestionIds()
+                )
+        );
+    }
+
+    @PostMapping("/credit-loans/preferential-rate")
+    public ResponseEntity<BigDecimal> getFinalDiscountRate(
+            @RequestBody CreditLoanPreferentialRateRequestDTO request
+    ) {
+        return ResponseEntity.ok(
+                service.getFinalDiscountRate(
+                        request.getLoanProductId(),
+                        request.getPreferentialQuestionIds()
+                )
+        );
     }
 }

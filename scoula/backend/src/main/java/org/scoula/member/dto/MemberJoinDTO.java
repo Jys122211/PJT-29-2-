@@ -16,7 +16,7 @@ public class MemberJoinDTO {
     private String password;
     private String name;
     private Integer creditScore;
-    private Integer maxMonthlyPayment;
+    private Long maxMonthlyPayment;
 
     private MultipartFile avatar;
 

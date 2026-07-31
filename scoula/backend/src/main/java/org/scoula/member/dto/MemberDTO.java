@@ -20,8 +20,7 @@ public class MemberDTO {
     private String email;
     private String name;
     private Integer creditScore;
-    private Integer maxMonthlyPayment;
-
+    private Long maxMonthlyPayment;
     private Date createdAt;
     private Date updatedAt;
 

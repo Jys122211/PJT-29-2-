@@ -12,14 +12,16 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserInfoDTO {
+    String username;
     String email;
     String name;
     Integer creditScore;
-    Integer maxMonthlyPayment;
+    Long maxMonthlyPayment;
     List<String> roles;
 
     public static UserInfoDTO of(MemberVO member) {
         return new UserInfoDTO(
+                member.getUsername(),
                 member.getEmail(),
                 member.getName(),
                 member.getCreditScore(),

@@ -14,7 +14,7 @@ public class MemberUpdateDTO {
     private String email;
     private String name;
     private Integer creditScore;
-    private Integer maxMonthlyPayment;
+    private Long maxMonthlyPayment;
 
     public MemberVO toVO() {
         return MemberVO.builder()

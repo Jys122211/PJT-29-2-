@@ -43,13 +43,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (bearerToken != null && bearerToken.startsWith(BEARER_PREFIX)) {
             String token = bearerToken.substring(BEARER_PREFIX.length());
 
-            // [TODO: 로그인 구현 후 삭제] 프론트엔드 테스트용 가짜 토큰("demo-token")은 무시 (401 에러 방지)
-            // 나중에 실제 토큰만 사용하게 되면 아래 if(! "demo-token" ...) 감싸는 부분을 제거해야 합니다.
-            if (!"demo-token".equals(token)) {
-                // 토큰에서 사용자 정보 추출 및 Authentication 객체 구성 후 SecurityContext에 저장
-                Authentication authentication = getAuthentication(token);
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-            }
+            // 토큰에서 사용자 정보 추출 및 Authentication 객체 구성 후 SecurityContext에 저장
+            Authentication authentication = getAuthentication(token);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
         }
 
         super.doFilter(request, response, filterChain);
