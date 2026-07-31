@@ -40,4 +40,10 @@ export default {
 
     return data;
   },
+
+  async getComparison(id) {
+    const { data } = await api.get(`${COMPARISONS_URL}/${id}`);
+    console.log('COMPARISON GET: ', data);
+    return data;
+  },
 };
