@@ -8,6 +8,14 @@ const router = useRouter();
 const profitLossStore = useProfitLossStore();
 const isSubmitting = ref(false);
 const calculationError = ref('');
+const showReturnToInput = ref(false);
+
+const NEXT_STEP_GUIDE = {
+  PAYMENT_TOO_LOW: '월 상환 가능 금액을 늘리거나 필요 금액을 줄여보세요.',
+  EXCEED_LOAN_LIMIT: '필요 금액을 줄이거나 다른 대출 상품을 선택해 보세요.',
+  DEPOSIT_NOT_FOUND: '예금을 다시 선택해 주세요.',
+  GRADE_RATE_UNAVAILABLE: '잠시 후 다시 시도해 주세요.',
+};
 
 const preferentialGroups = computed(
   () => profitLossStore.state.creditPreferential.groups,
@@ -53,6 +61,7 @@ async function continueToNextStep() {
 
   isSubmitting.value = true;
   calculationError.value = '';
+  showReturnToInput.value = false;
 
   try {
     const totalDiscountRate = await profitLossApi.getFinalDiscountRate(
@@ -91,11 +100,23 @@ async function continueToNextStep() {
     });
   } catch (error) {
     console.error('손익비교 요청 실패:', error);
-    calculationError.value =
-      '손익비교를 요청하지 못했습니다. 잠시 후 다시 시도해 주세요.';
+
+    const status = error.response?.status;
+    const code = error.response?.data?.code;
+    const serverMessage = error.response?.data?.message;
+    const guide = NEXT_STEP_GUIDE[code] ?? '잠시 후 다시 시도해 주세요.';
+
+    calculationError.value = `${
+      serverMessage ?? '손익비교를 요청하지 못했습니다.'
+    } ${guide}`;
+    showReturnToInput.value = status === 400 || status === 404;
   } finally {
     isSubmitting.value = false;
   }
+}
+
+function returnToInput() {
+  router.push({ name: 'comparisonInput' });
 }
 </script>
 
@@ -188,6 +209,15 @@ async function continueToNextStep() {
       <p v-if="calculationError" class="calculation-error">
         {{ calculationError }}
       </p>
+
+      <button
+        v-if="showReturnToInput"
+        type="button"
+        class="return-to-input-button"
+        @click="returnToInput"
+      >
+        입력 화면으로 돌아가기
+      </button>
 
       <button
         class="next-button"
@@ -457,6 +487,18 @@ button {
   font-size: 11px;
   color: #d32f2f;
   text-align: center;
+}
+
+.return-to-input-button {
+  width: 100%;
+  height: 44px;
+  margin-bottom: 8px;
+  border: 1px solid var(--kb-border);
+  border-radius: 11px;
+  flex-shrink: 0;
+  font-weight: 700;
+  color: var(--kb-text);
+  background: #fff;
 }
 
 .loading-overlay {
