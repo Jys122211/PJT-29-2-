@@ -249,21 +249,23 @@ async function compareProfitLoss() {
     });
   } catch (error) {
     console.error('신용점수 업데이트 실패:', error);
-    alert('월 상환 가능 금액 수정에 실패했습니다.');
-  }
-
-  if (profitLossStore.state.loan.loanType === 'CREDIT') {
-    router.push({ name: 'creditEligibility' });
+    alert('신용점수 수정에 실패했습니다.');
     return;
   }
 
   try {
     await api.patch('/api/users/me/max-monthly-payment', {
-      maxMonthlyPayment: monthlyAmountModel.value,
+      maxMonthlyPayment: monthlyAvailableAmount.value,
     });
   } catch (error) {
     console.error('월 상환 가능 금액 업데이트 실패:', error);
     alert('월 상환 가능 금액 수정에 실패했습니다.');
+    return;
+  }
+
+  if (profitLossStore.state.loan.loanType === 'CREDIT') {
+    router.push({ name: 'creditEligibility' });
+    return;
   }
 
   // 추후 백엔드가 구현되면:
