@@ -11,14 +11,17 @@ import org.springframework.web.multipart.MultipartFile;
 @AllArgsConstructor
 public class MemberUpdateDTO {
     MultipartFile avatar;
-    private String username;
-    private String password;
     private String email;
+    private String name;
+    private Integer creditScore;
+    private Long maxMonthlyPayment;
 
     public MemberVO toVO() {
         return MemberVO.builder()
-                .username(username)
                 .email(email)
+                .name(name)
+                .creditScore(creditScore)
+                .maxMonthlyPayment(maxMonthlyPayment)
                 .build();
     }
 }

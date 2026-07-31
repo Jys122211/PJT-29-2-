@@ -9,9 +9,9 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class UserDepositVO {
     private Long userDepositId;
     private Long userId;
@@ -19,7 +19,7 @@ public class UserDepositVO {
     private String productName;
     private LocalDate joinDate;
     private LocalDate maturityDate;
-    private BigDecimal baseRate;
     private BigDecimal appliedRate;
+    private BigDecimal baseRate;
     private Long principalAmount;
 }

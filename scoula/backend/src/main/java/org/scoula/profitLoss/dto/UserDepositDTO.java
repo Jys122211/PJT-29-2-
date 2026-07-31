@@ -1,6 +1,5 @@
 package org.scoula.profitLoss.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,33 +8,44 @@ import org.scoula.profitLoss.domain.UserDepositVO;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
+import java.time.Period;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class UserDepositDTO {
-    private Long userDepositId;
+    private Long id;
     private String bankName;
     private String productName;
-    private Long principalAmount;
+    private LocalDate joinDate;
+    private LocalDate maturityDate;
+    private BigDecimal interestRate;
     private BigDecimal baseRate;
-    private BigDecimal appliedRate;
-    private String maturityDate;
-    @JsonProperty("dDay")
-    private long dDay;
+    private Long balance;
+    private String maturityText;
 
     public static UserDepositDTO of(UserDepositVO vo) {
         return UserDepositDTO.builder()
-                .userDepositId(vo.getUserDepositId())
+                .id(vo.getUserDepositId())
                 .bankName(vo.getBankName())
                 .productName(vo.getProductName())
-                .principalAmount(vo.getPrincipalAmount())
+                .joinDate(vo.getJoinDate())
+                .maturityDate(vo.getMaturityDate())
+                .interestRate(vo.getAppliedRate())
                 .baseRate(vo.getBaseRate())
-                .appliedRate(vo.getAppliedRate())
-                .maturityDate(vo.getMaturityDate().toString())  // "2026-10-16" — 포맷은 프론트에서
-                .dDay(ChronoUnit.DAYS.between(LocalDate.now(), vo.getMaturityDate()))
+                .balance(vo.getPrincipalAmount())
+                .maturityText(makeMaturityText(vo.getJoinDate()))
                 .build();
+    }
+
+    private static String makeMaturityText(LocalDate joinDate) {
+        if (joinDate == null) {
+            return "";
+        }
+
+        Period elapsed = Period.between(joinDate, LocalDate.now());
+        long elapsedMonths = Math.max(0, elapsed.toTotalMonths());
+        return String.format("가입 %d개월 경과", elapsedMonths);
     }
 }

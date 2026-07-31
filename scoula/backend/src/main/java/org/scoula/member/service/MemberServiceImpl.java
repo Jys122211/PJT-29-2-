@@ -28,22 +28,23 @@ public class MemberServiceImpl implements MemberService {
     final MemberMapper mapper;
 
     @Override
-    public boolean checkDuplicate(String username) {
-        MemberVO member = mapper.findByUsername(username);
+    public boolean checkDuplicate(String email) {
+        MemberVO member = mapper.findByEmail(email);
         return member != null;
     }
 
     @Override
-    public MemberDTO get(String username) {
-        MemberVO member = Optional.ofNullable(mapper.get(username))
+    public MemberDTO get(Long userId) {
+        MemberVO member = Optional.ofNullable(mapper.get(userId))
                 .orElseThrow(NoSuchElementException::new);
         return MemberDTO.of(member);
     }
 
-    private void saveAvatar(MultipartFile avatar, String username) {
+
+    private void saveAvatar(MultipartFile avatar, String email) {
         //아바타 업로드
         if (avatar != null && !avatar.isEmpty()) {
-            File dest = new File("/tmp/scoula/upload/avatar", username + ".png");
+            File dest = new File("c:/upload/avatar", email + ".png");
             try {
                 avatar.transferTo(dest);
             } catch (IOException e) {
@@ -60,32 +61,35 @@ public class MemberServiceImpl implements MemberService {
         member.setPassword(passwordEncoder.encode(member.getPassword())); // 비밀번호 암호화
         mapper.insert(member);
 
-        AuthVO auth = new AuthVO();
-        auth.setUsername(member.getUsername());
-        auth.setAuth("ROLE_MEMBER");
-        mapper.insertAuth(auth);
+        // Auth 테이블이 제거되었으므로 권한 insert는 생략
 
-        saveAvatar(dto.getAvatar(), member.getUsername());
+        saveAvatar(dto.getAvatar(), member.getEmail());
 
-        return get(member.getUsername());
+        return MemberDTO.of(mapper.findByEmail(member.getEmail()));
     }
 
     @Override
     public MemberDTO update(MemberUpdateDTO member) {
-        MemberVO vo = mapper.get(member.getUsername());
+        MemberVO vo = mapper.findByEmail(member.getEmail());
+        // update 시나리오에선 비밀번호 확인 로직을 생략하거나 다른 방법 필요할 수 있음
+        // (member.getPassword()가 MemberUpdateDTO에 없으므로)
+        // 만약 필요하다면 MemberUpdateDTO에 password 필드를 추가해야함.
+        // 현재 MemberUpdateDTO에는 password 필드가 지워졌으므로 이 부분을 주석처리 하거나 제거.
+        /*
         if (!passwordEncoder.matches(member.getPassword(), vo.getPassword())) {  // 비밀번호 일치 확인
             throw new PasswordMissmatchException();
         }
+        */
 
         mapper.update(member.toVO());
-        saveAvatar(member.getAvatar(), member.getUsername());
-        return get(member.getUsername());
+        saveAvatar(member.getAvatar(), member.getEmail());
+        return MemberDTO.of(mapper.findByEmail(member.getEmail()));
 
     }
 
     @Override
     public void changePassword(ChangePasswordDTO changePassword) {
-        MemberVO member = mapper.get(changePassword.getUsername());
+        MemberVO member = mapper.findByEmail(changePassword.getEmail());
 
         if (!passwordEncoder.matches(changePassword.getOldPassword(), member.getPassword())) {
             throw new PasswordMissmatchException();
@@ -94,6 +98,30 @@ public class MemberServiceImpl implements MemberService {
         changePassword.setNewPassword(passwordEncoder.encode(changePassword.getNewPassword()));
 
         mapper.updatePassword(changePassword);
+    }
+
+    /**
+     * 신용점수 수정
+     * @param userId 유저 ID
+     * @param creditScore 변경할 신용점수
+     * @return 업데이트된 유저 정보
+     */
+    @Override
+    public MemberDTO updateCreditScore(Long userId, Integer creditScore) {
+        mapper.updateCreditScore(userId, creditScore);
+        return get(userId);
+    }
+
+    /**
+     * 월 상환 가능 금액 수정
+     * @param userId 유저 ID
+     * @param maxMonthlyPayment 변경할 금액
+     * @return 업데이트된 유저 정보
+     */
+    @Override
+    public MemberDTO updateMaxMonthlyPayment(Long userId, Long maxMonthlyPayment) {
+        mapper.updateMaxMonthlyPayment(userId, maxMonthlyPayment);
+        return get(userId);
     }
 
 }

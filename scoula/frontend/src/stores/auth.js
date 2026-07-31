@@ -1,12 +1,15 @@
-import { ref, computed, reactive } from 'vue';
+import { ref, computed } from 'vue';
 import { defineStore } from 'pinia';
 import axios from 'axios';
 
 const initState = {
   token: '', // 접근 토큰(JWT)
   user: {
-    username: '', // 사용자 ID
+    username: '', // 로그인 ID
     email: '', // Email
+    name: '',
+    creditScore: null,
+    maxMonthlyPayment: null,
     roles: [], // 권한 목록
   },
 };
@@ -16,9 +19,9 @@ export const useAuthStore = defineStore('auth', () => {
 
   const isLogin = computed(() => !!state.value.user.username); // 로그인 여부
 
-  const username = computed(() => state.value.user.username); // 로그인 사용자 ID
-
+  const username = computed(() => state.value.user.username);
   const email = computed(() => state.value.user.email); // 로그인 사용자 email
+  const name = computed(() => state.value.user.name);
   const login = async (member) => {
     const { data } = await axios.post('/api/auth/login', member);
     state.value = { ...data };
@@ -46,15 +49,35 @@ export const useAuthStore = defineStore('auth', () => {
   };
 
   load();
+  const creditScore = computed(() => state.value.user.creditScore);
+  const maxMonthlyPayment = computed(() => state.value.user.maxMonthlyPayment);
+
+  const fetchProfile = async () => {
+    try {
+      const { data } = await axios.get('/api/users/me', {
+        headers: {
+          Authorization: `Bearer ${state.value.token}`
+        }
+      });
+      state.value.user = { ...state.value.user, ...data };
+      localStorage.setItem('auth', JSON.stringify(state.value));
+    } catch (e) {
+      console.error('Failed to fetch profile', e);
+    }
+  };
 
   return {
     state,
     username,
     email,
+    name,
+    creditScore,
+    maxMonthlyPayment,
     isLogin,
     changeProfile,
     login,
     logout,
     getToken,
+    fetchProfile,
   };
 });

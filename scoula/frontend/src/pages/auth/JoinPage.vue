@@ -9,7 +9,6 @@ const checkError = ref('');
 
 const member = reactive({
   // 테스트용 초기화
-  username: 'hong',
   email: 'hong@gmail.com',
   password: '12',
   password2: '12',
@@ -18,24 +17,24 @@ const member = reactive({
 
 const disableSubmit = ref(true);
 
-// username 중복 체크
-const checkUsername = async () => {
-  if (!member.username) {
-    return alert('사용자 ID를 입력하세요.');
+// email 중복 체크
+const checkEmail = async () => {
+  if (!member.email) {
+    return alert('이메일을 입력하세요.');
   }
 
-  disableSubmit.value = await authApi.checkUsername(member.username);
+  disableSubmit.value = await authApi.checkEmail(member.email);
   console.log(disableSubmit.value, typeof disableSubmit.value);
   checkError.value = disableSubmit.value
-    ? '이미 사용중인 ID입니다.'
-    : '사용가능한 ID입니다.';
+    ? '이미 사용중인 이메일입니다.'
+    : '사용가능한 이메일입니다.';
 };
 
-// username 입력 핸들러
-const changeUsername = () => {
+// email 입력 핸들러
+const changeEmail = () => {
   disableSubmit.value = true;
-  if (member.username) {
-    checkError.value = 'ID 중복 체크를 하셔야 합니다.';
+  if (member.email) {
+    checkError.value = '이메일 중복 체크를 하셔야 합니다.';
   } else {
     checkError.value = '';
   }
@@ -68,31 +67,6 @@ const join = async () => {
 
     <form @submit.prevent="join">
       <div class="mb-3 mt-3">
-        <label for="username" class="form-label">
-          <i class="fa-solid fa-user"></i>
-          사용자 ID :
-          <button
-            type="button"
-            class="btn btn-success btn-sm py-0 me-2"
-            @click="checkUsername"
-          >
-            ID 중복 확인
-          </button>
-
-          <span :class="disableSubmit ? 'text-danger' : 'text-primary'">{{
-            checkError
-          }}</span>
-        </label>
-        <input
-          type="text"
-          class="form-control"
-          placeholder="사용자 ID"
-          id="username"
-          @input="changeUsername"
-          v-model="member.username"
-        />
-      </div>
-      <div>
         <label for="avatar" class="form-label">
           <i class="fa-solid fa-user-astronaut"></i>
           아바타 이미지:
@@ -109,13 +83,24 @@ const join = async () => {
       <div class="mb-3 mt-3">
         <label for="email" class="form-label">
           <i class="fa-solid fa-envelope"></i>
-          email
+          이메일 :
+          <button
+            type="button"
+            class="btn btn-success btn-sm py-0 me-2"
+            @click="checkEmail"
+          >
+            이메일 중복 확인
+          </button>
+          <span :class="disableSubmit ? 'text-danger' : 'text-primary'">{{
+            checkError
+          }}</span>
         </label>
         <input
           type="email"
           class="form-control"
           placeholder="Email"
           id="email"
+          @input="changeEmail"
           v-model="member.email"
         />
       </div>

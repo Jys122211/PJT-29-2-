@@ -1,7 +1,7 @@
 <script setup>
-const props = defineProps({ username: String });
+const props = defineProps({ username: String, email: String });
 
-const avatar = `/api/member/${props.username}/avatar`;
+const avatar = `/api/users/${props.email}/avatar`;
 </script>
 
 <template>

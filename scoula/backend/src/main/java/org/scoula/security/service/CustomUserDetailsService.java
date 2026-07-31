@@ -22,7 +22,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         MemberVO vo = mapper.get(username);
         if (vo == null) {
-            throw new UsernameNotFoundException(username + "은 없는 id입니다.");
+            throw new UsernameNotFoundException(username + "은 없는 username입니다.");
         }
 
         return new CustomUser(vo);
