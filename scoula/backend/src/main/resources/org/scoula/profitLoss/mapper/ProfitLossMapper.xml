@@ -5,4 +5,12 @@
 
 <mapper namespace="org.scoula.profitLoss.mapper.ProfitLossMapper">
 
+    <select id="getDepositsByUser" resultType="org.scoula.profitLoss.domain.UserDepositVO">
+        select user_deposit_id, user_id, bank_name, product_name,
+               join_date, maturity_date, base_rate, applied_rate, principal_amount
+        from user_deposits
+        where user_id = #{userId}
+          and is_deleted = 'N'
+        order by maturity_date asc
+    </select>
 </mapper>

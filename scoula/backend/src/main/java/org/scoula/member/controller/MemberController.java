@@ -33,10 +33,10 @@ public class MemberController {
 
     @GetMapping("/{username}/avatar")
     public void getAvatar(@PathVariable String username, HttpServletResponse response) {
-        String avatarPath = "c:/upload/avatar/" + username + ".png";
+        String avatarPath = "/tmp/scoula/upload/avatar/" + username + ".png";
         File file = new File(avatarPath);
         if (!file.exists()) {  // 아바타 등록이 없는 경우, 디폴트 아바타 이미지 사용
-            file = new File("C:/upload/avatar/unknown.png");
+            file = new File("/tmp/scoula/upload/avatar/unknown.png");
         }
 
         UploadFiles.downloadImage(response, file);

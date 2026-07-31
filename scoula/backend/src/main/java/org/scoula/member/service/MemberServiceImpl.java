@@ -43,7 +43,7 @@ public class MemberServiceImpl implements MemberService {
     private void saveAvatar(MultipartFile avatar, String username) {
         //아바타 업로드
         if (avatar != null && !avatar.isEmpty()) {
-            File dest = new File("c:/upload/avatar", username + ".png");
+            File dest = new File("/tmp/scoula/upload/avatar", username + ".png");
             try {
                 avatar.transferTo(dest);
             } catch (IOException e) {
