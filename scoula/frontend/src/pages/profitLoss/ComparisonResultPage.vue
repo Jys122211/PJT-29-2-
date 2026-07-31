@@ -312,17 +312,17 @@ button {
 }
 
 .result-page {
-  --gs-bg: #f4f4f2;
+  --gs-bg: #faf9f7;
   --gs-card: #ffffff;
-  --gs-text: #1a1a1a;
-  --gs-text-sub: #8a8a8a;
-  --gs-gold: #c9a227;
-  --gs-gold-soft: #f5efd9;
-  --gs-gold-deep: #b9a77a;
+  --gs-text: #292725;
+  --gs-text-sub: #9a938a;
+  --gs-gold: #ffbc00;
+  --gs-gold-soft: #fff8df;
+  --gs-gold-deep: #c8bfae;
   --gs-warn-bg: #fdecef;
   --gs-warn-line: #ffb8d6;
   --gs-warn-text: #99295a;
-  --gs-line: #ededed;
+  --gs-line: #e9e0d2;
 
   width: 100%;
   max-width: 390px;
@@ -412,7 +412,7 @@ button {
 }
 
 .badge-recommended {
-  color: #fff;
+  color: var(--gs-text);
   background: var(--gs-gold-deep);
 }
 
@@ -467,7 +467,7 @@ button {
   padding: 3px 10px;
   border-radius: 999px;
   font-size: 12px;
-  color: #fff;
+  color: var(--gs-text);
   background: var(--gs-gold);
 }
 
@@ -534,7 +534,7 @@ button {
 .detail-note {
   margin: 8px 0 0;
   font-size: 10px;
-  color: #d32f2f;
+  color: #e54848;
 }
 
 /* 5. 바 차트 */
@@ -578,7 +578,7 @@ button {
 }
 
 .chart-bar-fill.gray {
-  background: #c9c9c9;
+  background: var(--gs-gold-deep);
 }
 
 /* 6. 월 예상 상환액 */
@@ -614,15 +614,15 @@ button {
 }
 
 .proceed-button {
-  height: 48px;
-  border-radius: 12px;
+  height: 54px;
+  border-radius: 13px;
   flex: 1;
   font-weight: 700;
 }
 
 .proceed-button.primary {
   border: 0;
-  color: #fff;
+  color: var(--gs-text);
   background: var(--gs-gold);
 }
 
@@ -659,7 +659,7 @@ button {
   margin: 0;
   font-size: 16px;
   font-weight: 700;
-  color: #d32f2f;
+  color: #e54848;
 }
 
 .modal-card p {
@@ -691,7 +691,7 @@ button {
 .modal-confirm {
   border: 0;
   color: #fff;
-  background: #d32f2f;
+  background: #e54848;
 }
 
 /* 로딩 / 에러 */
@@ -734,7 +734,7 @@ button {
   padding: 10px 20px;
   border: 0;
   border-radius: 12px;
-  color: #fff;
+  color: var(--gs-text);
   background: var(--gs-gold);
 }
 </style>
