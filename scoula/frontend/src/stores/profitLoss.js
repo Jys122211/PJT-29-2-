@@ -28,6 +28,21 @@ const CREDIT_ELIGIBILITY_QUESTIONS = [
   },
 ];
 
+const JEONSE_COMPARISON_CONDITIONS = [
+  {
+    id: 'jeonse_comp_1',
+    type: 'COMPARISON_CONDITION',
+    requestField: 'IS_PARTIAL_ALLOWED',
+    text: '분할 인출이 가능한가요? (계좌별 3회(해지 포함)이내 가능)',
+  },
+  {
+    id: 'jeonse_comp_2',
+    type: 'COMPARISON_CONDITION',
+    requestField: 'IS_LUMP_SUM',
+    text: '예금이 만기되면, 만기에 예금으로 대출을 갚으실 예정인가요?',
+  },
+];
+
 const CREDIT_PREFERENTIAL_GROUPS = [
   {
     id: 'CARD_USAGE',
@@ -148,6 +163,17 @@ function createInitialState() {
       groups: copyPreferentialGroups(),
       answers: {},
     },
+
+    // 전세대출 데이터 구조 추가
+    jeonseEligibility: {
+      questions: [],
+      answers: {},
+    },
+
+    jeonsePreferential: {
+      items: [],
+      answers: {},
+    },
   };
 }
 
@@ -222,6 +248,31 @@ export const useProfitLossStore = defineStore('profitLoss', () => {
         ? typeof answer === 'string'
         : typeof answer === 'boolean';
     }),
+  );
+
+  // 전세대출 Computed
+  const jeonseQualificationQuestionIds = computed(() =>
+    state.jeonseEligibility.questions
+      .filter((question) => question.type === 'QUALIFICATION' && state.jeonseEligibility.answers[question.id] === true)
+      .map((question) => question.id),
+  );
+
+  const jeonsePreferentialQuestionIds = computed(() =>
+    state.jeonsePreferential.items
+      .filter((item) => state.jeonsePreferential.answers[item.id] === true)
+      .map((item) => item.id),
+  );
+
+  const isJeonseEligibilityComplete = computed(() =>
+    state.jeonseEligibility.questions.every(
+      (question) => typeof state.jeonseEligibility.answers[question.id] === 'boolean'
+    )
+  );
+
+  const isJeonsePreferentialComplete = computed(() =>
+    state.jeonsePreferential.items.every(
+      (item) => typeof state.jeonsePreferential.answers[item.id] === 'boolean'
+    )
   );
 
   // action
@@ -315,6 +366,40 @@ export const useProfitLossStore = defineStore('profitLoss', () => {
     state.loan.totalDiscountRate = null;
   };
 
+  // 전세대출 Actions
+  const setJeonseEligibilityQuestions = (questions) => {
+    const apiQuestions = Array.isArray(questions)
+      ? questions.map((q) => ({ ...q, type: 'QUALIFICATION' }))
+      : [];
+    state.jeonseEligibility.questions = [...apiQuestions, ...JEONSE_COMPARISON_CONDITIONS];
+  };
+
+  const setJeonsePreferentialItems = (items) => {
+    state.jeonsePreferential.items = Array.isArray(items) ? items : [];
+  };
+
+  const setJeonseEligibilityAnswer = (questionId, answer) => {
+    const question = state.jeonseEligibility.questions.find((q) => q.id === questionId);
+    if (!question || typeof answer !== 'boolean') return;
+    
+    state.jeonseEligibility.answers[questionId] = answer;
+
+    if (question.requestField === 'IS_PARTIAL_ALLOWED') {
+      state.deposit.isPartialAllowed = answer;
+    }
+
+    if (question.requestField === 'IS_LUMP_SUM') {
+      state.comparisonCondition.isLumpSum = answer;
+    }
+  };
+
+  const setJeonsePreferentialAnswer = (itemId, answer) => {
+    const item = state.jeonsePreferential.items.find((i) => i.id === itemId);
+    if (!item || typeof answer !== 'boolean') return;
+    state.jeonsePreferential.answers[itemId] = answer;
+    state.loan.totalDiscountRate = null;
+  };
+
   const reset = () => {
     Object.assign(state, createInitialState());
   };
@@ -338,6 +423,14 @@ export const useProfitLossStore = defineStore('profitLoss', () => {
     setLumpSum,
     setCreditEligibilityAnswer,
     setCreditPreferentialAnswer,
+    jeonseQualificationQuestionIds,
+    jeonsePreferentialQuestionIds,
+    isJeonseEligibilityComplete,
+    isJeonsePreferentialComplete,
+    setJeonseEligibilityQuestions,
+    setJeonsePreferentialItems,
+    setJeonseEligibilityAnswer,
+    setJeonsePreferentialAnswer,
     reset,
   };
 });
