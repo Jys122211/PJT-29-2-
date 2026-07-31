@@ -135,6 +135,9 @@ const cancelModal = () => {
         <div class="card compare-card" :class="{ winner: isDepositWinner }">
           <span v-if="isDepositWinner" class="winner-tag">추천</span>
           <p class="compare-title">① 중도 또는 부분해지 <span class="info-icon">ⓘ</span></p>
+          <p v-if="comparison.deposit.name" class="compare-product" :title="comparison.deposit.name">
+            {{ comparison.deposit.name }}
+          </p>
           <p class="compare-amount">{{ won(comparison.deposit.finalBalance) }}원</p>
 
           <div class="compare-divider"></div>
@@ -162,6 +165,9 @@ const cancelModal = () => {
         <div class="card compare-card" :class="{ winner: isLoanWinner }">
           <span v-if="isLoanWinner" class="winner-tag">추천</span>
           <p class="compare-title">② {{ loanTypeLabel }} · 예금 유지</p>
+          <p v-if="comparison.loan.name" class="compare-product" :title="comparison.loan.name">
+            {{ comparison.loan.name }}
+          </p>
           <p class="compare-amount">{{ won(comparison.loan.finalBalance) }}원</p>
 
           <div class="compare-divider"></div>
@@ -486,6 +492,18 @@ button {
   margin: 0;
   font-size: 13px;
   color: var(--gs-text-sub);
+}
+
+.compare-product {
+  margin: 2px 0 0;
+  min-height: calc(11px * 1.35 * 2);
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--gs-text-sub);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .info-icon {
