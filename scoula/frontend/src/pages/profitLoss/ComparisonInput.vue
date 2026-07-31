@@ -87,9 +87,7 @@ function handleCreditScoreInput(event) {
     .slice(0, 4);
 
   input.value = numbers;
-  profitLossStore.setCreditScore(
-    numbers === '' ? null : Number(numbers),
-  );
+  profitLossStore.setCreditScore(numbers === '' ? null : Number(numbers));
 }
 
 const monthlyAmountModel = computed(() =>
@@ -208,8 +206,7 @@ const isMonthlyAmountValid = computed(
 
 const selectedDeposit = computed(() =>
   deposits.value.find(
-    (deposit) =>
-      deposit.id === profitLossStore.state.deposit.userDepositId,
+    (deposit) => deposit.id === profitLossStore.state.deposit.userDepositId,
   ),
 );
 
@@ -241,14 +238,31 @@ function registerAsset() {
   console.log('자산 등록 페이지로 이동');
 }
 
-function compareProfitLoss() {
+async function compareProfitLoss() {
   if (!canCompare.value) return;
 
   console.log('손익 비교 요청:', profitLossStore.requestPayload);
+  try {
+    await api.patch('/api/users/me/credit-score', {
+      creditScore: creditScore.value,
+    });
+  } catch (error) {
+    console.error('신용점수 업데이트 실패:', error);
+    alert('월 상환 가능 금액 수정에 실패했습니다.');
+  }
 
   if (profitLossStore.state.loan.loanType === 'CREDIT') {
     router.push({ name: 'creditEligibility' });
     return;
+  }
+
+  try {
+    await api.patch('/api/users/me/max-monthly-payment', {
+      maxMonthlyPayment: monthlyAmountModel.value,
+    });
+  } catch (error) {
+    console.error('월 상환 가능 금액 업데이트 실패:', error);
+    alert('월 상환 가능 금액 수정에 실패했습니다.');
   }
 
   // 추후 백엔드가 구현되면:
@@ -364,9 +378,7 @@ onMounted(loadDeposits);
             </span>
 
             <span
-              v-if="
-                profitLossStore.state.deposit.userDepositId === deposit.id
-              "
+              v-if="profitLossStore.state.deposit.userDepositId === deposit.id"
               class="check-icon"
             >
               ✓
@@ -447,9 +459,7 @@ onMounted(loadDeposits);
             :class="{
               selected: profitLossStore.state.loan.loanType === 'JEONSE',
             }"
-            :aria-pressed="
-              profitLossStore.state.loan.loanType === 'JEONSE'
-            "
+            :aria-pressed="profitLossStore.state.loan.loanType === 'JEONSE'"
             @click="profitLossStore.setLoanType('JEONSE')"
           >
             전세대출
@@ -460,9 +470,7 @@ onMounted(loadDeposits);
             :class="{
               selected: profitLossStore.state.loan.loanType === 'CREDIT',
             }"
-            :aria-pressed="
-              profitLossStore.state.loan.loanType === 'CREDIT'
-            "
+            :aria-pressed="profitLossStore.state.loan.loanType === 'CREDIT'"
             @click="profitLossStore.setLoanType('CREDIT')"
           >
             신용대출

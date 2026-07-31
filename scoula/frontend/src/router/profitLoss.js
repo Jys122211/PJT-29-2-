@@ -2,7 +2,7 @@ import { useProfitLossStore } from '@/stores/profitLoss';
 
 export default [
   {
-    path: '/comparison/input',
+    path: '/comparisons/input',
     name: 'comparisonInput',
     component: () => import('@/pages/profitLoss/ComparisonInput.vue'),
     meta: {
@@ -65,17 +65,14 @@ export default [
   {
     path: '/comparison/summary',
     name: 'comparisonSummary',
-    component: () =>
-      import('@/pages/profitLoss/ComparisonSummary.vue'),
+    component: () => import('@/pages/profitLoss/ComparisonSummary.vue'),
     meta: {
       layout: 'mobile',
     },
     beforeEnter: () => {
       const profitLossStore = useProfitLossStore();
 
-      if (
-        profitLossStore.state.loan.totalDiscountRate === null
-      ) {
+      if (profitLossStore.state.loan.totalDiscountRate === null) {
         return {
           name: 'comparisonInput',
           replace: true,
@@ -88,8 +85,7 @@ export default [
   {
     path: '/comparisons/result/:comparisonId',
     name: 'comparisons/result',
-    component: () =>
-      import('@/pages/profitLoss/ComparisonResultPage.vue'),
+    component: () => import('@/pages/profitLoss/ComparisonResultPage.vue'),
     meta: {
       layout: 'mobile',
     },
