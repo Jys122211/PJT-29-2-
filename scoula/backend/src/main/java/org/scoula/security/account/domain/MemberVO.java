@@ -19,7 +19,7 @@ public class MemberVO {
     private String password; // password_hash 와 매핑
     private String name;
     private Integer creditScore;
-    private Integer maxMonthlyPayment;
+    private Long maxMonthlyPayment;
     private Boolean isDeleted;
     private Date createdAt;
     private String createdBy;

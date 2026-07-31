@@ -20,6 +20,6 @@ public interface MemberMapper {
 
     int updateCreditScore(@Param("userId") Long userId, @Param("creditScore") Integer creditScore);
 
-    int updateMaxMonthlyPayment(@Param("userId") Long userId, @Param("maxMonthlyPayment") Integer maxMonthlyPayment);
+    int updateMaxMonthlyPayment(@Param("userId") Long userId, @Param("maxMonthlyPayment") Long maxMonthlyPayment);
 
 }

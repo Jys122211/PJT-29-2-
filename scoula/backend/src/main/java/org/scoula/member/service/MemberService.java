@@ -18,6 +18,6 @@ public interface MemberService {
 
     MemberDTO updateCreditScore(Long userId, Integer creditScore);
 
-    MemberDTO updateMaxMonthlyPayment(Long userId, Integer maxMonthlyPayment);
+    MemberDTO updateMaxMonthlyPayment(Long userId, Long maxMonthlyPayment);
 
 }
