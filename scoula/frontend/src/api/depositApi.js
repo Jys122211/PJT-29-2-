@@ -3,7 +3,7 @@ import api from '@/api';
 const BASE_URL = '/api/deposits';
 
 /**
- * 백엔드가 완성되기 전까지 화면 개발용 목 데이터를 사용합니다.
+ * 백엔드가 완성되기 전까지 화면 개발용 Mock 데이터를 사용합니다.
  * 백엔드 연동 시 false 로만 바꾸면 됩니다.
  */
 export const USE_MOCK = true;
