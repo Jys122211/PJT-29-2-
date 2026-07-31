@@ -3,6 +3,10 @@
 * {
   font-family: 'Noto Sans KR';
 }
+
+html body {
+  background: #f3ede2;
+}
 .avatar {
   border-radius: 50%;
   border-color: gray;

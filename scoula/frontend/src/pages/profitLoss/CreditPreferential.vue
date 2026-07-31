@@ -246,6 +246,8 @@ button {
   position: relative;
   color: var(--kb-text);
   background: #faf9f7;
+  border-right: 1px solid #e9e0d2;
+  border-left: 1px solid #e9e0d2;
 }
 
 .preferential-content {

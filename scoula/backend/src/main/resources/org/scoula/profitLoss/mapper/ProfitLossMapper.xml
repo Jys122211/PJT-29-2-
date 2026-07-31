@@ -5,6 +5,8 @@
 
 <mapper namespace="org.scoula.profitLoss.mapper.ProfitLossMapper">
 
+    <!-- ── 입력 화면 (조윤상) -->
+
     <select id="getDepositsByUserId"
             resultType="org.scoula.profitLoss.domain.UserDepositVO">
         SELECT
@@ -102,6 +104,66 @@
             p.loan_product_id,
             p.max_discount_rate
 
+    </select>
+
+    <!-- ── 득실 비교 (안상우) -->
+
+    <!-- comparisons: database.sql에 실제로 존재하는 테이블. mapUnderscoreToCamelCase=true라 resultType만으로 매핑된다. -->
+    <insert id="insertComparison" parameterType="org.scoula.profitLoss.vo.ComparisonVO"
+            useGeneratedKeys="true" keyProperty="comparisonId" keyColumn="comparison_id">
+        INSERT INTO comparisons (
+            user_id, user_deposit_id, urgent_amount, monthly_payment,
+            is_partial_allowed, is_lump_sum, loan_name, loan_type, loan_interest_rate, rate_period_months,
+            loan_interest, loan_penalty, deposit_name, deposit_maintain_interest, deposit_cancel_interest_rate,
+            deposit_cancel_interest, a_final_balance, b_final_balance, winner, created_at
+        ) VALUES (
+            #{userId}, #{userDepositId}, #{urgentAmount}, #{monthlyPayment},
+            #{isPartialAllowed}, #{isLumpSum}, #{loanName}, #{loanType}, #{loanInterestRate}, #{ratePeriodMonths},
+            #{loanInterest}, #{loanPenalty}, #{depositName}, #{depositMaintainInterest}, #{depositCancelInterestRate},
+            #{depositCancelInterest}, #{aFinalBalance}, #{bFinalBalance}, #{winner}, #{createdAt}
+        )
+    </insert>
+
+    <select id="selectComparisonById" resultType="org.scoula.profitLoss.vo.ComparisonVO">
+        SELECT *
+        FROM comparisons
+        WHERE comparison_id = #{comparisonId}
+          AND user_id = #{userId}
+    </select>
+
+    <select id="selectUserDeposit" resultType="org.scoula.profitLoss.domain.UserDepositVO">
+        SELECT
+            user_deposit_id,
+            user_id,
+            bank_name,
+            product_name,
+            join_date,
+            maturity_date,
+            applied_rate,
+            base_rate,
+            principal_amount
+        FROM user_deposits
+        WHERE user_deposit_id = #{userDepositId}
+          AND user_id         = #{userId}
+          AND is_deleted      = 'N'
+    </select>
+
+    <select id="selectLoanProducts" resultType="org.scoula.profitLoss.vo.LoanProductRateVO">
+        SELECT
+            g.loan_product_id,
+            p.product_name,
+            g.rate_period_months,
+            g.base_rate,
+            g.spread_rate,
+            p.loan_limit
+        FROM credit_loan_grade_rate g
+        JOIN credit_loan_products p
+             ON p.loan_product_id = g.loan_product_id
+        WHERE g.credit_grade = #{creditGrade}
+          AND g.loan_product_id IN
+        <foreach collection="productIds" item="productId" open="(" separator="," close=")">
+            #{productId}
+        </foreach>
     </select>
 
 </mapper>
