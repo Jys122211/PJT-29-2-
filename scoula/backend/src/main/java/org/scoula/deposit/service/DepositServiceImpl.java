@@ -22,11 +22,10 @@ import java.util.stream.Collectors;
 public class DepositServiceImpl implements DepositService {
 
     private final DepositMapper mapper;
-    private final LoginUser loginUser;
 
     @Override
     public DepositListDTO getList() {
-        Long userId = loginUser.getUserId();
+        Long userId = LoginUser.getUserId();
 
         List<UserDepositVO> list = mapper.getList(userId);
 
@@ -43,12 +42,12 @@ public class DepositServiceImpl implements DepositService {
 
     @Override
     public int getCount() {
-        return mapper.getCount(loginUser.getUserId());
+        return mapper.getCount(LoginUser.getUserId());
     }
 
     @Override
     public DepositDTO get(Long userDepositId) {
-        UserDepositVO vo = mapper.get(userDepositId, loginUser.getUserId());
+        UserDepositVO vo = mapper.get(userDepositId, LoginUser.getUserId());
 
         if (vo == null) {
             throw new DepositNotFoundException();
@@ -61,7 +60,7 @@ public class DepositServiceImpl implements DepositService {
     public Long create(DepositRequestDTO request) {
         request.validate();
 
-        Long userId = loginUser.getUserId();
+        Long userId = LoginUser.getUserId();
 
         UserDepositVO vo = request.toVO();
         vo.setGlobalId(UUID.randomUUID().toString());   // 글로벌 ID는 서버에서 생성
@@ -79,7 +78,7 @@ public class DepositServiceImpl implements DepositService {
     public void update(Long userDepositId, DepositRequestDTO request) {
         request.validate();
 
-        Long userId = loginUser.getUserId();
+        Long userId = LoginUser.getUserId();
 
         UserDepositVO vo = request.toVO();
         vo.setUserDepositId(userDepositId);
@@ -96,7 +95,7 @@ public class DepositServiceImpl implements DepositService {
     @Transactional
     @Override
     public void delete(Long userDepositId) {
-        if (mapper.softDelete(userDepositId, loginUser.getUserId()) == 0) {
+        if (mapper.softDelete(userDepositId, LoginUser.getUserId()) == 0) {
             throw new DepositNotFoundException();
         }
         log.info("예금 삭제 완료 : userDepositId={}", userDepositId);
