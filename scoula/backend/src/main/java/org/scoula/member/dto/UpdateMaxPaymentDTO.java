@@ -8,5 +8,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UpdateMaxPaymentDTO {
-    private Integer maxMonthlyPayment;
+    private Long maxMonthlyPayment;
 }

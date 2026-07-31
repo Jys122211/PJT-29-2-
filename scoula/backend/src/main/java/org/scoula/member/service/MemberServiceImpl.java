@@ -119,7 +119,7 @@ public class MemberServiceImpl implements MemberService {
      * @return 업데이트된 유저 정보
      */
     @Override
-    public MemberDTO updateMaxMonthlyPayment(Long userId, Integer maxMonthlyPayment) {
+    public MemberDTO updateMaxMonthlyPayment(Long userId, Long maxMonthlyPayment) {
         mapper.updateMaxMonthlyPayment(userId, maxMonthlyPayment);
         return get(userId);
     }
