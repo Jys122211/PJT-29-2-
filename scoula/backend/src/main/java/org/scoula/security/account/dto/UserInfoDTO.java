@@ -16,7 +16,7 @@ public class UserInfoDTO {
     String email;
     String name;
     Integer creditScore;
-    Integer maxMonthlyPayment;
+    Long maxMonthlyPayment;
     List<String> roles;
 
     public static UserInfoDTO of(MemberVO member) {
