@@ -47,14 +47,14 @@ public class ProfitLossController {
 
     // ── 입력 화면 (조윤상)
 
-    @GetMapping("/deposits/list")
+    @GetMapping("/api/deposits/list")
     public ResponseEntity<List<UserDepositDTO>> getDeposits(Authentication authentication) {
         CustomUser authenticatedUser = (CustomUser) authentication.getPrincipal();
         Long userId = authenticatedUser.getMember().getUserId();
         return ResponseEntity.ok(service.getDeposits(userId));
     }
 
-    @PostMapping("/credit-loans/qualified")
+    @PostMapping("/api/credit-loans/qualified")
     public ResponseEntity<List<Long>> getQualifiedLoanProductIds(
             @RequestBody CreditLoanQualificationRequestDTO request
     ) {
@@ -65,7 +65,7 @@ public class ProfitLossController {
         );
     }
 
-    @PostMapping("/credit-loans/preferential-rate")
+    @PostMapping("/api/credit-loans/preferential-rate")
     public ResponseEntity<BigDecimal> getFinalDiscountRate(
             @RequestBody CreditLoanPreferentialRateRequestDTO request
     ) {
