@@ -349,7 +349,7 @@ onMounted(async () => {
 
     <!-- 목 모드 전용 : OCR 결과 시나리오 선택 -->
     <div v-if="USE_MOCK && ocrState === 'idle'" class="mock-switch">
-      <span>목 OCR 결과</span>
+      <span>[테스트 중...] OCR 결과</span>
       <label><input v-model="mockScenario" type="radio" value="success" /> 성공</label>
       <label><input v-model="mockScenario" type="radio" value="fail" /> 실패</label>
       <label><input v-model="mockScenario" type="radio" value="timeout" /> 타임아웃</label>
