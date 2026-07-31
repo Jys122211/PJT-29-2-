@@ -21,10 +21,6 @@ const loanTypeLabel = computed(() =>
   comparison.value?.loan.type === 'CREDIT' ? '신용대출' : '전세자금대출'
 );
 
-// 시안은 추천(승자) 카드가 항상 왼쪽에 오도록 되어 있다. TIE는 기존 순서(대출→예금) 유지.
-const loanCardOrder = computed(() => (isDepositWinner.value ? 2 : 1));
-const depositCardOrder = computed(() => (isDepositWinner.value ? 1 : 2));
-
 const partialAllowedText = computed(
   () => `부분해지 ${comparison.value?.badges.isPartialAllowed ? 'O' : 'X'}`
 );
@@ -105,6 +101,9 @@ const cancelModal = () => {
         </button>
         <h1>득실 비교 결과</h1>
         <span class="header-hint">만기 기준</span>
+        <router-link to="/" class="header-home-link" aria-label="홈 화면으로 이동">
+          <i class="fa-solid fa-house" aria-hidden="true"></i>
+        </router-link>
       </header>
 
       <!-- 2. 결론 배너 카드 -->
@@ -133,13 +132,42 @@ const cancelModal = () => {
 
       <!-- 4. 비교 카드 2장 -->
       <section class="compare-grid">
-        <div
-          class="card compare-card"
-          :class="{ winner: isLoanWinner }"
-          :style="{ order: loanCardOrder }"
-        >
+        <div class="card compare-card" :class="{ winner: isDepositWinner }">
+          <span v-if="isDepositWinner" class="winner-tag">추천</span>
+          <p class="compare-title">① 중도 또는 부분해지 <span class="info-icon">ⓘ</span></p>
+          <p v-if="comparison.deposit.name" class="compare-product" :title="comparison.deposit.name">
+            {{ comparison.deposit.name }}
+          </p>
+          <p class="compare-amount">{{ won(comparison.deposit.finalBalance) }}원</p>
+
+          <div class="compare-divider"></div>
+
+          <button
+            type="button"
+            class="detail-toggle"
+            @click="depositDetailOpen = !depositDetailOpen"
+          >
+            상세 보기 {{ depositDetailOpen ? '▲' : '▼' }}
+          </button>
+
+          <div v-show="depositDetailOpen" class="detail-table">
+            <div class="detail-row">
+              <span>중도해지이율</span>
+              <span class="detail-value">연 {{ comparison.deposit.cancelInterestRate }}%</span>
+            </div>
+            <div class="detail-row">
+              <span>해지수익</span>
+              <span class="detail-value strong">{{ won(comparison.deposit.withdrawalProfit) }}원</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card compare-card" :class="{ winner: isLoanWinner }">
           <span v-if="isLoanWinner" class="winner-tag">추천</span>
           <p class="compare-title">② {{ loanTypeLabel }} · 예금 유지</p>
+          <p v-if="comparison.loan.name" class="compare-product" :title="comparison.loan.name">
+            {{ comparison.loan.name }}
+          </p>
           <p class="compare-amount">{{ won(comparison.loan.finalBalance) }}원</p>
 
           <div class="compare-divider"></div>
@@ -171,37 +199,6 @@ const cancelModal = () => {
             <p v-if="comparison.loan.isRateEstimated" class="detail-note">
               ※ 추정치이며 실제 심사금리와 다를 수 있습니다
             </p>
-          </div>
-        </div>
-
-        <div
-          class="card compare-card"
-          :class="{ winner: isDepositWinner }"
-          :style="{ order: depositCardOrder }"
-        >
-          <span v-if="isDepositWinner" class="winner-tag">추천</span>
-          <p class="compare-title">① 중도 또는 부분해지 <span class="info-icon">ⓘ</span></p>
-          <p class="compare-amount">{{ won(comparison.deposit.finalBalance) }}원</p>
-
-          <div class="compare-divider"></div>
-
-          <button
-            type="button"
-            class="detail-toggle"
-            @click="depositDetailOpen = !depositDetailOpen"
-          >
-            상세 보기 {{ depositDetailOpen ? '▲' : '▼' }}
-          </button>
-
-          <div v-show="depositDetailOpen" class="detail-table">
-            <div class="detail-row">
-              <span>중도해지이율</span>
-              <span class="detail-value">연 {{ comparison.deposit.cancelInterestRate }}%</span>
-            </div>
-            <div class="detail-row">
-              <span>해지수익</span>
-              <span class="detail-value strong">{{ won(comparison.deposit.withdrawalProfit) }}원</span>
-            </div>
           </div>
         </div>
       </section>
@@ -259,18 +256,18 @@ const cancelModal = () => {
         <button
           type="button"
           class="proceed-button"
-          :class="isLoanWinner ? 'primary' : 'secondary'"
-          @click="proceed('LOAN')"
-        >
-          {{ loanTypeLabel }}로 진행
-        </button>
-        <button
-          type="button"
-          class="proceed-button"
           :class="!isLoanWinner ? 'primary' : 'secondary'"
           @click="proceed('WITHDRAWAL')"
         >
           예금 중도해지로 진행
+        </button>
+        <button
+          type="button"
+          class="proceed-button"
+          :class="isLoanWinner ? 'primary' : 'secondary'"
+          @click="proceed('LOAN')"
+        >
+          {{ loanTypeLabel }}로 진행
         </button>
       </div>
 
@@ -354,18 +351,20 @@ button {
 .page-header {
   display: flex;
   align-items: center;
+  gap: 8px;
 }
 
 .back-button {
   display: grid;
-  width: 40px;
-  height: 40px;
-  border: 0;
-  border-radius: 12px;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--gs-line);
+  border-radius: 9px;
   flex-shrink: 0;
-  font-size: 20px;
+  font-size: 23px;
   line-height: 1;
-  color: var(--gs-text);
+  color: #716a62;
   background: #fff;
   place-items: center;
 }
@@ -375,15 +374,32 @@ button {
   font-size: 17px;
   font-weight: 700;
   flex: 1;
-  text-align: center;
+  text-align: left;
 }
 
 .header-hint {
   flex-shrink: 0;
-  font-size: 13px;
+  font-size: 11px;
   color: var(--gs-text-sub);
   white-space: nowrap;
   text-align: right;
+}
+
+.header-home-link {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  color: var(--gs-text);
+  background: var(--gs-gold);
+  text-decoration: none;
+  place-items: center;
+}
+
+.header-home-link:focus-visible {
+  outline: 3px solid rgb(255 188 0 / 35%);
+  outline-offset: 2px;
 }
 
 /* 2. 결론 배너 */
@@ -477,6 +493,18 @@ button {
   margin: 0;
   font-size: 13px;
   color: var(--gs-text-sub);
+}
+
+.compare-product {
+  margin: 2px 0 0;
+  min-height: calc(11px * 1.35 * 2);
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--gs-text-sub);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .info-icon {
