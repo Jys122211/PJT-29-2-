@@ -249,21 +249,23 @@ async function compareProfitLoss() {
     });
   } catch (error) {
     console.error('신용점수 업데이트 실패:', error);
-    alert('월 상환 가능 금액 수정에 실패했습니다.');
-  }
-
-  if (profitLossStore.state.loan.loanType === 'CREDIT') {
-    router.push({ name: 'creditEligibility' });
+    alert('신용점수 수정에 실패했습니다.');
     return;
   }
 
   try {
     await api.patch('/api/users/me/max-monthly-payment', {
-      maxMonthlyPayment: monthlyAmountModel.value,
+      maxMonthlyPayment: monthlyAvailableAmount.value,
     });
   } catch (error) {
     console.error('월 상환 가능 금액 업데이트 실패:', error);
     alert('월 상환 가능 금액 수정에 실패했습니다.');
+    return;
+  }
+
+  if (profitLossStore.state.loan.loanType === 'CREDIT') {
+    router.push({ name: 'creditEligibility' });
+    return;
   }
 
   // 추후 백엔드가 구현되면:
@@ -310,13 +312,6 @@ onMounted(() => {
   <main class="calculator-page">
     <section class="calculator-card">
       <header class="page-header">
-        <router-link
-          to="/"
-          class="header-home-link"
-          aria-label="홈 화면으로 이동"
-        >
-          <i class="fa-solid fa-house" aria-hidden="true"></i>
-        </router-link>
         <h1>자금 필요 상황 입력</h1>
       </header>
 
@@ -556,37 +551,24 @@ button {
 }
 
 .calculator-card {
+  display: flex;
+  min-height: calc(100vh - 76px);
   padding: 28px 20px 22px;
+  flex-direction: column;
 }
 
 .page-header {
   display: flex;
-  align-items: center;
-  gap: 7px;
-  margin-bottom: 18px;
+  margin-bottom: 24px;
+  align-items: flex-start;
+  gap: 10px;
 }
 
 .page-header h1 {
   margin: 0;
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 700;
-}
-
-.header-home-link {
-  display: grid;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  color: var(--kb-text);
-  background: var(--kb-yellow);
-  text-decoration: none;
-  place-items: center;
-}
-
-.header-home-link:focus-visible {
-  outline: 3px solid rgb(255 188 0 / 35%);
-  outline-offset: 2px;
+  line-height: 1.35;
 }
 
 .form-section {
@@ -857,15 +839,19 @@ button {
 .compare-button {
   width: 100%;
   height: 54px;
+  min-height: 54px;
+  margin-top: auto;
   border: 0;
   border-radius: 13px;
+  flex-shrink: 0;
   font-weight: 700;
+  color: #292725;
   background: var(--kb-yellow);
 }
 
 .compare-button:disabled {
-  color: #68645f;
-  background: #dcdad7;
+  color: #8c857a;
+  background: #ddd5c3;
 }
 
 .bottom-navigation {
