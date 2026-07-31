@@ -3,12 +3,15 @@ import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import profitLossApi from '@/api/profitLossApi';
 import { useProfitLossStore } from '@/stores/profitLoss';
+import AlertModal from '@/components/AlertModal.vue';
 
 const router = useRouter();
 const profitLossStore = useProfitLossStore();
 const isSubmitting = ref(false);
-const calculationError = ref('');
-const showReturnToInput = ref(false);
+const isErrorModalOpen = ref(false);
+const errorModalMessage = ref('');
+const errorModalConfirmText = ref('확인');
+const shouldReturnToInput = ref(false);
 
 const NEXT_STEP_GUIDE = {
   PAYMENT_TOO_LOW: '월 상환 가능 금액을 늘리거나 필요 금액을 줄여보세요.',
@@ -16,6 +19,24 @@ const NEXT_STEP_GUIDE = {
   DEPOSIT_NOT_FOUND: '예금을 다시 선택해 주세요.',
   GRADE_RATE_UNAVAILABLE: '잠시 후 다시 시도해 주세요.',
 };
+
+function openErrorModal(message, returnToInput = false) {
+  errorModalMessage.value = message;
+  errorModalConfirmText.value = returnToInput ? '입력 화면으로 돌아가기' : '확인';
+  shouldReturnToInput.value = returnToInput;
+  isErrorModalOpen.value = true;
+}
+
+function closeErrorModal() {
+  isErrorModalOpen.value = false;
+}
+
+function confirmErrorModal() {
+  isErrorModalOpen.value = false;
+  if (shouldReturnToInput.value) {
+    router.push({ name: 'comparisonInput' });
+  }
+}
 
 const preferentialGroups = computed(
   () => profitLossStore.state.creditPreferential.groups,
@@ -55,13 +76,11 @@ async function continueToNextStep() {
   const preferentialQuestionIds = [...profitLossStore.preferentialQuestionIds];
 
   if (loanProductId == null) {
-    calculationError.value = '우대금리를 계산할 대출 상품이 없습니다.';
+    openErrorModal('우대금리를 계산할 대출 상품이 없습니다.');
     return;
   }
 
   isSubmitting.value = true;
-  calculationError.value = '';
-  showReturnToInput.value = false;
 
   try {
     const totalDiscountRate = await profitLossApi.getFinalDiscountRate(
@@ -106,17 +125,13 @@ async function continueToNextStep() {
     const serverMessage = error.response?.data?.message;
     const guide = NEXT_STEP_GUIDE[code] ?? '잠시 후 다시 시도해 주세요.';
 
-    calculationError.value = `${
-      serverMessage ?? '손익비교를 요청하지 못했습니다.'
-    } ${guide}`;
-    showReturnToInput.value = status === 400 || status === 404;
+    openErrorModal(
+      `${serverMessage ?? '손익비교를 요청하지 못했습니다.'} ${guide}`,
+      status === 400 || status === 404,
+    );
   } finally {
     isSubmitting.value = false;
   }
-}
-
-function returnToInput() {
-  router.push({ name: 'comparisonInput' });
 }
 </script>
 
@@ -206,19 +221,6 @@ function returnToInput() {
         </article>
       </section>
 
-      <p v-if="calculationError" class="calculation-error">
-        {{ calculationError }}
-      </p>
-
-      <button
-        v-if="showReturnToInput"
-        type="button"
-        class="return-to-input-button"
-        @click="returnToInput"
-      >
-        입력 화면으로 돌아가기
-      </button>
-
       <button
         class="next-button"
         type="button"
@@ -248,6 +250,15 @@ function returnToInput() {
         <p>잠시만 기다려 주세요</p>
       </div>
     </div>
+
+    <AlertModal
+      :visible="isErrorModalOpen"
+      title="손익비교 실패"
+      :message="errorModalMessage"
+      :confirm-text="errorModalConfirmText"
+      @confirm="confirmErrorModal"
+      @close="closeErrorModal"
+    />
   </main>
 </template>
 
@@ -479,26 +490,6 @@ button {
   font-weight: 700;
   color: var(--kb-text);
   background: var(--kb-yellow);
-}
-
-.calculation-error {
-  margin: 0 0 8px;
-  flex-shrink: 0;
-  font-size: 11px;
-  color: #d32f2f;
-  text-align: center;
-}
-
-.return-to-input-button {
-  width: 100%;
-  height: 44px;
-  margin-bottom: 8px;
-  border: 1px solid var(--kb-border);
-  border-radius: 11px;
-  flex-shrink: 0;
-  font-weight: 700;
-  color: var(--kb-text);
-  background: #fff;
 }
 
 .loading-overlay {
