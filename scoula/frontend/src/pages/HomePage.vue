@@ -33,9 +33,15 @@ onMounted(async () => {
 });
 
 const totalDeposit = computed(() =>
-    deposits.value.reduce((sum, d) => sum + d.principalAmount, 0),
+    deposits.value.reduce((sum, d) => sum + d.balance, 0),
 );
-
+const calcDDay = (maturityDate) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const maturity = new Date(maturityDate);
+  const diffTime = maturity - today;
+  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+};
 const formatDate = (isoDate) => isoDate.replaceAll('-', '.');
 </script>
 
@@ -96,18 +102,19 @@ const formatDate = (isoDate) => isoDate.replaceAll('-', '.');
     </div>
 
     <div class="deposit-list" v-if="deposits.length">
-      <div class="deposit-card" v-for="d in deposits" :key="d.userDepositId">
+      <div class="deposit-card" v-for="d in deposits" :key="d.id">
         <div class="deposit-info">
           <p class="deposit-bank">{{ d.bankName }}</p>
           <p class="deposit-product">{{ d.productName }}</p>
-          <p class="deposit-detail">{{ d.principalAmount.toLocaleString() }}원 · 연 {{ d.appliedRate }}%</p>
+          <p class="deposit-detail">{{ d.balance.toLocaleString() }}원 · 연 {{ d.interestRate }}%</p>
         </div>
         <div class="deposit-meta">
-          <span class="d-day-badge">D-{{ d.dDay }}</span>
+          <span class="d-day-badge">D-{{ calcDDay(d.maturityDate) }}</span>
           <span class="deposit-maturity">만기 {{ formatDate(d.maturityDate) }}</span>
         </div>
       </div>
     </div>
+
     <div class="empty-deposit" v-else>
       <div class="empty-icon">+</div>
       <p class="empty-title">등록된 자산이 없어요</p>
