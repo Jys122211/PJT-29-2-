@@ -3,6 +3,7 @@ import { computed, nextTick, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import profitLossApi from '@/api/profitLossApi';
 import { useProfitLossStore } from '@/stores/profitLoss';
+import api from '@/api';
 
 const router = useRouter();
 const profitLossStore = useProfitLossStore();
@@ -269,6 +270,8 @@ async function compareProfitLoss() {
   // await api.post('/profit-loss/compare', profitLossStore.requestPayload);
 }
 
+// onMounted 함수 정의
+
 async function loadDeposits() {
   isDepositLoading.value = true;
   depositLoadError.value = '';
@@ -287,7 +290,20 @@ async function loadDeposits() {
   }
 }
 
-onMounted(loadDeposits);
+async function loadUserFinancialInfo() {
+  try {
+    const data = await profitLossApi.getUserFinancialInfo();
+    profitLossStore.setCreditScore(data.creditScore);
+    profitLossStore.setMonthlyPayment(data.maxMonthlyPayment);
+  } catch (error) {
+    console.error('사용자 금융정보 조회 실패:', error);
+  }
+}
+
+onMounted(() => {
+  loadDeposits();
+  loadUserFinancialInfo();
+});
 </script>
 
 <template>
