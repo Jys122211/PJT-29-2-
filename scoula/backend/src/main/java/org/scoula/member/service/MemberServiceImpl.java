@@ -75,7 +75,7 @@ public class MemberServiceImpl implements MemberService {
         // (member.getPassword()가 MemberUpdateDTO에 없으므로)
         // 만약 필요하다면 MemberUpdateDTO에 password 필드를 추가해야함.
         // 현재 MemberUpdateDTO에는 password 필드가 지워졌으므로 이 부분을 주석처리 하거나 제거.
-        /* 
+        /*
         if (!passwordEncoder.matches(member.getPassword(), vo.getPassword())) {  // 비밀번호 일치 확인
             throw new PasswordMissmatchException();
         }
