@@ -25,6 +25,7 @@ import java.util.List;
         "org.scoula.member.controller",
         "org.scoula.profitLoss.controller",
         "org.scoula.deposit.controller",
+        "org.scoula.deposit.exception",
 })
 public class ServletConfig implements WebMvcConfigurer {
 

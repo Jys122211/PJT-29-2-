@@ -22,7 +22,7 @@ import java.time.format.DateTimeParseException;
 @AllArgsConstructor
 public class DepositRequestDTO {
 
-    private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("yyyyMMdd");
 
     private String bankName;
     private String productName;

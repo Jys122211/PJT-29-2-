@@ -13,8 +13,9 @@
  */
 import { computed, onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import depositApi, { USE_MOCK } from '@/api/depositApi';
+import depositApi from '@/api/depositApi';
 import BottomNav from '@/components/mobile/BottomNav.vue';
+import ocrApi from '@/api/ocrApi';
 import {
   extractApiError,
   formatNumber,
@@ -41,7 +42,7 @@ const toast = ref('');
 const fileInput = ref(null);
 
 /** 목 모드에서 OCR 결과를 강제하기 위한 값. 실제 연동 시 제거 */
-const mockScenario = ref('success');
+// const mockScenario = ref('success');
 
 const form = reactive({
   bankName: '',
@@ -62,6 +63,7 @@ const errors = reactive({
   baseRate: '',
   appliedRate: '',
 });
+
 
 // ------------------------------------------------------------ 입력 핸들러
 function onAmountInput(event) {
@@ -348,12 +350,12 @@ onMounted(async () => {
     />
 
     <!-- 목 모드 전용 : OCR 결과 시나리오 선택 -->
-    <div v-if="USE_MOCK && ocrState === 'idle'" class="mock-switch">
+    <!-- <div v-if="USE_MOCK && ocrState === 'idle'" class="mock-switch">
       <span>[테스트 중...] OCR 결과</span>
       <label><input v-model="mockScenario" type="radio" value="success" /> 성공</label>
       <label><input v-model="mockScenario" type="radio" value="fail" /> 실패</label>
       <label><input v-model="mockScenario" type="radio" value="timeout" /> 타임아웃</label>
-    </div>
+    </div> -->
 
     <p v-if="ocrState === 'success'" class="hint">
       노란 배경 = OCR 자동 입력값 · 확인 후 등록해주세요
