@@ -262,7 +262,13 @@ onMounted(load);
 <template>
   <main class="page">
     <header class="page-head">
-      <h1>보유 예금 편집</h1>
+      <button type="button" class="back-btn" @click="router.back()" aria-label="뒤로 가기">
+        <i class="fa-solid fa-chevron-left"></i>
+      </button>
+      <div class="head-titles">
+        <h1>보유 예금 편집</h1>
+        <p>예금 정보를 수정하거나 삭제할 수 있어요</p>
+      </div>
     </header>
 
     <section v-if="loading" class="state-card">
@@ -447,10 +453,45 @@ onMounted(load);
   background: #faf9f7;
 }
 
-.page-head h1 {
-  margin: 0 0 16px;
-  font-size: 18px;
+/* 👇 기존 .page-head 관련 코드를 지우고 아래 내용으로 교체하세요 */
+
+.page-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border: 1.5px solid var(--kb-border);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--kb-text);
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.back-btn:active {
+  background-color: #f1f3f5; /* 터치했을 때 살짝 눌리는 효과 */
+}
+
+.head-titles h1 {
+  margin: 0;
+  font-size: 19px;
   font-weight: 700;
+  color: var(--kb-text);
+}
+
+.head-titles p {
+  margin: 4px 0 0;
+  font-size: 12.5px;
+  color: var(--kb-muted);
 }
 
 .state-card {
