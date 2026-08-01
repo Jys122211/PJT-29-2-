@@ -100,6 +100,14 @@ onMounted(load);
         <strong>{{ formatNumber(totalPrincipal) }}원</strong>
       </section>
 
+      <!-- 1. 새 예금 등록하기 버튼을 위로 이동! -->
+      <button type="button" class="add-card" @click="goRegister">
+        <span class="ico"><i class="fa-solid fa-plus"></i></span>
+        <span class="tx">새 예금 등록하기</span>
+        <i class="fa-solid fa-chevron-right chev"></i>
+      </button>
+
+      <!-- 2. 보유 예금 목록을 그 아래로 배치 -->
       <ul class="deposit-list">
         <li v-for="deposit in deposits" :key="deposit.userDepositId">
           <button type="button" class="deposit-card" @click="goEdit(deposit)">
@@ -119,12 +127,6 @@ onMounted(load);
           </button>
         </li>
       </ul>
-
-      <button type="button" class="add-card" @click="goRegister">
-        <span class="ico"><i class="fa-solid fa-plus"></i></span>
-        <span class="tx">새 예금 등록하기</span>
-        <i class="fa-solid fa-chevron-right chev"></i>
-      </button>
     </template>
 
     <BottomNav active="asset" />
@@ -313,6 +315,7 @@ onMounted(load);
   align-items: center;
   gap: 13px;
   margin-top: 16px;
+  margin-bottom: 16px;
   padding: 15px 16px;
   border: 0;
   border-radius: 14px;

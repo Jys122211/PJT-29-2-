@@ -397,7 +397,7 @@ onMounted(load);
     <div v-if="showDeleteModal" class="modal-host">
       <div class="dimmer" @click="showDeleteModal = false"></div>
 
-      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="delTitle">
+      <div class="delete-modal" role="dialog" aria-modal="true" aria-labelledby="delTitle">
         <div class="trash"><i class="fa-solid fa-trash-can"></i></div>
         <strong id="delTitle">이 예금을 삭제할까요?</strong>
         <p>예금을 삭제하면 되돌릴 수 없어요.</p>
@@ -634,7 +634,7 @@ onMounted(load);
   background: rgb(60 60 60 / 45%);
 }
 
-.modal {
+.delete-modal {
   position: relative;
   z-index: 1;
   width: 86%;
@@ -657,12 +657,12 @@ onMounted(load);
   background: #f6dada;
 }
 
-.modal strong {
+.delete-modal strong {
   display: block;
   font-size: 16px;
 }
 
-.modal p {
+.delete-modal p {
   margin: 8px 0 4px;
   font-size: 12.5px;
   color: var(--kb-muted);
