@@ -21,7 +21,7 @@ public class OcrService {
     @Value("${gemini.api.key}")
     private String apiKey;
 
-    private final String GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=";
+    private final String GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
 
     public String extractDepositInfo(MultipartFile file) throws Exception {
         // 1. 이미지를 Base64 문자열로 변환
@@ -56,9 +56,10 @@ public class OcrService {
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("x-goog-api-key", apiKey);
 
         HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestBody, headers);
-        ResponseEntity<String> response = restTemplate.postForEntity(GEMINI_API_URL + apiKey, requestEntity, String.class);
+        ResponseEntity<String> response = restTemplate.postForEntity(GEMINI_API_URL, requestEntity, String.class);
 
         return response.getBody(); // 프론트엔드로 Gemini의 응답 결과를 그대로 전달
     }
