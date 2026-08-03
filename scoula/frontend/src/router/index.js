@@ -14,7 +14,14 @@ import assetRoutes from './asset.js';
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
-    { path: '/', name: 'home', component: HomePage },
+    {
+      path: '/',
+      name: 'home',
+      component: HomePage,
+      meta: {
+        requiresAuth: true,
+      },
+    },
     ...authRoutes,
     ...boardRoutes,
     ...travelRoutes,
