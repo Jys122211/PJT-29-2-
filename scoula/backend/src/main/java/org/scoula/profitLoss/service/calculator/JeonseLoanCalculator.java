@@ -63,11 +63,20 @@ public final class JeonseLoanCalculator {
     private record ShortfallLoanEvaluation(LoanFeasibility feasibility, LoanCostBreakdown breakdown) {
     }
 
+    // B안(전세대출 전액) 판정 결과. commitmentMonths는 실행 가능 여부와 무관하게 LoanResult 표시에 쓰인다.
+    private record MainLoanEvaluation(LoanFeasibility feasibility, LoanCostBreakdown breakdown, int commitmentMonths) {
+    }
+
+    // 적립식(비목돈상환) 상환의 실제기간·약정기간. 부족분 대출(A안)과 비목돈상환 B안이 공유한다.
+    private record ElasticTiming(int actualMonths, int commitmentMonths) {
+    }
+
     private JeonseLoanCalculator() {
     }
 
     public static Result compare(DepositInput depositInput, long urgentAmount, long monthlyPayment,
-                                  boolean isPartialAllowed, List<RateOption> rateOptions, BigDecimal totalDiscountRate) {
+                                  boolean isPartialAllowed, boolean isLumpSum,
+                                  List<RateOption> rateOptions, BigDecimal totalDiscountRate) {
         // STEP 1: 예금잔여기간 = 계약월수 - 경과월수
         int depositRemainingMonths = depositInput.contractMonths() - depositInput.elapsedMonths();
         // STEP 2-5: 예금만기수령액 = 예금원금 + 만기이자(예금원금)
@@ -82,18 +91,16 @@ public final class JeonseLoanCalculator {
         // STEP 3: 최종금리 = 6개 COFIX 옵션 중 (base+spread-우대) 최솟값. 우대 상한은 Service가 이미 적용해서 보낸다.
         BigDecimal finalRate = resolveFinalRate(rateOptions, totalDiscountRate);
 
-        // STEP 4-2: 실제기간 = 예금잔여기간(예금 만기에 목돈으로 상환), 약정기간 = max(12, 예금잔여기간)
-        int actualMonths = depositRemainingMonths;
-        int commitmentMonths = Math.max(MIN_COMMITMENT_MONTHS, depositRemainingMonths);
-
-        // STEP 4-3~5: B안(전세대출 전액) 대출비용. 실행 가능 여부와 무관하게 항상 계산 가능한 값이다.
-        LoanCostBreakdown mainLoan = computeLoanCost(urgentAmount, finalRate, actualMonths, commitmentMonths);
-
-        // STEP 5: B안 실행 가능성 판정 (기간 상한 → 이자 지불 → 만기 상환 재원). 예외를 던지지 않고 상태만 기록한다.
-        LoanFeasibility loanFeasibility = evaluateMainLoanFeasibility(
-                urgentAmount, monthlyPayment, mainLoan, actualMonths, commitmentMonths, depositMaturityAmount);
+        // STEP 4~5: B안(전세대출 전액) 대출비용 + 실행 가능성. 목돈상환 여부로 실제기간 산정 방식이 갈린다.
+        MainLoanEvaluation mainLoanEvaluation = isLumpSum
+                ? evaluateLumpSumMainLoan(urgentAmount, finalRate, monthlyPayment, depositRemainingMonths, depositMaturityAmount)
+                : evaluateNonLumpSumMainLoan(urgentAmount, finalRate, monthlyPayment);
+        LoanCostBreakdown mainLoan = mainLoanEvaluation.breakdown();
+        LoanFeasibility loanFeasibility = mainLoanEvaluation.feasibility();
+        int commitmentMonths = mainLoanEvaluation.commitmentMonths();
 
         // STEP 6: A안(예금 깨기) 총손실 — 전세는 만기목돈상환 O 고정이라 4가지 경우뿐이다.
+        // A안은 isLumpSum과 무관하다(B안의 상환 방식 선택일 뿐, 예금을 깨는 쪽 계산에는 영향이 없다).
         long cancelAmount;
         long aTotalLoss;
         LoanFeasibility withdrawalFeasibility;
@@ -168,7 +175,7 @@ public final class JeonseLoanCalculator {
                 .orElseThrow(() -> new IllegalArgumentException("전세대출 금리옵션이 없습니다."));
     }
 
-    // 월이자 = 급전 × 최종금리 / 12 (원 단위로 먼저 반올림) → 대출이자 = 월이자 × 실제기간.
+    // 월이자 = 금액 × 최종금리 / 12 (원 단위로 먼저 반올림) → 이자 = 월이자 × 실제기간.
     // 원금이 줄지 않아 매달 이자가 동일하므로, 명세서 검산값(예: 86,833원×11=955,163원)과 맞추려면
     // 월이자를 먼저 원 단위로 반올림한 뒤 실제기간을 곱해야 한다 — 전체를 소수로 계산한 뒤 한 번에
     // 반올림하면(955,167원) 명세서 값과 어긋난다.
@@ -180,25 +187,63 @@ public final class JeonseLoanCalculator {
         return new LoanCostBreakdown(monthlyInterest, interest, fee, interest + fee);
     }
 
-    // STEP 5: B안(전세대출 전액) 실행 가능성 — 기간 상한 → 이자 지불 → 만기 상환 재원 순으로 확인한다.
-    // 예금잔여기간이 24개월을 넘는 일은 드물지만, 부족분 대출과 같은 기준을 동일하게 적용한다.
-    private static LoanFeasibility evaluateMainLoanFeasibility(long urgentAmount, long monthlyPayment, LoanCostBreakdown mainLoan,
-                                                                 int actualMonths, int commitmentMonths, long depositMaturityAmount) {
+    // isLumpSum=O: 실제기간 = 예금잔여기간(예금 만기 목돈 + 적립금으로 상환). 실행 가능성은
+    // 기간 상한 → 이자 지불 → 만기 상환 재원(적립금 + 예금만기수령액) 순으로 확인한다.
+    // 실제기간이 예금 조건으로 고정돼 있어, 실행 가능 여부와 무관하게 대출비용은 항상 계산할 수 있다.
+    private static MainLoanEvaluation evaluateLumpSumMainLoan(long urgentAmount, BigDecimal finalRate, long monthlyPayment,
+                                                                int depositRemainingMonths, long depositMaturityAmount) {
+        int actualMonths = depositRemainingMonths;
+        int commitmentMonths = Math.max(MIN_COMMITMENT_MONTHS, depositRemainingMonths);
+        LoanCostBreakdown breakdown = computeLoanCost(urgentAmount, finalRate, actualMonths, commitmentMonths);
+
+        LoanFeasibility feasibility;
         if (actualMonths > MAX_COMMITMENT_MONTHS || commitmentMonths > MAX_COMMITMENT_MONTHS) {
-            return LoanFeasibility.infeasible(TERM_TOO_LONG_MESSAGE);
-        }
-        if (monthlyPayment < mainLoan.monthlyInterest()) {
-            return LoanFeasibility.infeasible(INTEREST_TOO_LOW_MESSAGE);
+            feasibility = LoanFeasibility.infeasible(TERM_TOO_LONG_MESSAGE);
+        } else if (monthlyPayment < breakdown.monthlyInterest()) {
+            feasibility = LoanFeasibility.infeasible(INTEREST_TOO_LOW_MESSAGE);
+        } else {
+            long accumulated = (monthlyPayment - breakdown.monthlyInterest()) * actualMonths;
+            long repaymentSource = accumulated + depositMaturityAmount;
+            long amountDue = urgentAmount + breakdown.fee();
+            feasibility = repaymentSource >= amountDue
+                    ? LoanFeasibility.ok()
+                    : LoanFeasibility.infeasible(INSUFFICIENT_FUNDS_MESSAGE);
         }
 
-        long accumulated = (monthlyPayment - mainLoan.monthlyInterest()) * actualMonths;
-        long repaymentSource = accumulated + depositMaturityAmount;
-        long amountDue = urgentAmount + mainLoan.fee();
-        if (repaymentSource < amountDue) {
-            return LoanFeasibility.infeasible(INSUFFICIENT_FUNDS_MESSAGE);
+        return new MainLoanEvaluation(feasibility, breakdown, commitmentMonths);
+    }
+
+    // isLumpSum=X: 예금은 만기까지 그대로 유지하고, 급전 전액을 적립금(월납입-월이자)만으로 갚는다.
+    // 실제기간 = ceil(급전/월적립) — 경우4 부족분 대출(evaluateShortfallLoan)과 동일한 식(computeElasticTiming)을 쓴다.
+    // 상환 재원에 예금만기수령액을 더하지 않는다(예금을 쓰지 않으므로).
+    private static MainLoanEvaluation evaluateNonLumpSumMainLoan(long urgentAmount, BigDecimal finalRate, long monthlyPayment) {
+        long monthlyInterest = computeMonthlyInterest(urgentAmount, finalRate);
+        long monthlyAccumulation = monthlyPayment - monthlyInterest;
+
+        if (monthlyAccumulation <= 0) {
+            // 실제기간 자체를 정의할 수 없다 — 최소 약정기간(12개월) 기준 참고값만 표시한다.
+            LoanCostBreakdown fallback = new LoanCostBreakdown(
+                    monthlyInterest, monthlyInterest * MIN_COMMITMENT_MONTHS, 0L, monthlyInterest * MIN_COMMITMENT_MONTHS);
+            return new MainLoanEvaluation(LoanFeasibility.infeasible(INTEREST_TOO_LOW_MESSAGE), fallback, MIN_COMMITMENT_MONTHS);
         }
 
-        return LoanFeasibility.ok();
+        ElasticTiming timing = computeElasticTiming(urgentAmount, monthlyAccumulation);
+        long interest = monthlyInterest * timing.actualMonths();
+        long fee = computeFee(urgentAmount, timing.actualMonths(), timing.commitmentMonths());
+        LoanCostBreakdown breakdown = new LoanCostBreakdown(monthlyInterest, interest, fee, interest + fee);
+
+        LoanFeasibility feasibility;
+        if (exceedsTermCap(timing)) {
+            feasibility = LoanFeasibility.infeasible(TERM_TOO_LONG_MESSAGE);
+        } else {
+            long accumulated = monthlyAccumulation * timing.actualMonths();
+            long amountDue = urgentAmount + fee;
+            feasibility = accumulated >= amountDue
+                    ? LoanFeasibility.ok()
+                    : LoanFeasibility.infeasible(INSUFFICIENT_FUNDS_MESSAGE);
+        }
+
+        return new MainLoanEvaluation(feasibility, breakdown, timing.commitmentMonths());
     }
 
     // STEP 6 경우4(급전 > 예금원금)의 부족분 대출. 예금 만기와 무관하게 월납입으로 갚아나가다
@@ -213,17 +258,28 @@ public final class JeonseLoanCalculator {
             return new ShortfallLoanEvaluation(LoanFeasibility.infeasible(INTEREST_TOO_LOW_MESSAGE), null);
         }
 
-        int actualMonths = (int) ceilDiv(shortfall, monthlyAccumulation);
-        int commitmentMonths = Math.max(MIN_COMMITMENT_MONTHS, actualMonths);
-        if (actualMonths > MAX_COMMITMENT_MONTHS || commitmentMonths > MAX_COMMITMENT_MONTHS) {
+        ElasticTiming timing = computeElasticTiming(shortfall, monthlyAccumulation);
+        if (exceedsTermCap(timing)) {
             return new ShortfallLoanEvaluation(LoanFeasibility.infeasible(TERM_TOO_LONG_MESSAGE), null);
         }
 
-        long interest = monthlyInterest * actualMonths;
-        long fee = computeFee(shortfall, actualMonths, commitmentMonths);
+        long interest = monthlyInterest * timing.actualMonths();
+        long fee = computeFee(shortfall, timing.actualMonths(), timing.commitmentMonths());
         LoanCostBreakdown breakdown = new LoanCostBreakdown(monthlyInterest, interest, fee, interest + fee);
 
         return new ShortfallLoanEvaluation(LoanFeasibility.ok(), breakdown);
+    }
+
+    // 적립식 상환의 실제기간 = ceil(금액/월적립), 약정기간 = max(12, 실제기간). 부족분 대출(A안)과
+    // 비목돈상환 B안이 공유하는 식이다.
+    private static ElasticTiming computeElasticTiming(long amount, long monthlyAccumulation) {
+        int actualMonths = (int) ceilDiv(amount, monthlyAccumulation);
+        int commitmentMonths = Math.max(MIN_COMMITMENT_MONTHS, actualMonths);
+        return new ElasticTiming(actualMonths, commitmentMonths);
+    }
+
+    private static boolean exceedsTermCap(ElasticTiming timing) {
+        return timing.actualMonths() > MAX_COMMITMENT_MONTHS || timing.commitmentMonths() > MAX_COMMITMENT_MONTHS;
     }
 
     private static String buildBothInfeasibleMessage(String withdrawalReason, String loanReason) {

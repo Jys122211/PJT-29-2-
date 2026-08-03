@@ -231,6 +231,7 @@ public class ProfitLossServiceImpl implements ProfitLossService {
 
         long monthlyPayment = request.getUserFinancialInfo().getMonthlyPayment();
         boolean isPartialAllowed = Boolean.TRUE.equals(request.getDeposit().getIsPartialAllowed());
+        boolean isLumpSum = Boolean.TRUE.equals(request.getComparisonCondition().getIsLumpSum());
         BigDecimal totalDiscountRate = request.getLoan().getTotalDiscountRate() == null
                 ? BigDecimal.ZERO : request.getLoan().getTotalDiscountRate();
 
@@ -243,7 +244,7 @@ public class ProfitLossServiceImpl implements ProfitLossService {
                     .toList();
 
             JeonseLoanCalculator.Result result = JeonseLoanCalculator.compare(
-                    depositInput, urgentAmount, monthlyPayment, isPartialAllowed, rateOptions, totalDiscountRate);
+                    depositInput, urgentAmount, monthlyPayment, isPartialAllowed, isLumpSum, rateOptions, totalDiscountRate);
 
             if (bestResult == null || result.bTotalLoss() < bestResult.bTotalLoss()) {
                 bestResult = result;
@@ -267,8 +268,7 @@ public class ProfitLossServiceImpl implements ProfitLossService {
                 .urgentAmount(urgentAmount)
                 .monthlyPayment(monthlyPayment)
                 .isPartialAllowed(isPartialAllowed)
-                // 전세는 만기목돈상환이 O 고정이라(예금 만기 목돈 없이는 원금을 갚을 방법이 없다) 요청값과 무관하게 true.
-                .isLumpSum(true)
+                .isLumpSum(isLumpSum)
                 .loanName(bestProduct.getProductName())
                 .loanType(LoanType.JEONSE)
                 .loanInterestRate(bestResult.loan().interestRate())
