@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.scoula.deposit.mapper.DepositMapper">
+
+    <sql id="baseColumns">
+        user_deposit_id, global_id, user_id, bank_name, product_name,
+        join_date, maturity_date, applied_rate, base_rate, principal_amount,
+        is_deleted, created_at, created_by, updated_at, updated_by
+    </sql>
+
+    <!-- 1. 목록 조회 (화면 02-03, 07-09). d_day 별칭은 언더스코어 유지 -->
+    <select id="getList" resultType="org.scoula.deposit.domain.UserDepositVO">
+        SELECT <include refid="baseColumns"/>,
+               DATEDIFF(maturity_date, CURDATE()) AS d_day
+        FROM user_deposits
+        WHERE user_id = #{userId}
+          AND is_deleted = FALSE
+        ORDER BY maturity_date
+    </select>
+
+    <!-- 2. 개수 (화면 07-01 우상단 뱃지) -->
+    <select id="getCount" resultType="int">
+        SELECT COUNT(*)
+        FROM user_deposits
+        WHERE user_id = #{userId}
+          AND is_deleted = FALSE
+    </select>
+
+    <!-- 3. 상세 (화면 07-10 진입) -->
+    <select id="get" resultType="org.scoula.deposit.domain.UserDepositVO">
+        SELECT <include refid="baseColumns"/>,
+               DATEDIFF(maturity_date, CURDATE()) AS d_day
+        FROM user_deposits
+        WHERE user_deposit_id = #{userDepositId}
+          AND user_id = #{userId}
+          AND is_deleted = FALSE
+    </select>
+
+    <!-- 4. 등록 (화면 07-01, 07-04, 07-07) -->
+    <insert id="create">
+        INSERT INTO user_deposits
+            (global_id, user_id, bank_name, product_name,
+             join_date, maturity_date, applied_rate, base_rate,
+             principal_amount, created_by)
+        VALUES
+            (#{globalId}, #{userId}, #{bankName}, #{productName},
+             #{joinDate}, #{maturityDate}, #{appliedRate}, #{baseRate},
+             #{principalAmount}, #{createdBy})
+
+        <selectKey resultType="Long" keyProperty="userDepositId"
+                   keyColumn="user_deposit_id" order="AFTER">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+    </insert>
+
+    <!-- 5. 수정 (화면 07-10). updated_at은 ON UPDATE CURRENT_TIMESTAMP로 자동 갱신 -->
+    <update id="update">
+        UPDATE user_deposits
+        SET bank_name        = #{bankName},
+            product_name     = #{productName},
+            join_date        = #{joinDate},
+            maturity_date    = #{maturityDate},
+            applied_rate     = #{appliedRate},
+            base_rate        = #{baseRate},
+            principal_amount = #{principalAmount},
+            updated_by       = #{updatedBy}
+        WHERE user_deposit_id = #{userDepositId}
+          AND user_id = #{userId}
+          AND is_deleted = FALSE
+    </update>
+
+    <!-- 6. 삭제 (화면 07-11). 물리 삭제가 아닌 soft delete -->
+    <update id="softDelete">
+        UPDATE user_deposits
+        SET is_deleted = TRUE,
+            updated_by = #{userId}
+        WHERE user_deposit_id = #{userDepositId}
+          AND user_id = #{userId}
+          AND is_deleted = FALSE
+    </update>
+
+</mapper>

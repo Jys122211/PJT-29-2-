@@ -161,7 +161,7 @@ const initialChar = computed(() => {
 </script>
 
 <template>
-  <div class="profile-container pb-5">
+  <main class="profile-container">
     <h3 class="fw-bold mb-4">내 정보</h3>
 
     <!-- Profile Card -->
@@ -239,7 +239,7 @@ const initialChar = computed(() => {
         <div v-if="!isEditingMaxPayment" class="data-box rounded-3 px-3 py-3 mt-3 d-flex justify-content-between align-items-center">
           <span class="text-secondary fw-semibold">현재 설정 금액</span>
           <div class="text-end">
-            <div class="fw-bold fs-5" style="color: #2c4c70;">{{ (auth.maxMonthlyPayment || 0).toLocaleString() }} <span class="text-secondary fs-6">원</span></div>
+            <div class="fw-bold fs-5">{{ (auth.maxMonthlyPayment || 0).toLocaleString() }} <span class="text-secondary fs-6">원</span></div>
             <div class="text-secondary mt-1" style="font-size: 0.9rem;">
               {{ formatKoreanAmount(auth.maxMonthlyPayment, '0원') }}
             </div>
@@ -291,38 +291,72 @@ const initialChar = computed(() => {
       로그아웃 되었습니다 &rarr; 01 로그인
     </div>
 
-    <!-- Bottom Navigation Mock (Fixed at bottom) -->
-    <div class="bottom-nav bg-white d-flex justify-content-around py-2 border-top fixed-bottom mx-auto" style="max-width: 600px;">
-      <div class="nav-item text-center">
-        <div class="nav-icon mx-auto rounded-3 bg-light"></div>
-        <small class="text-muted fw-bold mt-1 d-block" style="font-size: 0.75rem;">홈</small>
-      </div>
-      <div class="nav-item text-center">
-        <div class="nav-icon mx-auto rounded-3 bg-light"></div>
-        <small class="text-muted fw-bold mt-1 d-block" style="font-size: 0.75rem;">계산기</small>
-      </div>
-      <div class="nav-item text-center">
-        <div class="nav-icon mx-auto rounded-3 bg-light"></div>
-        <small class="text-muted fw-bold mt-1 d-block" style="font-size: 0.75rem;">자산</small>
-      </div>
-      <div class="nav-item text-center">
-        <div class="nav-icon mx-auto rounded-3 bg-warning"></div>
-        <small class="text-dark fw-bold mt-1 d-block" style="font-size: 0.75rem;">내정보</small>
-      </div>
-    </div>
+    <nav class="bottom-nav">
+      <router-link
+        :to="{ name: 'home' }"
+        class="nav-item"
+        exact-active-class="active"
+      >
+        <span class="nav-dot"></span>
+        <span>홈</span>
+      </router-link>
 
-  </div>
+      <router-link
+        :to="{ name: 'comparisonInput' }"
+        class="nav-item"
+        active-class="active"
+      >
+        <span class="nav-dot"></span>
+        <span>계산기</span>
+      </router-link>
+
+      <router-link
+        :to="{ name: 'assetRegister' }"
+        class="nav-item"
+        active-class="active"
+      >
+        <span class="nav-dot"></span>
+        <span>자산</span>
+      </router-link>
+
+      <router-link
+        :to="{ name: 'profile' }"
+        class="nav-item"
+        active-class="active"
+      >
+        <span class="nav-dot"></span>
+        <span>내정보</span>
+      </router-link>
+    </nav>
+
+  </main>
 </template>
 
 <style scoped>
 .profile-container {
-  background-color: #f7f6f2; /* Light beige/gray background matching the image */
+  --kb-yellow: #ffbc00;
+
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 390px;
   min-height: 100vh;
-  margin: -3rem -1rem; /* Adjusting for DefaultLayout padding */
-  padding: 3rem 1.5rem 6rem;
-  max-width: 600px;
-  margin-left: auto;
-  margin-right: auto;
+  margin: 0 auto;
+  padding: 28px 20px 90px;
+  font-family: '42dot Sans', sans-serif;
+  color: #26221c;
+  background: #fff;
+}
+
+.profile-container > h3 {
+  margin: 0 0 24px !important;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.profile-container h5 {
+  font-size: 15px;
 }
 
 .avatar-circle {
@@ -366,12 +400,44 @@ const initialChar = computed(() => {
 }
 
 .bottom-nav {
-  box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  display: flex;
+  width: 100%;
+  max-width: 390px;
+  padding: 10px 0 16px;
+  border-top: 1px solid #efe9dd;
+  background: #fff;
+  transform: translateX(-50%);
+  justify-content: space-around;
+  z-index: 10;
 }
 
-.nav-icon {
-  width: 24px;
-  height: 24px;
+.nav-item {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  color: #a49a86;
+  text-decoration: none;
+}
+
+.nav-item.active {
+  font-weight: 700;
+  color: #26221c;
+}
+
+.nav-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  background: #efe9dd;
+}
+
+.nav-item.active .nav-dot {
+  background: var(--kb-yellow);
 }
 
 .edit-input-wrapper {

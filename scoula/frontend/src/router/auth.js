@@ -13,6 +13,9 @@ export default [
     path: '/auth/profile',
     name: 'profile',
     component: () => import('../pages/auth/ProfilePage.vue'),
+    meta: {
+      layout: 'mobile',
+    },
   },
   {
     path: '/auth/changepassword',

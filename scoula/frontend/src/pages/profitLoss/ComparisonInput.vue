@@ -503,26 +503,42 @@ onMounted(() => {
       </button>
     </section>
 
-    <nav class="bottom-navigation">
-      <button type="button">
-        <span>⌂</span>
-        홈
-      </button>
+    <nav class="bottom-nav">
+      <router-link
+        :to="{ name: 'home' }"
+        class="nav-item"
+        exact-active-class="active"
+      >
+        <span class="nav-dot"></span>
+        <span>홈</span>
+      </router-link>
 
-      <button type="button" class="active">
-        <span>▮</span>
-        계산기
-      </button>
+      <router-link
+        :to="{ name: 'comparisonInput' }"
+        class="nav-item"
+        active-class="active"
+      >
+        <span class="nav-dot"></span>
+        <span>계산기</span>
+      </router-link>
 
-      <button type="button">
-        <span>▰</span>
-        자산
-      </button>
+      <router-link
+        :to="{ name: 'assetRegister' }"
+        class="nav-item"
+        active-class="active"
+      >
+        <span class="nav-dot"></span>
+        <span>자산</span>
+      </router-link>
 
-      <button type="button">
-        <span>●</span>
-        내정보
-      </button>
+      <router-link
+        :to="{ name: 'profile' }"
+        class="nav-item"
+        active-class="active"
+      >
+        <span class="nav-dot"></span>
+        <span>내정보</span>
+      </router-link>
     </nav>
   </main>
 </template>
@@ -857,43 +873,43 @@ button {
   background: #ddd5c3;
 }
 
-.bottom-navigation {
+.bottom-nav {
   position: fixed;
-  right: 0;
   bottom: 0;
-  left: 0;
-  display: grid;
+  left: 50%;
+  display: flex;
   width: 100%;
   max-width: 390px;
-  height: 70px;
-  margin: auto;
-  border-top: 1px solid #ece8e1;
-  grid-template-columns: repeat(4, 1fr);
+  padding: 10px 0 16px;
+  border-top: 1px solid #efe9dd;
   background: #fff;
+  transform: translateX(-50%);
+  justify-content: space-around;
 }
 
-.bottom-navigation button {
+.nav-item {
   display: flex;
-  border: 0;
   align-items: center;
-  justify-content: center;
   flex-direction: column;
-  gap: 3px;
-  font-size: 10px;
-  color: #aaa39a;
-  background: transparent;
+  gap: 4px;
+  font-size: 11px;
+  color: #a49a86;
+  text-decoration: none;
 }
 
-.bottom-navigation button span {
-  font-size: 18px;
-}
-
-.bottom-navigation button.active {
+.nav-item.active {
   font-weight: 700;
-  color: #292725;
+  color: #26221c;
 }
 
-.bottom-navigation button.active span {
-  color: var(--kb-yellow);
+.nav-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  background: #efe9dd;
+}
+
+.nav-item.active .nav-dot {
+  background: var(--kb-yellow);
 }
 </style>
