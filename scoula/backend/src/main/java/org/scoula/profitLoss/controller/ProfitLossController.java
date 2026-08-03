@@ -7,6 +7,11 @@ import org.scoula.profitLoss.dto.ComparisonResponse;
 import org.scoula.profitLoss.dto.CreditLoanPreferentialRateRequestDTO;
 import org.scoula.profitLoss.dto.CreditLoanQualificationRequestDTO;
 import org.scoula.profitLoss.dto.UserDepositDTO;
+import org.scoula.profitLoss.dto.JeonseEligibilityQuestionDTO;
+import org.scoula.profitLoss.dto.JeonsePreferentialItemDTO;
+import org.scoula.profitLoss.dto.JeonseQualificationRequestDTO;
+import org.scoula.profitLoss.dto.JeonsePreferentialRateRequestDTO;
+import org.scoula.profitLoss.service.JeonseLoanService;
 import org.scoula.profitLoss.service.ComparisonNotFoundException;
 import org.scoula.profitLoss.service.DepositNotFoundException;
 import org.scoula.profitLoss.service.ExceedLoanLimitException;
@@ -37,6 +42,7 @@ import java.util.Map;
 public class ProfitLossController {
 
     private final ProfitLossService service;
+    private final JeonseLoanService jeonseLoanService;
 
     // JWT 인증으로 만든 SecurityContext에서 현재 로그인 사용자의 DB user_id를 가져온다.
     private Long currentUserId(Authentication authentication) {
@@ -68,6 +74,41 @@ public class ProfitLossController {
     ) {
         return ResponseEntity.ok(
                 service.getFinalDiscountRate(
+                        request.getLoanProductId(),
+                        request.getPreferentialQuestionIds()
+                )
+        );
+    }
+
+    // ── 전세대출 화면 (새로 추가됨)
+
+    @GetMapping("/jeonse-loans/eligibility-questions")
+    public ResponseEntity<List<JeonseEligibilityQuestionDTO>> getJeonseEligibilityQuestions() {
+        return ResponseEntity.ok(jeonseLoanService.getEligibilityQuestions());
+    }
+
+    @GetMapping("/jeonse-loans/preferential-items")
+    public ResponseEntity<List<JeonsePreferentialItemDTO>> getJeonsePreferentialItems() {
+        return ResponseEntity.ok(jeonseLoanService.getPreferentialItems());
+    }
+
+    @PostMapping("/jeonse-loans/qualified")
+    public ResponseEntity<List<Long>> getJeonseQualifiedLoanProductIds(
+            @RequestBody JeonseQualificationRequestDTO request
+    ) {
+        return ResponseEntity.ok(
+                jeonseLoanService.getQualifiedLoanProductIds(
+                        request.getQualificationQuestionIds()
+                )
+        );
+    }
+
+    @PostMapping("/jeonse-loans/preferential-rate")
+    public ResponseEntity<BigDecimal> getJeonseFinalDiscountRate(
+            @RequestBody JeonsePreferentialRateRequestDTO request
+    ) {
+        return ResponseEntity.ok(
+                jeonseLoanService.getFinalDiscountRate(
                         request.getLoanProductId(),
                         request.getPreferentialQuestionIds()
                 )

@@ -28,6 +28,21 @@ const CREDIT_ELIGIBILITY_QUESTIONS = [
   },
 ];
 
+const JEONSE_COMPARISON_CONDITIONS = [
+  {
+    id: 'jeonse_comp_1',
+    type: 'COMPARISON_CONDITION',
+    requestField: 'IS_PARTIAL_ALLOWED',
+    text: '분할 인출이 가능한가요? (계좌별 3회(해지 포함)이내 가능)',
+  },
+  {
+    id: 'jeonse_comp_2',
+    type: 'COMPARISON_CONDITION',
+    requestField: 'IS_LUMP_SUM',
+    text: '예금이 만기되면, 만기에 예금으로 대출을 갚으실 예정인가요?',
+  },
+];
+
 const CREDIT_PREFERENTIAL_GROUPS = [
   {
     id: 'CARD_USAGE',
@@ -148,6 +163,17 @@ function createInitialState() {
       groups: copyPreferentialGroups(),
       answers: {},
     },
+
+    // 전세대출 데이터 구조 추가
+    jeonseEligibility: {
+      questions: [],
+      answers: {},
+    },
+
+    jeonsePreferential: {
+      groups: [],
+      answers: {},
+    },
   };
 }
 
@@ -217,6 +243,47 @@ export const useProfitLossStore = defineStore('profitLoss', () => {
   const isCreditPreferentialComplete = computed(() =>
     state.creditPreferential.groups.every((group) => {
       const answer = state.creditPreferential.answers[group.id];
+
+      return group.type === 'SINGLE_SELECT'
+        ? typeof answer === 'string'
+        : typeof answer === 'boolean';
+    }),
+  );
+
+  // 전세대출 Computed
+  const jeonseQualificationQuestionIds = computed(() =>
+    state.jeonseEligibility.questions
+      .filter((question) => question.type === 'QUALIFICATION' && state.jeonseEligibility.answers[question.id] === true)
+      .map((question) => question.id),
+  );
+
+  const jeonsePreferentialQuestionIds = computed(() =>
+    state.jeonsePreferential.groups.flatMap((group) => {
+      const answer = state.jeonsePreferential.answers[group.id];
+
+      if (group.type === 'SINGLE_SELECT') {
+        const selectedOption = group.options.find(
+          (option) => option.value === answer,
+        );
+
+        return selectedOption?.preferentialQuestionId == null
+          ? []
+          : [selectedOption.preferentialQuestionId];
+      }
+
+      return answer === true ? [group.preferentialQuestionId] : [];
+    }),
+  );
+
+  const isJeonseEligibilityComplete = computed(() =>
+    state.jeonseEligibility.questions.every(
+      (question) => typeof state.jeonseEligibility.answers[question.id] === 'boolean'
+    )
+  );
+
+  const isJeonsePreferentialComplete = computed(() =>
+    state.jeonsePreferential.groups.every((group) => {
+      const answer = state.jeonsePreferential.answers[group.id];
 
       return group.type === 'SINGLE_SELECT'
         ? typeof answer === 'string'
@@ -315,6 +382,84 @@ export const useProfitLossStore = defineStore('profitLoss', () => {
     state.loan.totalDiscountRate = null;
   };
 
+  // 전세대출 Actions
+  const setJeonseEligibilityQuestions = (questions) => {
+    const apiQuestions = Array.isArray(questions)
+      ? questions.map((q) => ({ ...q, type: 'QUALIFICATION' }))
+      : [];
+    state.jeonseEligibility.questions = [...apiQuestions, ...JEONSE_COMPARISON_CONDITIONS];
+  };
+
+  const setJeonsePreferentialItems = (items) => {
+    if (!Array.isArray(items)) {
+      state.jeonsePreferential.groups = [];
+      return;
+    }
+
+    const cardItems = items.filter(item => item.conditionName === 'KB국민카드(신용) 이용실적 우대');
+    const otherItems = items.filter(item => item.conditionName !== 'KB국민카드(신용) 이용실적 우대');
+
+    const groups = [];
+    if (cardItems.length > 0) {
+      groups.push({
+        id: 'JEONSE_CARD_USAGE',
+        type: 'SINGLE_SELECT',
+        title: cardItems[0].conditionName,
+        description: '※ 결제계좌를 KB국민은행으로 지정하고, 최근 3개월 이용실적 기준',
+        options: [
+          ...cardItems.sort((a, b) => b.id - a.id).map(item => ({
+            value: item.id.toString(),
+            preferentialQuestionId: item.id,
+            text: item.conditionDetail
+          })),
+          { value: 'NONE', preferentialQuestionId: null, text: '해당 없음' }
+        ]
+      });
+    }
+
+    otherItems.forEach(item => {
+      groups.push({
+        id: item.id.toString(),
+        type: 'YES_NO',
+        title: item.conditionName,
+        preferentialQuestionId: item.id,
+        text: item.conditionDetail
+      });
+    });
+
+    state.jeonsePreferential.groups = groups;
+  };
+
+  const setJeonseEligibilityAnswer = (questionId, answer) => {
+    const question = state.jeonseEligibility.questions.find((q) => q.id === questionId);
+    if (!question || typeof answer !== 'boolean') return;
+    
+    state.jeonseEligibility.answers[questionId] = answer;
+
+    if (question.requestField === 'IS_PARTIAL_ALLOWED') {
+      state.deposit.isPartialAllowed = answer;
+    }
+
+    if (question.requestField === 'IS_LUMP_SUM') {
+      state.comparisonCondition.isLumpSum = answer;
+    }
+  };
+
+  const setJeonsePreferentialAnswer = (groupId, answer) => {
+    const group = state.jeonsePreferential.groups.find((g) => g.id === groupId);
+    if (!group) return;
+
+    if (group.type === 'SINGLE_SELECT') {
+      const optionExists = group.options.some((opt) => opt.value === answer);
+      if (!optionExists) return;
+    } else if (typeof answer !== 'boolean') {
+      return;
+    }
+    
+    state.jeonsePreferential.answers[groupId] = answer;
+    state.loan.totalDiscountRate = null;
+  };
+
   const reset = () => {
     Object.assign(state, createInitialState());
   };
@@ -338,6 +483,14 @@ export const useProfitLossStore = defineStore('profitLoss', () => {
     setLumpSum,
     setCreditEligibilityAnswer,
     setCreditPreferentialAnswer,
+    jeonseQualificationQuestionIds,
+    jeonsePreferentialQuestionIds,
+    isJeonseEligibilityComplete,
+    isJeonsePreferentialComplete,
+    setJeonseEligibilityQuestions,
+    setJeonsePreferentialItems,
+    setJeonseEligibilityAnswer,
+    setJeonsePreferentialAnswer,
     reset,
   };
 });
