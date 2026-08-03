@@ -251,9 +251,6 @@ async function compareProfitLoss() {
     console.error('신용점수 업데이트 실패:', error);
     alert('신용점수 수정에 실패했습니다.');
     return;
-  } else if (profitLossStore.state.loan.loanType === 'JEONSE') {
-    router.push({ name: 'jeonseEligibility' });
-    return;
   }
 
   try {
@@ -268,6 +265,9 @@ async function compareProfitLoss() {
 
   if (profitLossStore.state.loan.loanType === 'CREDIT') {
     router.push({ name: 'creditEligibility' });
+    return;
+  } else if (profitLossStore.state.loan.loanType === 'JEONSE') {
+    router.push({ name: 'jeonseEligibility' });
     return;
   }
 

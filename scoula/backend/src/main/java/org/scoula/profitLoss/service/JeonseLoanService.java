@@ -46,11 +46,11 @@ public class JeonseLoanService {
     public BigDecimal getFinalDiscountRate(Long productId, List<Long> preferentialQuestionIds) {
         BigDecimal totalDiscount = BigDecimal.ZERO;
         
-        // 1. 사용자가 선택한 우대항목들을 순회하며 해당 상품에 적용되는 우대금리를 각각 조회 및 합산한다.
-        for (Long itemId : preferentialQuestionIds) {
-            BigDecimal rate = jeonseLoanMapper.findPreferentialRateByItemAndProduct(productId, itemId);
-            if (rate != null) {
-                totalDiscount = totalDiscount.add(rate);
+        // 1. 단 하나의 쿼리로 사용자가 선택한 모든 우대항목의 금리를 합산하여 가져온다 (N+1 최적화)
+        if (preferentialQuestionIds != null && !preferentialQuestionIds.isEmpty()) {
+            BigDecimal rateSum = jeonseLoanMapper.findTotalPreferentialRate(productId, preferentialQuestionIds);
+            if (rateSum != null) {
+                totalDiscount = rateSum;
             }
         }
         

@@ -340,3 +340,5 @@ CREATE TABLE comparisons (
     CONSTRAINT fk_comparisons_deposit
         FOREIGN KEY (user_deposit_id) REFERENCES user_deposits (user_deposit_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='득실 비교 결과 이력';
+
+select * from users;

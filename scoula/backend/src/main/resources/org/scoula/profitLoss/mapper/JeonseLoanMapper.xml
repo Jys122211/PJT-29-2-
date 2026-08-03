@@ -24,11 +24,15 @@
         WHERE product_id = #{productId}
     </select>
 
-    <select id="findPreferentialRateByItemAndProduct" resultType="java.math.BigDecimal">
-        SELECT pi.preferential_rate
+    <select id="findTotalPreferentialRate" resultType="java.math.BigDecimal">
+        SELECT COALESCE(SUM(pi.preferential_rate), 0)
         FROM jeonse_preferential_item pi
         JOIN jeonse_preferential_condition pc ON pi.preferential_item_id = pc.preferential_item_id
-        WHERE pc.product_id = #{productId} AND pc.preferential_item_id = #{preferentialItemId}
+        WHERE pc.product_id = #{productId} 
+        AND pc.preferential_item_id IN
+        <foreach item="item" collection="itemIds" open="(" separator="," close=")">
+            #{item}
+        </foreach>
     </select>
     
     <select id="findMaxPreferentialRate" resultType="java.math.BigDecimal">

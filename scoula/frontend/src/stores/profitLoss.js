@@ -171,7 +171,7 @@ function createInitialState() {
     },
 
     jeonsePreferential: {
-      items: [],
+      groups: [],
       answers: {},
     },
   };
@@ -258,9 +258,21 @@ export const useProfitLossStore = defineStore('profitLoss', () => {
   );
 
   const jeonsePreferentialQuestionIds = computed(() =>
-    state.jeonsePreferential.items
-      .filter((item) => state.jeonsePreferential.answers[item.id] === true)
-      .map((item) => item.id),
+    state.jeonsePreferential.groups.flatMap((group) => {
+      const answer = state.jeonsePreferential.answers[group.id];
+
+      if (group.type === 'SINGLE_SELECT') {
+        const selectedOption = group.options.find(
+          (option) => option.value === answer,
+        );
+
+        return selectedOption?.preferentialQuestionId == null
+          ? []
+          : [selectedOption.preferentialQuestionId];
+      }
+
+      return answer === true ? [group.preferentialQuestionId] : [];
+    }),
   );
 
   const isJeonseEligibilityComplete = computed(() =>
@@ -270,9 +282,13 @@ export const useProfitLossStore = defineStore('profitLoss', () => {
   );
 
   const isJeonsePreferentialComplete = computed(() =>
-    state.jeonsePreferential.items.every(
-      (item) => typeof state.jeonsePreferential.answers[item.id] === 'boolean'
-    )
+    state.jeonsePreferential.groups.every((group) => {
+      const answer = state.jeonsePreferential.answers[group.id];
+
+      return group.type === 'SINGLE_SELECT'
+        ? typeof answer === 'string'
+        : typeof answer === 'boolean';
+    }),
   );
 
   // action
@@ -375,7 +391,43 @@ export const useProfitLossStore = defineStore('profitLoss', () => {
   };
 
   const setJeonsePreferentialItems = (items) => {
-    state.jeonsePreferential.items = Array.isArray(items) ? items : [];
+    if (!Array.isArray(items)) {
+      state.jeonsePreferential.groups = [];
+      return;
+    }
+
+    const cardItems = items.filter(item => item.conditionName === 'KB국민카드(신용) 이용실적 우대');
+    const otherItems = items.filter(item => item.conditionName !== 'KB국민카드(신용) 이용실적 우대');
+
+    const groups = [];
+    if (cardItems.length > 0) {
+      groups.push({
+        id: 'JEONSE_CARD_USAGE',
+        type: 'SINGLE_SELECT',
+        title: cardItems[0].conditionName,
+        description: '※ 결제계좌를 KB국민은행으로 지정하고, 최근 3개월 이용실적 기준',
+        options: [
+          ...cardItems.sort((a, b) => b.id - a.id).map(item => ({
+            value: item.id.toString(),
+            preferentialQuestionId: item.id,
+            text: item.conditionDetail
+          })),
+          { value: 'NONE', preferentialQuestionId: null, text: '해당 없음' }
+        ]
+      });
+    }
+
+    otherItems.forEach(item => {
+      groups.push({
+        id: item.id.toString(),
+        type: 'YES_NO',
+        title: item.conditionName,
+        preferentialQuestionId: item.id,
+        text: item.conditionDetail
+      });
+    });
+
+    state.jeonsePreferential.groups = groups;
   };
 
   const setJeonseEligibilityAnswer = (questionId, answer) => {
@@ -393,10 +445,18 @@ export const useProfitLossStore = defineStore('profitLoss', () => {
     }
   };
 
-  const setJeonsePreferentialAnswer = (itemId, answer) => {
-    const item = state.jeonsePreferential.items.find((i) => i.id === itemId);
-    if (!item || typeof answer !== 'boolean') return;
-    state.jeonsePreferential.answers[itemId] = answer;
+  const setJeonsePreferentialAnswer = (groupId, answer) => {
+    const group = state.jeonsePreferential.groups.find((g) => g.id === groupId);
+    if (!group) return;
+
+    if (group.type === 'SINGLE_SELECT') {
+      const optionExists = group.options.some((opt) => opt.value === answer);
+      if (!optionExists) return;
+    } else if (typeof answer !== 'boolean') {
+      return;
+    }
+    
+    state.jeonsePreferential.answers[groupId] = answer;
     state.loan.totalDiscountRate = null;
   };
 

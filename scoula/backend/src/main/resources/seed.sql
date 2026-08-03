@@ -100,39 +100,39 @@ INSERT INTO jeonse_rate_option (product_id, rate_type, base_rate, spread_rate) V
 --        단순 SUM 하면 0.6 이 되어 상품 상한(1.40)을 넘는다.
 --        → 합계를 만드는 쪽에서 condition_name 이 같은 그룹은 MAX 하나만 잡아야 한다.
 INSERT INTO jeonse_preferential_item (condition_name, condition_detail, preferential_rate)
-VALUES ('KB국민카드(신용) 이용실적 우대', '결제계좌를 KB국민은행으로 지정하고 최근 3개월간 30만원 이상 이용실적이 있는 경우', 0.1);
+VALUES ('KB국민카드(신용) 이용실적 우대', 'KB국민은행 계좌로 연결된 KB국민카드로, 최근 3개월간 30만원 이상 이용실적이 있으신가요?', 0.1);
 SET @jpi1 = LAST_INSERT_ID();
 
 INSERT INTO jeonse_preferential_item (condition_name, condition_detail, preferential_rate)
-VALUES ('KB국민카드(신용) 이용실적 우대', '결제계좌를 KB국민은행으로 지정하고 최근 3개월간 60만원 이상 이용실적이 있는 경우', 0.2);
+VALUES ('KB국민카드(신용) 이용실적 우대', 'KB국민은행 계좌로 연결된 KB국민카드로, 최근 3개월간 60만원 이상 이용실적이 있으신가요?', 0.2);
 SET @jpi2 = LAST_INSERT_ID();
 
 INSERT INTO jeonse_preferential_item (condition_name, condition_detail, preferential_rate)
-VALUES ('KB국민카드(신용) 이용실적 우대', '결제계좌를 KB국민은행으로 지정하고 최근 3개월간 90만원 이상 이용실적이 있는 경우', 0.3);
+VALUES ('KB국민카드(신용) 이용실적 우대', 'KB국민은행 계좌로 연결된 KB국민카드로, 최근 3개월간 90만원 이상 이용실적이 있으신가요?', 0.3);
 SET @jpi3 = LAST_INSERT_ID();
 
 INSERT INTO jeonse_preferential_item (condition_name, condition_detail, preferential_rate)
-VALUES ('급여(연금)이체 실적 우대', '연 0.1%p ~ 연 0.3%p', 0.3);
+VALUES ('급여(연금)이체 실적 우대', 'KB국민은행으로 매월 급여(연금)가 이체되고 있으신가요?', 0.3);
 SET @jpi4 = LAST_INSERT_ID();
 
 INSERT INTO jeonse_preferential_item (condition_name, condition_detail, preferential_rate)
-VALUES ('자동이체 거래실적 우대(3건 이상)', '아파트관리비/지로/금융결제원 CMS/펌뱅킹', 0.1);
+VALUES ('자동이체 거래실적 우대', 'KB국민은행 계좌에서 자동이체되는 항목이 3건 이상 있으신가요?', 0.1);
 SET @jpi5 = LAST_INSERT_ID();
 
 INSERT INTO jeonse_preferential_item (condition_name, condition_detail, preferential_rate)
-VALUES ('적립식예금 30만원 이상 계좌 보유 우대', '연 0.1%p', 0.1);
+VALUES ('적립식예금 30만원 이상 계좌 보유 우대', 'KB국민은행 계좌로 적립식예금 30만원 이상 자동이체 납입중이신가요?', 0.1);
 SET @jpi6 = LAST_INSERT_ID();
 
 INSERT INTO jeonse_preferential_item (condition_name, condition_detail, preferential_rate)
-VALUES ('KB스타뱅킹 이용실적 우대', 'KB스타뱅킹을 통한 이체실적이 있는 경우', 0.1);
+VALUES ('KB스타뱅킹 이용실적 우대', 'KB스타뱅킹을 통한 이체실적이 있으신가요?', 0.1);
 SET @jpi7 = LAST_INSERT_ID();
 
 INSERT INTO jeonse_preferential_item (condition_name, condition_detail, preferential_rate)
-VALUES ('부동산 전자계약 우대', '연 0.2%p', 0.2);
+VALUES ('부동산 전자계약 우대', '전자계약을 통해 임대차 계약을 체결하셨나요?', 0.2);
 SET @jpi8 = LAST_INSERT_ID();
 
 INSERT INTO jeonse_preferential_item (condition_name, condition_detail, preferential_rate)
-VALUES ('주택자금대출에 대한 취약차주 우대', '연 0.3%p', 0.3);
+VALUES ('주택자금대출에 대한 취약차주 우대', '주택자금대출에 대한 취약차주에 해당되시나요?', 0.3);
 SET @jpi9 = LAST_INSERT_ID();
 
 

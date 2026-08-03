@@ -10,8 +10,16 @@ const isSubmitting = ref(false);
 const isLoading = ref(true);
 const calculationError = ref('');
 
-const preferentialItems = computed(
-  () => profitLossStore.state.jeonsePreferential.items,
+const cardUsageGroup = computed(() =>
+  profitLossStore.state.jeonsePreferential.groups.find(
+    (g) => g.id === 'JEONSE_CARD_USAGE'
+  )
+);
+
+const yesNoGroups = computed(() =>
+  profitLossStore.state.jeonsePreferential.groups.filter(
+    (g) => g.type === 'YES_NO'
+  )
 );
 
 const isComplete = computed(() => profitLossStore.isJeonsePreferentialComplete);
@@ -132,15 +140,43 @@ async function continueToNextStep() {
       <section v-else class="preferential-section">
         <h2>대출 우대금리</h2>
 
+        <template v-if="cardUsageGroup">
+          <article class="preferential-group">
+            <h3>{{ cardUsageGroup.title }}</h3>
+            <p class="group-description">
+              {{ cardUsageGroup.description }}
+            </p>
+
+            <div class="card-usage-options">
+              <button
+                v-for="option in cardUsageGroup.options"
+                :key="option.value"
+                type="button"
+                class="card-usage-option"
+                :class="{
+                  selected: selectedAnswer(cardUsageGroup.id) === option.value,
+                }"
+                :aria-pressed="
+                  selectedAnswer(cardUsageGroup.id) === option.value
+                "
+                @click="answerItem(cardUsageGroup.id, option.value)"
+              >
+                <span class="radio-icon" aria-hidden="true"></span>
+                <span>{{ option.text }}</span>
+              </button>
+            </div>
+          </article>
+        </template>
+
         <article
-          v-for="item in preferentialItems"
+          v-for="item in yesNoGroups"
           :key="item.id"
           class="preferential-group yes-no-group"
         >
-          <h3>{{ item.conditionName }}</h3>
+          <h3>{{ item.title }}</h3>
 
           <div class="question-card">
-            <p>{{ item.conditionDetail }}</p>
+            <p>{{ item.text }}</p>
 
             <div class="answer-options">
               <button
@@ -309,6 +345,47 @@ button {
   font-size: 10px;
   font-weight: 600;
   color: #777067;
+}
+.group-description {
+  margin: 0 0 10px 2px;
+  font-size: 10px;
+  color: var(--kb-muted);
+}
+.card-usage-options {
+  display: flex;
+  gap: 8px;
+  flex-direction: column;
+}
+.card-usage-option {
+  display: flex;
+  width: 100%;
+  padding: 16px;
+  border: 1px solid var(--kb-border);
+  border-radius: 12px;
+  align-items: center;
+  gap: 12px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--kb-text);
+  background: #fff;
+  text-align: left;
+}
+.card-usage-option.selected {
+  border-color: var(--kb-yellow);
+  font-weight: 700;
+  background: #fff8df;
+  box-shadow: 0 0 0 1px var(--kb-yellow);
+}
+.radio-icon {
+  width: 18px;
+  height: 18px;
+  border: 1px solid #d4cbb8;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: #fff;
+}
+.card-usage-option.selected .radio-icon {
+  border: 5px solid var(--kb-yellow);
 }
 .question-card {
   min-height: 102px;
