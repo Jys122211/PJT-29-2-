@@ -3,6 +3,7 @@ import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import api from '@/api';
+import BottomNav from '@/components/mobile/BottomNav.vue';
 
 const router = useRouter();
 const auth = useAuthStore();
@@ -291,43 +292,7 @@ const initialChar = computed(() => {
       로그아웃 되었습니다 &rarr; 01 로그인
     </div>
 
-    <nav class="bottom-nav">
-      <router-link
-        :to="{ name: 'home' }"
-        class="nav-item"
-        exact-active-class="active"
-      >
-        <span class="nav-dot"></span>
-        <span>홈</span>
-      </router-link>
-
-      <router-link
-        :to="{ name: 'comparisonInput' }"
-        class="nav-item"
-        active-class="active"
-      >
-        <span class="nav-dot"></span>
-        <span>계산기</span>
-      </router-link>
-
-      <router-link
-        :to="{ name: 'assetRegister' }"
-        class="nav-item"
-        active-class="active"
-      >
-        <span class="nav-dot"></span>
-        <span>자산</span>
-      </router-link>
-
-      <router-link
-        :to="{ name: 'profile' }"
-        class="nav-item"
-        active-class="active"
-      >
-        <span class="nav-dot"></span>
-        <span>내정보</span>
-      </router-link>
-    </nav>
+    <BottomNav active="profile" />
 
   </main>
 </template>
@@ -397,47 +362,6 @@ const initialChar = computed(() => {
 .toast-overlay {
   background-color: #3b3b3b;
   font-size: 0.95rem;
-}
-
-.bottom-nav {
-  position: fixed;
-  bottom: 0;
-  left: 50%;
-  display: flex;
-  width: 100%;
-  max-width: 390px;
-  padding: 10px 0 16px;
-  border-top: 1px solid #efe9dd;
-  background: #fff;
-  transform: translateX(-50%);
-  justify-content: space-around;
-  z-index: 10;
-}
-
-.nav-item {
-  display: flex;
-  align-items: center;
-  flex-direction: column;
-  gap: 4px;
-  font-size: 11px;
-  color: #a49a86;
-  text-decoration: none;
-}
-
-.nav-item.active {
-  font-weight: 700;
-  color: #26221c;
-}
-
-.nav-dot {
-  width: 20px;
-  height: 20px;
-  border-radius: 6px;
-  background: #efe9dd;
-}
-
-.nav-item.active .nav-dot {
-  background: var(--kb-yellow);
 }
 
 .edit-input-wrapper {

@@ -3,7 +3,7 @@ import { ref, onMounted, computed } from 'vue';
 import api from '@/api';
 import { useAuthStore } from '@/stores/auth';
 import { useRouter } from 'vue-router';
-import Footer from '@/components/layouts/Footer.vue';
+import BottomNav from '@/components/mobile/BottomNav.vue';
 
 const auth = useAuthStore();
 const isMenuOpen = ref(false);
@@ -123,7 +123,7 @@ const formatDate = (isoDate) => isoDate.replaceAll('-', '.');
     </div>
 
     <!-- 하단 탭바 -->
-    <Footer />
+    <BottomNav active="home" />
 
 
     <!-- 메뉴 서랍 -->
