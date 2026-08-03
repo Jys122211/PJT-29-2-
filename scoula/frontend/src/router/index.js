@@ -18,13 +18,13 @@ const router = createRouter({
       path: '/',
       name: 'home',
       component: HomePage,
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, layout: 'mobile' },
     },
     {
       path: '/dashboard',
       name: 'dashboard',
       component: HomePage,
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, layout: 'mobile' },
     },
     {
       path: '/deposits/count',

@@ -64,7 +64,7 @@ const formatDate = (isoDate) => isoDate.replaceAll('-', '.');
     </svg>
   </span>
       <h1 class="greeting">안녕하세요, {{ auth.name || '게스트' }}님</h1>
-      <div class="avatar">{{ (auth.name || '게').charAt(0) }}</div>
+      <div class="avatar" style="cursor: pointer;" @click="router.push({ name: 'profile' })">{{ (auth.name || '게').charAt(0) }}</div>
     </header>
 
     <!-- 총 보유 자산 카드 -->
