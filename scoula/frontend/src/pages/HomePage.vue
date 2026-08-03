@@ -3,6 +3,7 @@ import { ref, onMounted, computed } from 'vue';
 import api from '@/api';
 import { useAuthStore } from '@/stores/auth';
 import { useRouter } from 'vue-router';
+import Footer from '@/components/layouts/Footer.vue';
 
 const auth = useAuthStore();
 const isMenuOpen = ref(false);
@@ -15,9 +16,7 @@ const showToast = ref(false);
 const navigateWithToast = (name, message) => {
   toastMessage.value = message;
   showToast.value = true;
-  setTimeout(() => {
     router.push({ name });
-  }, 900);
 };
 
 const goToAssetRegister = () =>
@@ -73,7 +72,8 @@ const formatDate = (isoDate) => isoDate.replaceAll('-', '.');
       <p class="asset-label">총 보유 자산</p>
       <p class="asset-amount">{{ totalDeposit.toLocaleString() }}원</p>
       <div class="asset-sub">
-        <span class="asset-deposit">예금 {{ totalDeposit.toLocaleString() }}</span>
+        <span class="asset-deposit-label">예금</span>
+        <span class="asset-deposit-value">{{ totalDeposit.toLocaleString() }}</span>
       </div>
     </section>
 
@@ -123,24 +123,8 @@ const formatDate = (isoDate) => isoDate.replaceAll('-', '.');
     </div>
 
     <!-- 하단 탭바 -->
-    <nav class="bottom-nav">
-      <router-link :to="{ name: 'home' }" class="nav-item" exact-active-class="active">
-        <span class="nav-dot"></span>
-        <span>홈</span>
-      </router-link>
-      <router-link :to="{ name: 'comparisonInput' }" class="nav-item" active-class="active">
-        <span class="nav-dot"></span>
-        <span>계산기</span>
-      </router-link>
-      <router-link :to="{ name: 'assetRegister' }" class="nav-item" active-class="active">
-        <span class="nav-dot"></span>
-        <span>자산</span>
-      </router-link>
-      <router-link :to="{ name: 'profile' }" class="nav-item" active-class="active">
-        <span class="nav-dot"></span>
-        <span>내정보</span>
-      </router-link>
-    </nav>
+    <Footer />
+
 
     <!-- 메뉴 서랍 -->
     <Transition name="fade">
@@ -349,8 +333,8 @@ const formatDate = (isoDate) => isoDate.replaceAll('-', '.');
   gap: 14px;
   font-size: 12px;
 }
-.asset-deposit { color: #c9c0ae; }
-
+.asset-deposit-label { color: #c9c0ae; }
+.asset-deposit-value { color: #ffbc00; margin-left: 4px; }
 .cta {
   box-sizing: border-box;
   display: flex;
@@ -406,7 +390,30 @@ const formatDate = (isoDate) => isoDate.replaceAll('-', '.');
 .section-header h2 { font-weight: 700; font-size: 15px; color: #26221c; }
 .view-all { font-size: 12px; color: #8c8371; text-decoration: none; }
 
-.deposit-list { width: calc(100% - 40px); margin: 12px auto 0; display: flex; flex-direction: column; gap: 12px; }
+.deposit-list {
+  width: calc(100% - 40px);
+  margin: 12px auto 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 320px;
+  overflow-y: auto;
+  border: 1px solid #efe9dd;
+  border-radius: 16px;
+  padding: 12px;
+  box-sizing: border-box;
+  background: #faf8f4;
+}
+.deposit-list::-webkit-scrollbar {
+  width: 5px;
+}
+.deposit-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+.deposit-list::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: #c8bfae;
+}
 .deposit-card {
   box-sizing: border-box;
   display: flex;
@@ -424,31 +431,7 @@ const formatDate = (isoDate) => isoDate.replaceAll('-', '.');
 .d-day-badge { padding: 5px 10px; background: #fff3cf; border-radius: 999px; font-weight: 700; font-size: 11px; color: #8a6400; }
 .deposit-maturity { font-size: 11px; color: #b3aa99; }
 
-.bottom-nav {
-  position: fixed;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100%;
-  max-width: 390px;
-  display: flex;
-  justify-content: space-around;
-  background: #fff;
-  border-top: 1px solid #efe9dd;
-  padding: 10px 0 16px;
-}
-.nav-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  font-size: 11px;
-  color: #a49a86;
-  text-decoration: none;
-}
-.nav-item.active { color: #26221c; font-weight: 700; }
-.nav-dot { width: 20px; height: 20px; border-radius: 6px; background: #efe9dd; }
-.nav-item.active .nav-dot { background: #ffbc00; }
+
 
 .menu-overlay {
   position: fixed;
