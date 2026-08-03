@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.scoula.profitLoss.mapper.JeonseLoanMapper">
+
+    <select id="findAllEligibilityQuestions" resultType="org.scoula.profitLoss.dto.JeonseEligibilityQuestionDTO">
+        SELECT eligibility_question_id as id, question_text as text
+        FROM jeonse_eligibility_question
+    </select>
+
+    <select id="findAllPreferentialItems" resultType="org.scoula.profitLoss.dto.JeonsePreferentialItemDTO">
+        SELECT preferential_item_id as id, condition_name as conditionName, condition_detail as conditionDetail, preferential_rate as preferentialRate
+        FROM jeonse_preferential_item
+    </select>
+
+    <select id="findAllProductIds" resultType="Long">
+        SELECT product_id FROM jeonse_product
+    </select>
+
+    <select id="findEligibilityQuestionIdsByProductId" resultType="Long">
+        SELECT eligibility_question_id
+        FROM jeonse_eligibility_condition
+        WHERE product_id = #{productId}
+    </select>
+
+    <select id="findTotalPreferentialRate" resultType="java.math.BigDecimal">
+        SELECT COALESCE(SUM(pi.preferential_rate), 0)
+        FROM jeonse_preferential_item pi
+        JOIN jeonse_preferential_condition pc ON pi.preferential_item_id = pc.preferential_item_id
+        WHERE pc.product_id = #{productId} 
+        AND pc.preferential_item_id IN
+        <foreach item="item" collection="itemIds" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+    
+    <select id="findMaxPreferentialRate" resultType="java.math.BigDecimal">
+        SELECT max_preferential_rate
+        FROM jeonse_product
+        WHERE product_id = #{productId}
+    </select>
+</mapper>
