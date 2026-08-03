@@ -14,17 +14,16 @@ public final class JeonseLoanCalculator {
         WITHDRAWAL, LOAN, TIE
     }
 
-    // 대출 약정기간 하한(상품 조건: 1년 이상). 상한(2년 이내, 최초 약정 기준 — 10년은 재계약 연장을 포함한
-    // 값이라 지금 시점 계산에는 쓰지 않는다)은 예금 유지 B안·부족분 A안 양쪽에 동일하게 적용한다.
+    // 대출 약정기간 하한(상품 조건: 1년 이상). 상한은 두지 않는다 — 현실적인 예금금리 범위에서
+    // 실제기간이 아무리 길어져도(월적립이 아주 작아도) 대출이자가 그만큼 쌓여 예금 해지가 이기므로,
+    // 신용대출(LoanSimulator)이 상한 없이 시뮬레이션하는 것과 같은 이유로 걸러낼 필요가 없다.
+    // "월납입 ≥ 월이자" 조건 자체가 실질적인 하한선 역할을 한다.
     private static final int MIN_COMMITMENT_MONTHS = 12;
-    private static final int MAX_COMMITMENT_MONTHS = 24;
     private static final BigDecimal PREPAYMENT_FEE_RATE = new BigDecimal("0.0054"); // 중도상환수수료율 0.54% (신용대출 0.11%와 다름)
     private static final BigDecimal MONTHLY_RATE_DIVISOR = new BigDecimal("1200"); // %/100/12
     private static final int CALC_SCALE = 20;
 
     private static final String INTEREST_TOO_LOW_MESSAGE = "월 상환 가능 금액이 이자보다 적어 대출 상환이 불가능합니다.";
-    private static final String TERM_TOO_LONG_MESSAGE =
-            "상환 기간이 대출 최장 약정기간(" + MAX_COMMITMENT_MONTHS + "개월)을 초과합니다.";
     private static final String INSUFFICIENT_FUNDS_MESSAGE = "만기 상환 재원이 부족해 대출 상환이 불가능합니다.";
 
     public record DepositInput(long principal, BigDecimal maturityRate, BigDecimal baseRate,
@@ -190,7 +189,7 @@ public final class JeonseLoanCalculator {
     }
 
     // isLumpSum=O: 실제기간 = 예금잔여기간(예금 만기 목돈 + 적립금으로 상환). 실행 가능성은
-    // 기간 상한 → 이자 지불 → 만기 상환 재원(적립금 + 예금만기수령액) 순으로 확인한다.
+    // 이자 지불 → 만기 상환 재원(적립금 + 예금만기수령액) 순으로 확인한다.
     // 실제기간이 예금 조건으로 고정돼 있어, 실행 가능 여부와 무관하게 대출비용은 항상 계산할 수 있다.
     private static MainLoanEvaluation evaluateLumpSumMainLoan(long urgentAmount, BigDecimal finalRate, long monthlyPayment,
                                                                 int depositRemainingMonths, long depositMaturityAmount) {
@@ -199,9 +198,7 @@ public final class JeonseLoanCalculator {
         LoanCostBreakdown breakdown = computeLoanCost(urgentAmount, finalRate, actualMonths, commitmentMonths);
 
         LoanFeasibility feasibility;
-        if (actualMonths > MAX_COMMITMENT_MONTHS || commitmentMonths > MAX_COMMITMENT_MONTHS) {
-            feasibility = LoanFeasibility.infeasible(TERM_TOO_LONG_MESSAGE);
-        } else if (monthlyPayment < breakdown.monthlyInterest()) {
+        if (monthlyPayment < breakdown.monthlyInterest()) {
             feasibility = LoanFeasibility.infeasible(INTEREST_TOO_LOW_MESSAGE);
         } else {
             long accumulated = (monthlyPayment - breakdown.monthlyInterest()) * actualMonths;
@@ -234,16 +231,11 @@ public final class JeonseLoanCalculator {
         long fee = computeFee(urgentAmount, timing.actualMonths(), timing.commitmentMonths());
         LoanCostBreakdown breakdown = new LoanCostBreakdown(monthlyInterest, interest, fee, interest + fee);
 
-        LoanFeasibility feasibility;
-        if (exceedsTermCap(timing)) {
-            feasibility = LoanFeasibility.infeasible(TERM_TOO_LONG_MESSAGE);
-        } else {
-            long accumulated = monthlyAccumulation * timing.actualMonths();
-            long amountDue = urgentAmount + fee;
-            feasibility = accumulated >= amountDue
-                    ? LoanFeasibility.ok()
-                    : LoanFeasibility.infeasible(INSUFFICIENT_FUNDS_MESSAGE);
-        }
+        long accumulated = monthlyAccumulation * timing.actualMonths();
+        long amountDue = urgentAmount + fee;
+        LoanFeasibility feasibility = accumulated >= amountDue
+                ? LoanFeasibility.ok()
+                : LoanFeasibility.infeasible(INSUFFICIENT_FUNDS_MESSAGE);
 
         return new MainLoanEvaluation(feasibility, breakdown, timing.commitmentMonths());
     }
@@ -251,8 +243,8 @@ public final class JeonseLoanCalculator {
     // STEP 6 경우4(급전 > 예금원금)의 부족분 대출. 예금 만기와 무관하게 월납입으로 갚아나가다
     // 적립금(월납입-월이자)이 부족분 원금에 도달하는 시점(ceil)에 완납한다고 본다 — 신용대출이
     // 이 경우 방식1(월납입만으로 완납까지 시뮬레이션)로 처리하는 것과 같은 논리다.
-    // 이자조차 못 내면(월적립 ≤ 0) 실제기간을 계산할 수 없고, 계산되더라도 최장 약정기간(24개월)을
-    // 넘으면 마찬가지로 실행 불가능하다 — 이자 확인이 먼저다(실제기간 자체가 이자 확인 없이는 정의되지 않는다).
+    // 이자조차 못 내면(월적립 ≤ 0) 실제기간을 계산할 수 없어 실행 불가능하다. 기간 자체에는 상한을
+    // 두지 않는다 — 실제기간이 길어질수록 이자가 쌓여 자동으로 예금 해지 쪽이 이기므로 걸러낼 필요가 없다.
     private static ShortfallLoanEvaluation evaluateShortfallLoan(long shortfall, BigDecimal finalRate, long monthlyPayment) {
         long monthlyInterest = computeMonthlyInterest(shortfall, finalRate);
         long monthlyAccumulation = monthlyPayment - monthlyInterest;
@@ -261,10 +253,6 @@ public final class JeonseLoanCalculator {
         }
 
         ElasticTiming timing = computeElasticTiming(shortfall, monthlyAccumulation);
-        if (exceedsTermCap(timing)) {
-            return new ShortfallLoanEvaluation(LoanFeasibility.infeasible(TERM_TOO_LONG_MESSAGE), null);
-        }
-
         long interest = monthlyInterest * timing.actualMonths();
         long fee = computeFee(shortfall, timing.actualMonths(), timing.commitmentMonths());
         LoanCostBreakdown breakdown = new LoanCostBreakdown(monthlyInterest, interest, fee, interest + fee);
@@ -278,10 +266,6 @@ public final class JeonseLoanCalculator {
         int actualMonths = (int) ceilDiv(amount, monthlyAccumulation);
         int commitmentMonths = Math.max(MIN_COMMITMENT_MONTHS, actualMonths);
         return new ElasticTiming(actualMonths, commitmentMonths);
-    }
-
-    private static boolean exceedsTermCap(ElasticTiming timing) {
-        return timing.actualMonths() > MAX_COMMITMENT_MONTHS || timing.commitmentMonths() > MAX_COMMITMENT_MONTHS;
     }
 
     private static String buildBothInfeasibleMessage(String withdrawalReason, String loanReason) {
