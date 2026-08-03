@@ -211,16 +211,24 @@ async function runOcr(file) {
   ocrError.value = { errorCode: null, message: '' };
 
   try {
-    const result = USE_MOCK
-      ? await depositApi.ocr(file, mockScenario.value)
-      : await depositApi.ocr(file);
+    // 백엔드 OCR 호출 (ocrApi는 18행에서 이미 import 되어 있음)
+    const response = await ocrApi.extractImage(file);
 
-    applyExtracted(result.extracted);
+    // Gemini 응답에서 텍스트 추출
+    const rawText = response.candidates[0].content.parts[0].text;
+
+    // ```json 백틱 제거 후 JSON 파싱
+    const jsonString = rawText.replace(/```json\n?|```/g, '').trim();
+    const extractedData = JSON.parse(jsonString);
+
+    applyExtracted(extractedData);
     ocrState.value = 'success'; // 07-04
   } catch (error) {
-    // 07-05 (OCR_FAILED) / 07-08 (OCR_TIMEOUT)
-    ocrError.value = extractApiError(error);
-    ocrState.value = 'failed';
+    console.error('OCR 분석 실패:', error);
+    ocrError.value = error.response
+      ? extractApiError(error)
+      : { errorCode: null, message: '이미지 분석에 실패했습니다.' };
+    ocrState.value = 'failed'; // 07-05 / 07-08
   }
 }
 
