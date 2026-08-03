@@ -1,5 +1,6 @@
 import { ref, computed } from 'vue';
 import { defineStore } from 'pinia';
+import { useRouter } from 'vue-router';
 import axios from 'axios';
 
 const initState = {
@@ -15,6 +16,7 @@ const initState = {
 };
 
 export const useAuthStore = defineStore('auth', () => {
+  const router = useRouter();
   const state = ref({ ...initState });
 
   const isLogin = computed(() => !!state.value.user.username); // 로그인 여부
@@ -31,6 +33,7 @@ export const useAuthStore = defineStore('auth', () => {
   const logout = () => {
     localStorage.clear();
     state.value = { ...initState };
+    router.push({ name: 'login' });
   };
 
   const getToken = () => state.value.token;
@@ -56,8 +59,8 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const { data } = await axios.get('/api/users/me', {
         headers: {
-          Authorization: `Bearer ${state.value.token}`
-        }
+          Authorization: `Bearer ${state.value.token}`,
+        },
       });
       state.value.user = { ...state.value.user, ...data };
       localStorage.setItem('auth', JSON.stringify(state.value));
