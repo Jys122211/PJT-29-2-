@@ -25,7 +25,12 @@ const tabs = [
     icon: 'fa-solid fa-wallet',
     to: { name: 'assetList' },
   },
-  { key: 'profile', label: '내정보', icon: 'fa-solid fa-user', to: null },
+  {
+    key: 'profile',
+    label: '내정보',
+    icon: 'fa-solid fa-user',
+    to: { name: 'profile' },
+  },
 ];
 
 function move(tab) {
@@ -41,8 +46,7 @@ function move(tab) {
       :key="tab.key"
       type="button"
       :class="{ active: props.active === tab.key }"
-      @click="move(tab)"
-    >
+      @click="move(tab)">
       <span class="dot"><i :class="tab.icon"></i></span>
       {{ tab.label }}
     </button>
@@ -52,14 +56,13 @@ function move(tab) {
 <style scoped>
 .bottom-nav {
   position: fixed;
-  right: 0;
   bottom: 0;
-  left: 0;
+  left: 50%; /* right: 0; left: 0; margin: auto; 를 대체 */
+  transform: translateX(-50%); /* 추가 */
   display: grid;
   width: 100%;
   max-width: 390px;
   height: 70px;
-  margin: auto;
   border-top: 1px solid #ece8e1;
   grid-template-columns: repeat(4, 1fr);
   background: #fff;

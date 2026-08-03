@@ -90,8 +90,11 @@ export function calcDDay(maturityCompact) {
 export function extractApiError(error) {
   const data = error?.response?.data ?? {};
   return {
-    errorCode: data.errorCode ?? null,
-    field: data.field ?? null,
-    message: data.message ?? '요청을 처리하지 못했어요. 다시 시도해주세요.',
+    errorCode: typeof data === 'object' ? (data.errorCode ?? null) : null,
+    field: typeof data === 'object' ? (data.field ?? null) : null,
+    message:
+      typeof data === 'string'
+        ? data
+        : (data.message ?? '요청을 처리하지 못했어요. 다시 시도해주세요.'),
   };
 }

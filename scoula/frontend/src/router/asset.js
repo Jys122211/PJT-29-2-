@@ -5,6 +5,7 @@ export default [
     component: () => import('../pages/asset/AssetRegisterPage.vue'),
     meta: {
       layout: 'mobile',
+      requiresAuth: true,
     },
   },
   {
@@ -13,6 +14,7 @@ export default [
     component: () => import('../pages/asset/AssetListPage.vue'),
     meta: {
       layout: 'mobile',
+      requiresAuth: true,
     },
   },
   {
@@ -21,6 +23,7 @@ export default [
     component: () => import('../pages/asset/AssetEditPage.vue'),
     meta: {
       layout: 'mobile',
+      requiresAuth: true,
     },
   },
 ];

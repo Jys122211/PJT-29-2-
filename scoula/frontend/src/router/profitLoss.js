@@ -1,5 +1,4 @@
 import { useProfitLossStore } from '@/stores/profitLoss';
-
 export default [
   {
     path: '/comparisons/input',
@@ -149,22 +148,31 @@ export default [
     },
     props: true,
   },
-    {
-        path: '/comparison/history',
-        name: 'comparisonHistory',
-        component: () => import('../pages/comparison/HistoryPage.vue'),
-        meta: { requiresAuth: true },
+  {
+    path: '/comparison/history',
+    name: 'comparisonHistory',
+    component: () => import('../pages/comparison/HistoryPage.vue'),
+    meta: {
+      layout: 'mobile',
+      requiresAuth: true,
     },
-    {
-        path: '/asset/register',
-        name: 'assetRegister',
-        component: () => import('../pages/asset/RegisterPage.vue'),
-        meta: { requiresAuth: true },
+  },
+  {
+    path: '/asset/register',
+    name: 'assetRegister',
+    component: () => import('../pages/asset/RegisterPage.vue'),
+    meta: {
+      layout: 'mobile',
+      requiresAuth: true,
     },
-    {
-        path: '/asset/list',
-        name: 'assetList',
-        component: () => import('../pages/asset/ListPage.vue'),
-        meta: { requiresAuth: true },
+  },
+  {
+    path: '/asset/list',
+    name: 'assetList',
+    component: () => import('../pages/asset/ListPage.vue'),
+    meta: {
+      layout: 'mobile',
+      requiresAuth: true,
     },
+  },
 ];
