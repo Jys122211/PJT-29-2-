@@ -14,6 +14,9 @@ import org.scoula.profitLoss.service.ProfitLossServiceImpl;
 import org.scoula.profitLoss.service.calculator.ComparisonCalculator;
 import org.scoula.profitLoss.vo.ComparisonVO;
 import org.scoula.profitLoss.vo.LoanProductRateVO;
+import org.scoula.security.account.domain.CustomUser;
+import org.scoula.security.account.domain.MemberVO;
+import org.springframework.security.core.Authentication;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -25,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 // 인터페이스 계약서 2장 요청 형태를 조건1·가입1개월차 값으로 채워, Controller.create(POST) →
@@ -68,6 +72,12 @@ class ProfitLossControllerIntegrationTest {
 
         ProfitLossServiceImpl service = new ProfitLossServiceImpl(mapper);
         ProfitLossController controller = new ProfitLossController(service);
+        Authentication authentication = mock(Authentication.class);
+        CustomUser authenticatedUser = mock(CustomUser.class);
+        when(authentication.getPrincipal()).thenReturn(authenticatedUser);
+        when(authenticatedUser.getMember()).thenReturn(
+                MemberVO.builder().userId(userId).build()
+        );
 
         // 계약서 2장 요청 구조 그대로, 값만 "조건1 · 가입1개월차"로 채움.
         ComparisonRequest request = ComparisonRequest.builder()
@@ -90,9 +100,12 @@ class ProfitLossControllerIntegrationTest {
                         .build())
                 .build();
 
-        var postResult = controller.create(request);
+        var postResult = controller.create(request, authentication);
         assertEquals(201, postResult.getStatusCodeValue());
-        var getResult = controller.get(postResult.getBody().getComparisonId());
+        var getResult = controller.get(
+                postResult.getBody().getComparisonId(),
+                authentication
+        );
         assertEquals(200, getResult.getStatusCodeValue());
 
         // POST 직후 응답과 GET 재조회 응답이 완전히 같아야 한다 (새로고침해도 같은 화면).

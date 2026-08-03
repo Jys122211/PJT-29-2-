@@ -7,6 +7,7 @@ export default [
     component: () => import('@/pages/profitLoss/ComparisonInput.vue'),
     meta: {
       layout: 'mobile',
+      requiresAuth: true,
     },
   },
   {
@@ -15,6 +16,7 @@ export default [
     component: () => import('@/pages/profitLoss/CreditEligibility.vue'),
     meta: {
       layout: 'mobile',
+      requiresAuth: true,
     },
     beforeEnter: () => {
       const profitLossStore = useProfitLossStore();
@@ -45,6 +47,7 @@ export default [
     component: () => import('@/pages/profitLoss/CreditPreferential.vue'),
     meta: {
       layout: 'mobile',
+      requiresAuth: true,
     },
     beforeEnter: () => {
       const profitLossStore = useProfitLossStore();
@@ -68,6 +71,7 @@ export default [
     component: () => import('@/pages/profitLoss/ComparisonSummary.vue'),
     meta: {
       layout: 'mobile',
+      requiresAuth: true,
     },
     beforeEnter: () => {
       const profitLossStore = useProfitLossStore();
@@ -88,6 +92,7 @@ export default [
     component: () => import('@/pages/profitLoss/ComparisonResultPage.vue'),
     meta: {
       layout: 'mobile',
+      requiresAuth: true,
     },
     props: true,
   },
@@ -95,16 +100,18 @@ export default [
         path: '/comparison/history',
         name: 'comparisonHistory',
         component: () => import('../pages/comparison/HistoryPage.vue'),
+        meta: { requiresAuth: true },
     },
     {
         path: '/asset/register',
         name: 'assetRegister',
         component: () => import('../pages/asset/RegisterPage.vue'),
+        meta: { requiresAuth: true },
     },
     {
         path: '/asset/list',
         name: 'assetList',
         component: () => import('../pages/asset/ListPage.vue'),
-
+        meta: { requiresAuth: true },
     },
 ];

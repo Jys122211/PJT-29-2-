@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.scoula.member.mapper.UserMapper">
+    <!-- 이메일 중복 여부를 boolean 값으로 반환한다. -->
+    <select id="existsByEmail" resultType="boolean">
+        SELECT COUNT(*) > 0
+        FROM users
+        WHERE email = #{email}
+    </select>
+
+    <!--
+        회원가입 사용자 저장 SQL.
+        신용점수와 월 상환 가능 금액은 가입 후 프로필에서 입력하므로 NULL로 저장한다.
+        AUTO_INCREMENT로 생성된 user_id는 useGeneratedKeys를 통해 UserVO.userId에 담긴다.
+    -->
+    <insert id="insert"
+            useGeneratedKeys="true"
+            keyProperty="userId"
+            keyColumn="user_id">
+        INSERT INTO users (
+            email,
+            password_hash,
+            name,
+            credit_score,
+            max_monthly_payment,
+            is_deleted,
+            created_at,
+            created_by
+        )
+        VALUES (
+            #{email},
+            #{passwordHash},
+            #{name},
+            NULL,
+            NULL,
+            'N',
+            NOW(),
+            NULL
+        )
+    </insert>
+</mapper>

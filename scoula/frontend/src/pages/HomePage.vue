@@ -64,8 +64,8 @@ const formatDate = (isoDate) => isoDate.replaceAll('-', '.');
       <text x="95" y="75" fill="#26221c" font-size="12" font-weight="700" text-anchor="middle" dominant-baseline="central">실</text>
     </svg>
   </span>
-      <h1 class="greeting">안녕하세요, {{ auth.username || '게스트' }}님</h1>
-      <div class="avatar">{{ (auth.username || '게').charAt(0) }}</div>
+      <h1 class="greeting">안녕하세요, {{ auth.name || '게스트' }}님</h1>
+      <div class="avatar">{{ (auth.name || '게').charAt(0) }}</div>
     </header>
 
     <!-- 총 보유 자산 카드 -->

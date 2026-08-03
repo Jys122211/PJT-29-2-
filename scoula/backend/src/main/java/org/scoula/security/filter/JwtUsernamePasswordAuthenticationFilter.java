@@ -18,32 +18,35 @@ import javax.servlet.http.HttpServletResponse;
 @Component
 public class JwtUsernamePasswordAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
-    
-    // 스프링 생성자 주입을 통해 전달
+    /**
+     * 이메일·비밀번호 로그인 요청만 담당하는 Spring Security 필터이다.
+     * 인증 결과에 따라 성공 또는 실패 Handler로 처리를 넘긴다.
+     */
     public JwtUsernamePasswordAuthenticationFilter(
-            AuthenticationManager authenticationManager,    // SecurityConfig가 생성된 이후에 등록됨
+            AuthenticationManager authenticationManager,
             LoginSuccessHandler loginSuccessHandler,
             LoginFailureHandler loginFailureHandler) {
         super(authenticationManager);
 
-        setFilterProcessesUrl("/api/auth/login");                  // POST 로그인 요청 url
-        setAuthenticationSuccessHandler(loginSuccessHandler);    // 로그인 성공 핸들러 등록
-        setAuthenticationFailureHandler(loginFailureHandler);  // 로그인 실패 핸들러 등록
+        // POST /api/auth/login 요청이 들어왔을 때만 이 필터가 로그인 인증을 시도한다.
+        setFilterProcessesUrl("/api/auth/login");
+        setAuthenticationSuccessHandler(loginSuccessHandler);
+        setAuthenticationFailureHandler(loginFailureHandler);
     }
 
-    // 로그인 요청 URL인 경우 로그인 작업 처리
+    // 요청 JSON의 이메일·비밀번호를 Spring Security 인증 절차로 전달한다.
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
             throws AuthenticationException {
 
-        // 요청 BODY의 JSON에서 username, password  LoginDTO
+        // 1. 요청 Body의 JSON에서 email과 password를 읽는다.
         LoginDTO login = LoginDTO.of(request);
 
-        // 인증 토큰(UsernamePasswordAuthenticationToken) 구성
+        // 2. 아직 인증되지 않은 이메일·비밀번호 인증 객체를 만든다.
         UsernamePasswordAuthenticationToken authenticationToken =
-                new UsernamePasswordAuthenticationToken(login.getUsername(), login.getPassword());
+                new UsernamePasswordAuthenticationToken(login.getEmail(), login.getPassword());
 
-        // AuthenticationManager에게 인증 요청
+        // 3. AuthenticationManager가 사용자 조회와 BCrypt 비밀번호 비교를 수행한다.
         return getAuthenticationManager().authenticate(authenticationToken);
     }
 

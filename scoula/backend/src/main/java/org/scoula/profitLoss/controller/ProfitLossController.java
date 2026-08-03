@@ -38,20 +38,17 @@ public class ProfitLossController {
 
     private final ProfitLossService service;
 
-    // TODO: member 시스템이 username(String)만 PK로 쓰고 있어 숫자 user_id가 아직 없다
-    // (comparisons.user_id는 BIGINT). 보안/회원 파트에서 숫자 ID가 생기면 이 메서드를
-    // @AuthenticationPrincipal CustomUser에서 실제 값을 뽑도록 교체한다.
-    private Long currentUserId() {
-        return 1L;
+    // JWT 인증으로 만든 SecurityContext에서 현재 로그인 사용자의 DB user_id를 가져온다.
+    private Long currentUserId(Authentication authentication) {
+        CustomUser authenticatedUser = (CustomUser) authentication.getPrincipal();
+        return authenticatedUser.getMember().getUserId();
     }
 
     // ── 입력 화면 (조윤상)
 
     @GetMapping("/api/deposits/list")
     public ResponseEntity<List<UserDepositDTO>> getDeposits(Authentication authentication) {
-        CustomUser authenticatedUser = (CustomUser) authentication.getPrincipal();
-        Long userId = authenticatedUser.getMember().getUserId();
-        return ResponseEntity.ok(service.getDeposits(userId));
+        return ResponseEntity.ok(service.getDeposits(currentUserId(authentication)));
     }
 
     @PostMapping("/api/credit-loans/qualified")
@@ -80,14 +77,20 @@ public class ProfitLossController {
     // ── 득실 비교 (안상우)
 
     @PostMapping("/api/comparisons")
-    public ResponseEntity<ComparisonResponse> create(@RequestBody ComparisonRequest request) {
-        ComparisonResponse response = service.compare(currentUserId(), request);
+    public ResponseEntity<ComparisonResponse> create(
+            @RequestBody ComparisonRequest request,
+            Authentication authentication
+    ) {
+        ComparisonResponse response = service.compare(currentUserId(authentication), request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping("/api/comparisons/{comparisonId}")
-    public ResponseEntity<ComparisonResponse> get(@PathVariable Long comparisonId) {
-        return ResponseEntity.ok(service.getComparison(currentUserId(), comparisonId));
+    public ResponseEntity<ComparisonResponse> get(
+            @PathVariable Long comparisonId,
+            Authentication authentication
+    ) {
+        return ResponseEntity.ok(service.getComparison(currentUserId(authentication), comparisonId));
     }
 
     @ExceptionHandler(PaymentTooLowException.class)

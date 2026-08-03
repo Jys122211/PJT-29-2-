@@ -10,10 +10,9 @@
     </resultMap>
 
     <resultMap id="memberMap" type="org.scoula.security.account.domain.MemberVO">
-        <id property="username" column="username"/>
-        <result property="userId" column="user_id"/>
-        <result property="username" column="username"/>
-        <result property="password" column="password"/>
+        <id property="userId" column="user_id"/>
+        <result property="username" column="email"/>
+        <result property="password" column="password_hash"/>
         <result property="email" column="email"/>
         <result property="name" column="name"/>
         <result property="creditScore" column="credit_score"/>
@@ -28,14 +27,20 @@
 
     <select id="get" resultMap="memberMap">
         SELECT
-            m.user_id,
-            m.username,
-            m.password,
-            m.email,
-            a.auth
-        FROM tbl_member m
-        LEFT JOIN tbl_member_auth a
-            ON a.username = m.username
-        WHERE m.username = #{username}
+            user_id,
+            email,
+            password_hash,
+            name,
+            credit_score,
+            max_monthly_payment,
+            is_deleted,
+            created_at,
+            created_by,
+            updated_at,
+            updated_by,
+            'ROLE_USER' AS auth
+        FROM users
+        WHERE email = #{email}
+          AND is_deleted = 'N'
     </select>
 </mapper>

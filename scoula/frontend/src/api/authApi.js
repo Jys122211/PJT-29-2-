@@ -4,6 +4,12 @@ const BASE_URL = '/api/users';
 const headers = { 'Content-Type': 'multipart/form-data' };
 
 export default {
+  // 피그마 회원가입 화면에서 입력한 이름·이메일·비밀번호를 JSON으로 전송한다.
+  async signup(payload) {
+    const { data } = await api.post('/api/auth/signup', payload);
+    return data;
+  },
+
   // email 중복 체크, true: 중복(사용불가), false: 사용 가능
   async checkEmail(email) {
     const { data } = await api.get(`${BASE_URL}/checkemail/${email}`);
