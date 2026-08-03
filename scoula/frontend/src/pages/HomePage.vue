@@ -267,7 +267,7 @@ const formatDate = (isoDate) => isoDate.replaceAll('-', '.');
           </span>
           <span class="menu-title">득실</span>
           <button class="icon-btn menu-close" @click="isMenuOpen = false">
-            ☰
+            ✕
           </button>
         </div>
 
