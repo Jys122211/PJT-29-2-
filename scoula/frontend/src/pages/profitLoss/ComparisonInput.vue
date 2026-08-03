@@ -266,6 +266,9 @@ async function compareProfitLoss() {
   if (profitLossStore.state.loan.loanType === 'CREDIT') {
     router.push({ name: 'creditEligibility' });
     return;
+  } else if (profitLossStore.state.loan.loanType === 'JEONSE') {
+    router.push({ name: 'jeonseEligibility' });
+    return;
   }
 
   // 추후 백엔드가 구현되면:
