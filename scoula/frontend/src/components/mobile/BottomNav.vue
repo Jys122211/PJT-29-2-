@@ -25,7 +25,7 @@ const tabs = [
     icon: 'fa-solid fa-wallet',
     to: { name: 'assetList' },
   },
-  { key: 'profile', label: '내정보', icon: 'fa-solid fa-user', to: { name: 'profile' } },,
+  { key: 'profile', label: '내정보', icon: 'fa-solid fa-user', to: { name: 'profile' } },
 ];
 
 function move(tab) {
