@@ -61,11 +61,7 @@ export default {
       formData.append('avatar', member.avatar);
     }
 
-    const { data } = await api.put(
-      `${BASE_URL}/${member.email}`,
-      formData,
-      headers,
-    );
+    const { data } = await api.put(`${BASE_URL}/me`, formData, headers);
     console.log('AUTH PUT: ', data);
     return data;
   },

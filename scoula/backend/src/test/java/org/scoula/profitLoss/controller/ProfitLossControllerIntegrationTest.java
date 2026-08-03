@@ -10,6 +10,7 @@ import org.scoula.profitLoss.dto.ComparisonRequest;
 import org.scoula.profitLoss.dto.ComparisonResponse;
 import org.scoula.profitLoss.enums.LoanType;
 import org.scoula.profitLoss.mapper.ProfitLossMapper;
+import org.scoula.profitLoss.service.JeonseLoanService;
 import org.scoula.profitLoss.service.ProfitLossServiceImpl;
 import org.scoula.profitLoss.service.calculator.ComparisonCalculator;
 import org.scoula.profitLoss.vo.ComparisonVO;
@@ -44,7 +45,7 @@ class ProfitLossControllerIntegrationTest {
 
     @Test
     void condition1_at1Month_postThenGet_matchesSpecValues() {
-        Long userId = 1L;
+        Long userId = 42L;
 
         LocalDate joinDate = LocalDate.now(SEOUL).minusMonths(1);
         when(mapper.selectUserDeposit(10L, userId)).thenReturn(UserDepositVO.builder()
@@ -71,7 +72,10 @@ class ProfitLossControllerIntegrationTest {
         when(mapper.selectComparisonById(1L, userId)).thenAnswer(invocation -> savedVo.getValue());
 
         ProfitLossServiceImpl service = new ProfitLossServiceImpl(mapper);
-        ProfitLossController controller = new ProfitLossController(service);
+        ProfitLossController controller = new ProfitLossController(
+                service,
+                mock(JeonseLoanService.class)
+        );
         Authentication authentication = mock(Authentication.class);
         CustomUser authenticatedUser = mock(CustomUser.class);
         when(authentication.getPrincipal()).thenReturn(authenticatedUser);

@@ -97,9 +97,9 @@ public class MemberController {
     /**
      * 프로필 전체 수정 (PUT)
      */
-    @PutMapping("/{email}")
-    public ResponseEntity<MemberDTO> changeProfile(MemberUpdateDTO member) {
-        return ResponseEntity.ok(service.update(member));
+    @PutMapping("/me")
+    public ResponseEntity<MemberDTO> changeProfile(MemberUpdateDTO member, Principal principal) {
+        return ResponseEntity.ok(service.update(getAuthenticatedUserId(principal), member));
     }
 
     /**
