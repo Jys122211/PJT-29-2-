@@ -91,13 +91,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http
                 .authorizeRequests() // 경로별 접근 권한 설정
                 .antMatchers(HttpMethod.OPTIONS).permitAll()
-<<<<<<< HEAD
-                .antMatchers(HttpMethod.PUT, "/api/member", "/api/member/*/changepassword").authenticated()
-                .antMatchers(HttpMethod.GET, "/deposits/list").authenticated()
-                .antMatchers(HttpMethod.POST, "/credit-loans/qualified").authenticated()
-                .antMatchers(HttpMethod.POST, "/credit-loans/preferential-rate").authenticated()
-                .antMatchers(HttpMethod.POST, "/api/ocr/**").authenticated()
-=======
                 .antMatchers(HttpMethod.POST, "/api/auth/signup").permitAll()
                 .antMatchers(HttpMethod.GET, "/api/users/me").authenticated()
                 .antMatchers(HttpMethod.PATCH, "/api/users/me/**").authenticated()
@@ -107,7 +100,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.POST, "/api/credit-loans/preferential-rate").authenticated()
                 .antMatchers(HttpMethod.POST, "/api/comparisons").authenticated()
                 .antMatchers(HttpMethod.GET, "/api/comparisons/**").authenticated()
->>>>>>> origin/main
                 .antMatchers(HttpMethod.POST, "/api/board/**").authenticated()
                 .antMatchers(HttpMethod.PUT, "/api/board/**").authenticated()
                 .antMatchers(HttpMethod.DELETE, "/api/board/**").authenticated()
