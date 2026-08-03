@@ -97,15 +97,34 @@ class JeonseLoanCalculatorTest {
     }
 
     // 원 대출(B안)은 urgentAmount 4,000만 전액을 실제기간 11개월(예금잔여)로 갚아야 해 월납입 90만으로는
-    // 만기 상환재원이 부족하다 — 부족분 대출 로직과 무관하게 STEP5(B안 전용)에서 먼저 걸린다.
+    // 만기 상환재원이 부족해 불가능하다. 반면 부족분(1,000만) 대출(A안)은 월적립 856,583원으로
+    // 실제기간 12개월(≤24, 가능) 만에 완납할 수 있다 — B안 불가·A안 가능이므로 비교 없이 WITHDRAWAL로
+    // 확정되고, 이 경우 savingAmount는 0이다.
     @Test
-    @DisplayName("경우4 · 급전(4,000만) > 예금원금 · 월납입 90만: 원 대출(B안) 상환재원 부족으로 PaymentTooLowException")
-    void condition4_mainLoanInfeasible() {
+    @DisplayName("경우4 · 급전(4,000만) > 예금원금 · 월납입 90만: B안 불가·A안 가능 → WITHDRAWAL, 절약 0원")
+    void condition4_onlyWithdrawalFeasible() {
+        JeonseLoanCalculator.DepositInput deposit = new JeonseLoanCalculator.DepositInput(
+                DEPOSIT_PRINCIPAL, MATURITY_RATE, BASE_RATE, CONTRACT_MONTHS, 1);
+
+        JeonseLoanCalculator.Result result = JeonseLoanCalculator.compare(
+                deposit, 40_000_000L, 900_000L, true, RATE_OPTIONS, BigDecimal.ZERO);
+
+        assertEquals(1_331_049L, result.aTotalLoss()); // 해지손실(810,045) + 부족분대출비용(521,004)
+        assertEquals(1_928_337L, result.bTotalLoss()); // 원 대출(B안) 값 자체는 실행 가능 여부와 무관하게 그대로 계산된다
+        assertEquals(JeonseLoanCalculator.Winner.WITHDRAWAL, result.winner());
+        assertEquals(0L, result.savingAmount());
+    }
+
+    // 원 대출(B안)은 이자조차 못 낸다(월납입 5만 < 월이자 173,667). 부족분 대출(A안)은 이자는 겨우
+    // 내지만(월적립 6,583원) 완납까지 1,520개월이 걸려 최장 약정기간(24개월)을 넘는다 — 둘 다 불가능하다.
+    @Test
+    @DisplayName("경우4 · 급전(4,000만) > 예금원금 · 월납입 5만: 둘 다 불가 → PaymentTooLowException")
+    void condition4_bothInfeasible() {
         JeonseLoanCalculator.DepositInput deposit = new JeonseLoanCalculator.DepositInput(
                 DEPOSIT_PRINCIPAL, MATURITY_RATE, BASE_RATE, CONTRACT_MONTHS, 1);
 
         PaymentTooLowException thrown = assertThrows(PaymentTooLowException.class, () ->
-                JeonseLoanCalculator.compare(deposit, 40_000_000L, 900_000L, true, RATE_OPTIONS, BigDecimal.ZERO));
-        assertTrue(thrown.getMessage().contains("상환 재원"));
+                JeonseLoanCalculator.compare(deposit, 40_000_000L, 50_000L, true, RATE_OPTIONS, BigDecimal.ZERO));
+        assertTrue(thrown.getMessage().contains("최장 약정기간"));
     }
 }
