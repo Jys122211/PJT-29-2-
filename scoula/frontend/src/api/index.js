@@ -36,9 +36,8 @@ instance.interceptors.response.use(
   async (error) => {
     // 에러 응답인 경우(401, 403, 305, 500 등)
     if (error.response?.status === 401) {
-      const { logout } = useAuthStore();
-      logout();
-      router.push('/auth/login?error=login_required');
+      const authStore = useAuthStore();
+      authStore.logout();
       return Promise.reject({ error: '로그인이 필요한 서비스입니다.' });
     }
 
