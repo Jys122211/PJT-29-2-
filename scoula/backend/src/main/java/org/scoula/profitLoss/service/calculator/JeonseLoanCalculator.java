@@ -83,13 +83,13 @@ public final class JeonseLoanCalculator {
                     depositInput.baseRate(), depositInput.elapsedMonths(), depositInput.contractMonths());
         } else {
             // 급전 > 예금원금: 예금원금 해지손실 + 부족분 대출비용.
-            // 부족분은 예금을 이미 전액 해지해 만기에 갚을 목돈이 없으므로, 조기상환 없이 최소 약정기간(12개월)을
-            // 끝까지 유지한다고 본다 — 실제기간=약정기간=12개월이라 수수료는 0원이 된다.
+            // 부족분도 월납입으로 갚아나간다 — 매달 이자를 내고 남는 적립금이 부족분 원금에 도달하는
+            // 시점에 완납한다고 본다(신용대출 방식1과 같은 논리, 예금 만기와는 무관).
             cancelAmount = depositInput.principal();
             long withdrawalLoss = DepositCalculator.calculateWithdrawalLoss(cancelAmount, depositInput.maturityRate(),
                     depositInput.baseRate(), depositInput.elapsedMonths(), depositInput.contractMonths());
             long shortfall = urgentAmount - depositInput.principal();
-            LoanCostBreakdown shortfallLoan = computeLoanCost(shortfall, finalRate, MIN_COMMITMENT_MONTHS, MIN_COMMITMENT_MONTHS);
+            LoanCostBreakdown shortfallLoan = computeShortfallLoanCost(shortfall, finalRate, monthlyPayment);
             aTotalLoss = withdrawalLoss + shortfallLoan.cost();
         }
 
@@ -125,18 +125,49 @@ public final class JeonseLoanCalculator {
     // 월이자를 먼저 원 단위로 반올림한 뒤 실제기간을 곱해야 한다 — 전체를 소수로 계산한 뒤 한 번에
     // 반올림하면(955,167원) 명세서 값과 어긋난다.
     private static LoanCostBreakdown computeLoanCost(long loanAmount, BigDecimal finalRate, int actualMonths, int commitmentMonths) {
-        long monthlyInterest = roundToWon(BigDecimal.valueOf(loanAmount)
+        long monthlyInterest = computeMonthlyInterest(loanAmount, finalRate);
+        long interest = monthlyInterest * actualMonths;
+        long fee = computeFee(loanAmount, actualMonths, commitmentMonths);
+
+        return new LoanCostBreakdown(monthlyInterest, interest, fee, interest + fee);
+    }
+
+    // STEP 6 경우4(급전 > 예금원금)의 부족분 대출. 예금 만기와 무관하게 월납입으로 갚아나가다
+    // 적립금(월납입-월이자)이 부족분 원금에 도달하는 시점(ceil)에 완납한다고 본다 — 신용대출이
+    // 이 경우 방식1(월납입만으로 완납까지 시뮬레이션)로 처리하는 것과 같은 논리다.
+    // 월적립이 0 이하면 영원히 못 갚으므로 PaymentTooLowException.
+    private static LoanCostBreakdown computeShortfallLoanCost(long shortfall, BigDecimal finalRate, long monthlyPayment) {
+        long monthlyInterest = computeMonthlyInterest(shortfall, finalRate);
+        long monthlyAccumulation = monthlyPayment - monthlyInterest;
+        if (monthlyAccumulation <= 0) {
+            throw new PaymentTooLowException("부족분 대출의 월 상환 가능 금액이 월이자보다 적어 상환이 불가능합니다.");
+        }
+
+        int actualMonths = (int) ceilDiv(shortfall, monthlyAccumulation);
+        int commitmentMonths = Math.max(MIN_COMMITMENT_MONTHS, actualMonths);
+
+        long interest = monthlyInterest * actualMonths;
+        long fee = computeFee(shortfall, actualMonths, commitmentMonths);
+
+        return new LoanCostBreakdown(monthlyInterest, interest, fee, interest + fee);
+    }
+
+    private static long computeMonthlyInterest(long amount, BigDecimal finalRate) {
+        return roundToWon(BigDecimal.valueOf(amount)
                 .multiply(finalRate)
                 .divide(MONTHLY_RATE_DIVISOR, CALC_SCALE, RoundingMode.HALF_UP));
-        long interest = monthlyInterest * actualMonths;
+    }
 
-        BigDecimal feeExact = BigDecimal.valueOf(loanAmount)
+    private static long computeFee(long amount, int actualMonths, int commitmentMonths) {
+        BigDecimal feeExact = BigDecimal.valueOf(amount)
                 .multiply(PREPAYMENT_FEE_RATE)
                 .multiply(BigDecimal.valueOf(commitmentMonths - actualMonths))
                 .divide(BigDecimal.valueOf(commitmentMonths), CALC_SCALE, RoundingMode.HALF_UP);
-        long fee = roundToWon(feeExact);
+        return roundToWon(feeExact);
+    }
 
-        return new LoanCostBreakdown(monthlyInterest, interest, fee, interest + fee);
+    private static long ceilDiv(long numerator, long denominator) {
+        return (numerator + denominator - 1) / denominator;
     }
 
     // STEP 5-1·5-2: 이자 지불 가능 여부 → 만기 상환 재원 확인. 하나라도 실패하면 PaymentTooLowException.

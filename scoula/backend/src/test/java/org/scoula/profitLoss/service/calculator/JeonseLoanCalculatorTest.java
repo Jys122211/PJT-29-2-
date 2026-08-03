@@ -7,6 +7,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 // 전세대출 계산 로직 명세서 「검산 케이스」 조건1·조건2 재현.
@@ -74,5 +75,37 @@ class JeonseLoanCalculatorTest {
 
         assertEquals(JeonseLoanCalculator.Winner.LOAN, result.winner());
         assertClose(48_509L, result.savingAmount());
+    }
+
+    // 경우4(급전 > 예금원금): 예금원금 3,000만/만기3.20%/기본2.40%/계약12개월/경과1개월, 급전 4,000만, 최종금리 5.21%.
+    // 부족분(1,000만)은 월납입으로 갚아나가다 적립금이 부족분에 도달하는 시점(ceil)에 완납한다고 본다.
+    @Test
+    @DisplayName("경우4 · 급전(4,000만) > 예금원금 · 월납입 200만: WITHDRAWAL, 절약 830,790원")
+    void condition4_shortfallLoan_feasible() {
+        JeonseLoanCalculator.DepositInput deposit = new JeonseLoanCalculator.DepositInput(
+                DEPOSIT_PRINCIPAL, MATURITY_RATE, BASE_RATE, CONTRACT_MONTHS, 1);
+
+        // 부족분(1,000만) 월이자 43,417원 → 월적립 1,956,583원 → 실제기간 ceil(1,000만/1,956,583)=6개월 →
+        // 약정기간 max(12,6)=12 → 대출이자 260,502원 + 수수료 27,000원 = 부족분대출비용 287,502원.
+        JeonseLoanCalculator.Result result = JeonseLoanCalculator.compare(
+                deposit, 40_000_000L, 2_000_000L, true, RATE_OPTIONS, BigDecimal.ZERO);
+
+        assertEquals(1_097_547L, result.aTotalLoss()); // 해지손실(810,045) + 부족분대출비용(287,502)
+        assertEquals(1_928_337L, result.bTotalLoss()); // 원 대출(B안, urgentAmount 전액) — 이번 변경과 무관, 그대로
+        assertEquals(JeonseLoanCalculator.Winner.WITHDRAWAL, result.winner());
+        assertEquals(830_790L, result.savingAmount());
+    }
+
+    // 원 대출(B안)은 urgentAmount 4,000만 전액을 실제기간 11개월(예금잔여)로 갚아야 해 월납입 90만으로는
+    // 만기 상환재원이 부족하다 — 부족분 대출 로직과 무관하게 STEP5(B안 전용)에서 먼저 걸린다.
+    @Test
+    @DisplayName("경우4 · 급전(4,000만) > 예금원금 · 월납입 90만: 원 대출(B안) 상환재원 부족으로 PaymentTooLowException")
+    void condition4_mainLoanInfeasible() {
+        JeonseLoanCalculator.DepositInput deposit = new JeonseLoanCalculator.DepositInput(
+                DEPOSIT_PRINCIPAL, MATURITY_RATE, BASE_RATE, CONTRACT_MONTHS, 1);
+
+        PaymentTooLowException thrown = assertThrows(PaymentTooLowException.class, () ->
+                JeonseLoanCalculator.compare(deposit, 40_000_000L, 900_000L, true, RATE_OPTIONS, BigDecimal.ZERO));
+        assertTrue(thrown.getMessage().contains("상환 재원"));
     }
 }
