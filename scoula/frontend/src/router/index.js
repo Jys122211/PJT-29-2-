@@ -6,6 +6,10 @@ import travelRoutes from './travel';
 import galleryRoutes from './gallery';
 import profitLossRoutes from './profitLoss';
 
+// ===================================
+import assetRoutes from './asset.js';
+// ===================================
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -15,6 +19,9 @@ const router = createRouter({
     ...travelRoutes,
     ...galleryRoutes,
     ...profitLossRoutes,
+    // ===============
+    ...assetRoutes,
+     // ===============
   ],
 });
 
