@@ -37,7 +37,7 @@ const router = createRouter({
     ...profitLossRoutes,
     // ===============
     ...assetRoutes,
-     // ===============
+    // ===============
   ],
 });
 

@@ -34,11 +34,8 @@ instance.interceptors.response.use(
   async (error) => {
     // 에러 응답인 경우(401, 403, 305, 500 등)
     if (error.response?.status === 401) {
-      const { logout } = useAuthStore();
-
-      // 사용할 수 없는 인증 정보를 제거하고 쿼리 없이 /login으로 이동한다.
-      await logout();
-
+      const authStore = useAuthStore();
+      authStore.logout();
       return Promise.reject({ error: '로그인이 필요한 서비스입니다.' });
     }
 
