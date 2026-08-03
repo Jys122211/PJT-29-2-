@@ -407,11 +407,18 @@ export const useProfitLossStore = defineStore('profitLoss', () => {
         title: cardItems[0].conditionName,
         description: '※ 결제계좌를 KB국민은행으로 지정하고, 최근 3개월 이용실적 기준',
         options: [
-          ...cardItems.sort((a, b) => b.id - a.id).map(item => ({
-            value: item.id.toString(),
-            preferentialQuestionId: item.id,
-            text: item.conditionDetail
-          })),
+          ...cardItems.sort((a, b) => b.id - a.id).map(item => {
+            let formattedText = item.conditionDetail;
+            if (formattedText.includes('90')) formattedText = '최근 3개월 KB국민은행 계좌 결제 90만원 이상';
+            else if (formattedText.includes('60')) formattedText = '최근 3개월 KB국민은행 계좌 결제 60만원 이상';
+            else if (formattedText.includes('30')) formattedText = '최근 3개월 KB국민은행 계좌 결제 30만원 이상';
+
+            return {
+              value: item.id.toString(),
+              preferentialQuestionId: item.id,
+              text: formattedText
+            };
+          }),
           { value: 'NONE', preferentialQuestionId: null, text: '해당 없음' }
         ]
       });
