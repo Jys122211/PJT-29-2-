@@ -22,11 +22,12 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     public static final String AUTHORIZATION_HEADER = "Authorization";
-    public static final String BEARER_PREFIX = "Bearer ";   // 끝에 공백 있음
+    public static final String BEARER_PREFIX = "Bearer "; // Bearer 뒤 공백까지 포함한다.
 
     private final JwtProcessor jwtProcessor;
     private final UserDetailsService userDetailsService;
 
+    // JWT의 이메일을 이용해 사용자 정보를 다시 조회하고 인증 완료 객체를 만든다.
     private Authentication getAuthentication(String token) {
         String username = jwtProcessor.getUsername(token);
         UserDetails princiapl = userDetailsService.loadUserByUsername(username);
@@ -38,17 +39,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
+        // 프런트가 보낸 "Authorization: Bearer {JWT}" 헤더를 읽는다.
         String bearerToken = request.getHeader(AUTHORIZATION_HEADER);
 
         if (bearerToken != null && bearerToken.startsWith(BEARER_PREFIX)) {
+            // "Bearer " 문자를 제외하고 실제 JWT 문자열만 추출한다.
             String token = bearerToken.substring(BEARER_PREFIX.length());
 
-            // 토큰에서 사용자 정보 추출 및 Authentication 객체 구성 후 SecurityContext에 저장
+            // JWT가 유효하면 현재 요청의 로그인 사용자 정보를 SecurityContext에 저장한다.
             Authentication authentication = getAuthentication(token);
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }
 
+        // JWT가 없더라도 다음 필터로 요청을 넘긴다. 접근 허용 여부는 SecurityConfig가 판단한다.
         super.doFilter(request, response, filterChain);
     }
 }
-

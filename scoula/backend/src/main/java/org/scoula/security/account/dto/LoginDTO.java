@@ -12,16 +12,19 @@ import javax.servlet.http.HttpServletRequest;
 @AllArgsConstructor
 @Data
 public class LoginDTO {
-    private String username;
+    // 로그인 화면에서 JSON으로 전달되는 이메일과 비밀번호이다.
+    private String email;
     private String password;
 
+    // Spring Security 필터가 HttpServletRequest의 JSON Body를 LoginDTO로 변환할 때 사용한다.
     public static LoginDTO of(HttpServletRequest request) {
         ObjectMapper om = new ObjectMapper();
         try {
             return om.readValue(request.getInputStream(), LoginDTO.class);
         } catch (Exception e) {
             e.printStackTrace();
-            throw new BadCredentialsException("username 또는 password가 없습니다.");
+            // JSON 형식이 잘못됐거나 필수값을 읽지 못하면 로그인 실패로 처리한다.
+            throw new BadCredentialsException("email 또는 password가 없습니다.");
         }
     }
 }

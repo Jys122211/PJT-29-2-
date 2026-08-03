@@ -18,9 +18,17 @@ const router = createRouter({
       path: '/',
       name: 'home',
       component: HomePage,
-      meta: {
-        requiresAuth: true,
-      },
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/dashboard',
+      name: 'dashboard',
+      component: HomePage,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/deposits/count',
+      redirect: { name: 'assetRegister' },
     },
     ...authRoutes,
     ...boardRoutes,
@@ -33,12 +41,26 @@ const router = createRouter({
   ],
 });
 
+// 사용자별 화면은 유효한 JWT가 있을 때만 접근하도록 검사한다.
 router.beforeEach((to) => {
-  const authStore = useAuthStore();
-  const isAuthenticated = authStore.isLogin && Boolean(authStore.getToken());
-  if (to.meta.requiresAuth && !isAuthenticated) {
-    return { name: 'login' };
+  const auth = useAuthStore();
+
+  // 과거 쿼리 주소로 접근해도 로그인 URL은 항상 /login으로 정리한다.
+  if (to.name === 'login' && Object.keys(to.query).length > 0) {
+    return {
+      name: 'login',
+      replace: true,
+    };
   }
+
+  // 로그인하지 않은 사용자는 쿼리 문자열 없이 로그인 화면으로 이동한다.
+  if (to.meta.requiresAuth && !auth.hasValidSession()) {
+    return {
+      name: 'login',
+      replace: true,
+    };
+  }
+
   return true;
 });
 

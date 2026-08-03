@@ -29,10 +29,25 @@ import java.util.List;
 })
 public class ServletConfig implements WebMvcConfigurer {
 
+    /**
+     * Vue가 담당하는 화면 URL을 새로고침해도 404가 발생하지 않도록
+     * 모든 화면 요청을 빌드된 Vue index.html로 전달한다.
+     */
     @Override
     public void addViewControllers(ViewControllerRegistry registry) {
-        registry.addViewController("/")
-                .setViewName("forward:/resources/index.html");
+        String spaView = "forward:/resources/index.html";
+        String[] spaRoutes = {
+                "/",
+                "/login",
+                "/signup",
+                "/signup/complete",
+                "/dashboard",
+                "/deposits/count"
+        };
+
+        for (String route : spaRoutes) {
+            registry.addViewController(route).setViewName(spaView);
+        }
     }
 
 
