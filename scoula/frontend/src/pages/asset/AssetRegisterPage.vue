@@ -193,6 +193,9 @@ function validate() {
 }
 
 // ------------------------------------------------------------ OCR (07-04 ~ 07-08)
+const OCR_ALLOWED_TYPES = new Set(['image/png', 'image/jpeg']);
+const OCR_MAX_FILE_SIZE = 10 * 1024 * 1024;
+
 function openFilePicker() {
   if (ocrState.value === 'loading') return;
   fileInput.value?.click();
@@ -203,6 +206,24 @@ async function onFileSelected(event) {
   event.target.value = ''; // 같은 파일 재선택 허용
   if (!file) return;
 
+  if (!OCR_ALLOWED_TYPES.has(file.type)) {
+    ocrError.value = {
+      errorCode: 'INVALID_OCR_FILE',
+      message: 'PNG 또는 JPEG 이미지만 선택할 수 있습니다.',
+    };
+    ocrState.value = 'failed';
+    return;
+  }
+
+  if (file.size > OCR_MAX_FILE_SIZE) {
+    ocrError.value = {
+      errorCode: 'INVALID_OCR_FILE',
+      message: '이미지는 10MB 이하만 업로드할 수 있습니다.',
+    };
+    ocrState.value = 'failed';
+    return;
+  }
+
   await runOcr(file);
 }
 
@@ -212,15 +233,7 @@ async function runOcr(file) {
 
   try {
     // 백엔드 OCR 호출 (ocrApi는 18행에서 이미 import 되어 있음)
-    const response = await ocrApi.extractImage(file);
-
-    // Gemini 응답에서 텍스트 추출
-    const rawText = response.candidates[0].content.parts[0].text;
-
-    // ```json 백틱 제거 후 JSON 파싱
-    const jsonString = rawText.replace(/```json\n?|```/g, '').trim();
-    const extractedData = JSON.parse(jsonString);
-
+    const extractedData = await ocrApi.extractImage(file);
     applyExtracted(extractedData);
     ocrState.value = 'success'; // 07-04
   } catch (error) {
@@ -248,7 +261,10 @@ function applyExtracted(extracted = {}) {
   assign('maturityDate', extracted.maturityDate);
   assign('principalAmount', extracted.principalAmount);
   assign('baseRate', extracted.baseRate == null ? '' : String(extracted.baseRate));
-  // appliedRate는 우대금리 포함값이라 OCR로 읽을 수 없음 -> 항상 사용자 입력
+  assign(
+    'appliedRate',
+    extracted.appliedRate == null ? '' : String(extracted.appliedRate),
+  );
 
   ocrFilledFields.value = filled;
   editedFields.value = new Set();
