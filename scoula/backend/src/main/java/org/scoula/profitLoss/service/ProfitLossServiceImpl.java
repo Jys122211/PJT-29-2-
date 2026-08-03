@@ -11,7 +11,9 @@ import org.scoula.profitLoss.enums.LoanType;
 import org.scoula.profitLoss.mapper.ProfitLossMapper;
 import org.scoula.profitLoss.service.calculator.ComparisonCalculator;
 import org.scoula.profitLoss.service.calculator.DepositCalculator;
+import org.scoula.profitLoss.service.calculator.JeonseLoanCalculator;
 import org.scoula.profitLoss.vo.ComparisonVO;
+import org.scoula.profitLoss.vo.JeonseLoanProductVO;
 import org.scoula.profitLoss.vo.LoanProductRateVO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -116,6 +118,18 @@ public class ProfitLossServiceImpl implements ProfitLossService {
         // 중도해지이율 구간이 바뀐다 — CLAUDE.md에 명시된 함정)
         int elapsedMonths = (int) ChronoUnit.MONTHS.between(deposit.getJoinDate(), LocalDate.now(DEPOSIT_TIMEZONE));
 
+        ComparisonVO vo = request.getLoan().getLoanType() == LoanType.JEONSE
+                ? compareJeonse(userId, request, deposit, contractMonths, elapsedMonths)
+                : compareCredit(userId, request, deposit, contractMonths, elapsedMonths);
+
+        mapper.insertComparison(vo);
+
+        return buildResponse(vo, deposit.getPrincipalAmount());
+    }
+
+    // loanType=CREDIT 경로. rate_period(3/6/12) 순환 해결 + 원리금균등 상환 시뮬레이션.
+    private ComparisonVO compareCredit(Long userId, ComparisonRequest request, UserDepositVO deposit,
+                                        int contractMonths, int elapsedMonths) {
         List<LoanProductRateVO> loanRates = mapper.selectLoanProducts(
                 request.getLoan().getLoanProductId(), request.getUserFinancialInfo().getCreditGrade());
 
@@ -171,9 +185,7 @@ public class ProfitLossServiceImpl implements ProfitLossService {
         long aFinalBalance = depositMaturityAmount - bestResult.aTotalLoss();
         long bFinalBalance = depositMaturityAmount - bestResult.bTotalLoss();
 
-        LocalDateTime now = LocalDateTime.now(DEPOSIT_TIMEZONE);
-
-        ComparisonVO vo = ComparisonVO.builder()
+        return ComparisonVO.builder()
                 .userId(userId)
                 .userDepositId(deposit.getUserDepositId())
                 .urgentAmount(urgentAmount)
@@ -193,12 +205,95 @@ public class ProfitLossServiceImpl implements ProfitLossService {
                 .aFinalBalance(aFinalBalance)
                 .bFinalBalance(bFinalBalance)
                 .winner(bestResult.winner())
-                .createdAt(now)
+                .createdAt(LocalDateTime.now(DEPOSIT_TIMEZONE))
                 .build();
+    }
 
-        mapper.insertComparison(vo);
+    // loanType=JEONSE 경로. rate_period 순환 없음(COFIX 유형 6종 중 최저), 만기일시상환.
+    private ComparisonVO compareJeonse(Long userId, ComparisonRequest request, UserDepositVO deposit,
+                                        int contractMonths, int elapsedMonths) {
+        List<JeonseLoanProductVO> jeonseRates = mapper.selectJeonseLoanProducts(request.getLoan().getLoanProductId());
 
-        return buildResponse(vo, deposit.getPrincipalAmount());
+        long urgentAmount = request.getComparisonCondition().getUrgentAmount();
+
+        long maxLoanLimit = jeonseRates.stream().mapToLong(JeonseLoanProductVO::getMaxLoanLimit).max().orElse(0L);
+        if (urgentAmount > maxLoanLimit) {
+            throw new ExceedLoanLimitException(String.format(
+                    "필요금액이 대출 최고한도를 초과합니다. (필요 %d원 / 한도 %d원)", urgentAmount, maxLoanLimit));
+        }
+
+        Map<Long, List<JeonseLoanProductVO>> ratesByProduct = jeonseRates.stream()
+                .collect(Collectors.groupingBy(JeonseLoanProductVO::getProductId));
+
+        JeonseLoanCalculator.DepositInput depositInput = new JeonseLoanCalculator.DepositInput(
+                deposit.getPrincipalAmount(), deposit.getAppliedRate(), deposit.getBaseRate(),
+                contractMonths, elapsedMonths);
+
+        long monthlyPayment = request.getUserFinancialInfo().getMonthlyPayment();
+        boolean isPartialAllowed = Boolean.TRUE.equals(request.getDeposit().getIsPartialAllowed());
+        BigDecimal totalDiscountRate = request.getLoan().getTotalDiscountRate() == null
+                ? BigDecimal.ZERO : request.getLoan().getTotalDiscountRate();
+
+        JeonseLoanCalculator.Result bestResult = null;
+        JeonseLoanProductVO bestProduct = null;
+
+        for (Map.Entry<Long, List<JeonseLoanProductVO>> entry : ratesByProduct.entrySet()) {
+            List<JeonseLoanCalculator.RateOption> rateOptions = entry.getValue().stream()
+                    .map(rate -> new JeonseLoanCalculator.RateOption(rate.getBaseRate(), rate.getSpreadRate()))
+                    .toList();
+
+            JeonseLoanCalculator.Result result = JeonseLoanCalculator.compare(
+                    depositInput, urgentAmount, monthlyPayment, isPartialAllowed, rateOptions, totalDiscountRate);
+
+            if (bestResult == null || result.bTotalLoss() < bestResult.bTotalLoss()) {
+                bestResult = result;
+                bestProduct = entry.getValue().get(0);
+            }
+        }
+
+        if (bestResult == null) {
+            throw new IllegalArgumentException("비교할 대출 상품이 없습니다.");
+        }
+
+        long depositMaturityAmount = deposit.getPrincipalAmount()
+                + DepositCalculator.calculateMaturityInterest(deposit.getPrincipalAmount(), deposit.getAppliedRate(), contractMonths);
+
+        long aFinalBalance = depositMaturityAmount - bestResult.aTotalLoss();
+        long bFinalBalance = depositMaturityAmount - bestResult.bTotalLoss();
+
+        return ComparisonVO.builder()
+                .userId(userId)
+                .userDepositId(deposit.getUserDepositId())
+                .urgentAmount(urgentAmount)
+                .monthlyPayment(monthlyPayment)
+                .isPartialAllowed(isPartialAllowed)
+                // 전세는 만기목돈상환이 O 고정이라(예금 만기 목돈 없이는 원금을 갚을 방법이 없다) 요청값과 무관하게 true.
+                .isLumpSum(true)
+                .loanName(bestProduct.getProductName())
+                .loanType(LoanType.JEONSE)
+                .loanInterestRate(bestResult.loan().interestRate())
+                // 전세는 rate_period 개념이 없다(comparisons.rate_period_months는 NOT NULL이라 null 저장 불가).
+                // 가장 가까운 의미인 약정기간(max(12, 예금잔여기간))을 대신 저장한다.
+                .ratePeriodMonths(bestResult.loan().commitmentMonths())
+                .loanInterest(bestResult.loan().interest())
+                .loanPenalty(bestResult.loan().penalty())
+                .depositName(deposit.getProductName())
+                .depositMaintainInterest(bestResult.deposit().maintainInterest())
+                .depositCancelInterestRate(bestResult.deposit().cancelInterestRate())
+                .depositCancelInterest(bestResult.deposit().cancelInterest())
+                .aFinalBalance(aFinalBalance)
+                .bFinalBalance(bFinalBalance)
+                .winner(mapWinner(bestResult.winner()))
+                .createdAt(LocalDateTime.now(DEPOSIT_TIMEZONE))
+                .build();
+    }
+
+    private static ComparisonCalculator.Winner mapWinner(JeonseLoanCalculator.Winner winner) {
+        return switch (winner) {
+            case WITHDRAWAL -> ComparisonCalculator.Winner.WITHDRAWAL;
+            case LOAN -> ComparisonCalculator.Winner.LOAN;
+            case TIE -> ComparisonCalculator.Winner.TIE;
+        };
     }
 
     @Override
