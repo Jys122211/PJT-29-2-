@@ -1,5 +1,4 @@
 import { useProfitLossStore } from '@/stores/profitLoss';
-
 export default [
   {
     path: '/comparisons/input',
@@ -7,6 +6,7 @@ export default [
     component: () => import('@/pages/profitLoss/ComparisonInput.vue'),
     meta: {
       layout: 'mobile',
+      requiresAuth: true,
     },
   },
   {
@@ -15,6 +15,7 @@ export default [
     component: () => import('@/pages/profitLoss/CreditEligibility.vue'),
     meta: {
       layout: 'mobile',
+      requiresAuth: true,
     },
     beforeEnter: () => {
       const profitLossStore = useProfitLossStore();
@@ -45,6 +46,7 @@ export default [
     component: () => import('@/pages/profitLoss/CreditPreferential.vue'),
     meta: {
       layout: 'mobile',
+      requiresAuth: true,
     },
     beforeEnter: () => {
       const profitLossStore = useProfitLossStore();
@@ -68,6 +70,7 @@ export default [
     component: () => import('@/pages/profitLoss/ComparisonSummary.vue'),
     meta: {
       layout: 'mobile',
+      requiresAuth: true,
     },
     beforeEnter: () => {
       const profitLossStore = useProfitLossStore();
@@ -88,23 +91,23 @@ export default [
     component: () => import('@/pages/profitLoss/ComparisonResultPage.vue'),
     meta: {
       layout: 'mobile',
+      requiresAuth: true,
     },
     props: true,
   },
-    {
-        path: '/comparison/history',
-        name: 'comparisonHistory',
-        component: () => import('../pages/comparison/HistoryPage.vue'),
-    },
-    {
-        path: '/asset/register',
-        name: 'assetRegister',
-        component: () => import('../pages/asset/RegisterPage.vue'),
-    },
-    {
-        path: '/asset/list',
-        name: 'assetList',
-        component: () => import('../pages/asset/ListPage.vue'),
-
-    },
+  {
+    path: '/comparison/history',
+    name: 'comparisonHistory',
+    component: () => import('../pages/comparison/HistoryPage.vue'),
+  },
+  {
+    path: '/asset/register',
+    name: 'assetRegister',
+    component: () => import('../pages/asset/RegisterPage.vue'),
+  },
+  {
+    path: '/asset/list',
+    name: 'assetList',
+    component: () => import('../pages/asset/ListPage.vue'),
+  },
 ];

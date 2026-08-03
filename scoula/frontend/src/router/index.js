@@ -5,6 +5,7 @@ import boardRoutes from './board';
 import travelRoutes from './travel';
 import galleryRoutes from './gallery';
 import profitLossRoutes from './profitLoss';
+import { useAuthStore } from '@/stores/auth';
 
 // ===================================
 import assetRoutes from './asset.js';
@@ -21,8 +22,17 @@ const router = createRouter({
     ...profitLossRoutes,
     // ===============
     ...assetRoutes,
-     // ===============
+    // ===============
   ],
+});
+
+router.beforeEach((to) => {
+  const authStore = useAuthStore();
+  const isAuthenticated = authStore.isLogin && Boolean(authStore.getToken());
+  if (to.meta.requiresAuth && !isAuthenticated) {
+    return { name: 'login' };
+  }
+  return true;
 });
 
 export default router;

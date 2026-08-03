@@ -15,6 +15,7 @@ export default [
     component: () => import('../pages/auth/ProfilePage.vue'),
     meta: {
       layout: 'mobile',
+      requiresAuth: true,
     },
   },
   {
