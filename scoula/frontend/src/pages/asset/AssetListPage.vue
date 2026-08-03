@@ -130,9 +130,9 @@ onMounted(load);
         <li v-for="deposit in deposits" :key="deposit.userDepositId">
           <button type="button" class="deposit-card" @click="goEdit(deposit)">
             <div class="left">
-              <small class="bank">{{ deposit.bankName }}</small>
               <strong class="name">{{ deposit.productName }}</strong>
               <small class="meta">
+                {{ deposit.bankName }} ·
                 {{ formatNumber(deposit.principalAmount) }}원 · 연
                 {{ deposit.appliedRate }}%
               </small>
@@ -140,7 +140,7 @@ onMounted(load);
 
             <div class="right">
               <span class="dday">{{ dDayText(deposit) }}</span>
-              <small class="mat">만기 {{ toDotDate(deposit.maturityDate) }}</small>
+              <small class="mat">{{ toDotDate(deposit.maturityDate) }}</small>
             </div>
           </button>
         </li>
@@ -161,20 +161,23 @@ onMounted(load);
   --kb-soft: #fff6df;
   --kb-line: #f2d89a;
 
+  display: flex;
+  flex-direction: column;
   width: 100%;
   max-width: 390px;
-  min-height: 100vh;
+  height: 100vh;
   margin: 0 auto;
-  padding: 24px 20px 96px;
+  padding: 16px 20px 86px;
   color: var(--kb-text);
   background: #faf9f7;
 }
 
 .page-head {
   display: flex;
+  flex: none;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .page-head h1 {
@@ -238,8 +241,9 @@ onMounted(load);
 
 /* ---------- 총액 ---------- */
 .total-card {
-  margin-bottom: 14px;
-  padding: 16px 18px;
+  flex: none;
+  margin-bottom: 10px;
+  padding: 12px 16px;
   border-radius: 14px;
   color: #fff;
   background: #26282b;
@@ -252,29 +256,48 @@ onMounted(load);
 
 .total-card strong {
   display: block;
-  margin-top: 5px;
-  font-size: 22px;
+  margin-top: 3px;
+  font-size: 19px;
   font-weight: 800;
 }
 
 /* ---------- 목록 ---------- */
 .deposit-list {
   display: grid;
-  gap: 10px;
+  flex: 1;
+  min-height: 0;
+  gap: 8px;
+  align-content: start;
+  overflow-y: auto;
   margin: 0;
-  padding: 0;
+  padding: 2px 6px 2px 2px;
   list-style: none;
+  scrollbar-width: thin;
+  scrollbar-color: #d9d2c6 transparent;
+}
+
+.deposit-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.deposit-list::-webkit-scrollbar-thumb {
+  border-radius: 3px;
+  background: #d9d2c6;
+}
+
+.deposit-list::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 .deposit-card {
   display: flex;
   width: 100%;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: 15px 16px;
+  padding: 11px 14px;
   border: 1.5px solid var(--kb-line);
-  border-radius: 14px;
+  border-radius: 12px;
   font: inherit;
   text-align: left;
   background: #fff;
@@ -292,15 +315,15 @@ onMounted(load);
 
 .name {
   display: block;
-  margin: 4px 0 8px;
+  margin: 0 0 3px;
   overflow: hidden;
-  font-size: 15px;
+  font-size: 14px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .meta {
-  font-size: 12.5px;
+  font-size: 11.5px;
   color: var(--kb-muted);
 }
 
@@ -311,9 +334,9 @@ onMounted(load);
 
 .dday {
   display: inline-block;
-  padding: 4px 10px;
-  border-radius: 11px;
-  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-size: 10.5px;
   font-weight: 700;
   color: #7a6218;
   background: var(--kb-soft);
@@ -321,22 +344,23 @@ onMounted(load);
 
 .mat {
   display: block;
-  margin-top: 8px;
-  font-size: 11px;
+  margin-top: 4px;
+  font-size: 10.5px;
   color: #a8adb2;
 }
 
 /* ---------- 추가 버튼 ---------- */
 .add-card {
   display: flex;
+  flex:none;
   width: 100%;
   align-items: center;
-  gap: 13px;
-  margin-top: 16px;
-  margin-bottom: 16px;
-  padding: 15px 16px;
+  gap: 12px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  padding: 11px 14px;
   border: 0;
-  border-radius: 14px;
+  border-radius: 12px;
   font: inherit;
   color: #fff;
   background: #26282b;
@@ -346,12 +370,12 @@ onMounted(load);
 
 .add-card .ico {
   display: grid;
-  width: 34px;
-  height: 34px;
+  width: 28px;
+  height: 28px;
   flex: none;
-  border-radius: 9px;
+  border-radius: 8px;
   place-items: center;
-  font-size: 14px;
+  font-size: 13px;
   color: #26282b;
   background: var(--kb-yellow);
 }
