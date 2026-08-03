@@ -12,7 +12,7 @@ public interface MemberService {
 
     MemberDTO join(MemberJoinDTO member);
 
-    MemberDTO update(MemberUpdateDTO member);
+    MemberDTO update(Long userId, MemberUpdateDTO member);
 
     void changePassword(ChangePasswordDTO changePassword);
 

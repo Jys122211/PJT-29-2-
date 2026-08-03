@@ -12,6 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserInfoDTO {
+    Long userId;
     String username;
     String email;
     String name;
@@ -21,6 +22,7 @@ public class UserInfoDTO {
 
     public static UserInfoDTO of(MemberVO member) {
         return new UserInfoDTO(
+                member.getUserId(),
                 member.getUsername(),
                 member.getEmail(),
                 member.getName(),

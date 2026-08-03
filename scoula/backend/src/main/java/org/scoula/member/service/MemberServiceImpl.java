@@ -69,22 +69,16 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    public MemberDTO update(MemberUpdateDTO member) {
-        MemberVO vo = mapper.findByEmail(member.getEmail());
-        // update 시나리오에선 비밀번호 확인 로직을 생략하거나 다른 방법 필요할 수 있음
-        // (member.getPassword()가 MemberUpdateDTO에 없으므로)
-        // 만약 필요하다면 MemberUpdateDTO에 password 필드를 추가해야함.
-        // 현재 MemberUpdateDTO에는 password 필드가 지워졌으므로 이 부분을 주석처리 하거나 제거.
-        /*
-        if (!passwordEncoder.matches(member.getPassword(), vo.getPassword())) {  // 비밀번호 일치 확인
-            throw new PasswordMissmatchException();
-        }
-        */
+    public MemberDTO update(Long userId, MemberUpdateDTO member) {
+        MemberVO currentMember = Optional.ofNullable(mapper.get(userId))
+                .orElseThrow(NoSuchElementException::new);
 
-        mapper.update(member.toVO());
-        saveAvatar(member.getAvatar(), member.getEmail());
-        return MemberDTO.of(mapper.findByEmail(member.getEmail()));
+        MemberVO updatedMember = member.toVO();
+        updatedMember.setUserId(userId);
+        mapper.update(updatedMember);
+        saveAvatar(member.getAvatar(), currentMember.getEmail());
 
+        return get(userId);
     }
 
     @Override

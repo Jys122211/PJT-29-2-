@@ -1,0 +1,29 @@
+export const EMAIL_DOMAINS = [
+  // 국내에서 자주 사용하는 이메일 도메인
+  'naver.com',
+  'kakao.com',
+  'daum.net',
+  'hanmail.net',
+  'nate.com',
+  'korea.com',
+  'dreamwiz.com',
+  'kb.co.kr',
+
+  // 해외에서 자주 사용하는 이메일 도메인
+  'gmail.com',
+  'google.com',
+  'googlemail.com',
+  'outlook.com',
+  'hotmail.com',
+  'live.com',
+  'msn.com',
+  'yahoo.com',
+  'yahoo.co.kr',
+  'icloud.com',
+  'me.com',
+  'mac.com',
+  'proton.me',
+  'protonmail.com',
+  'zoho.com',
+  'fastmail.com',
+];
