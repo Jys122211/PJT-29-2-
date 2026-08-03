@@ -23,9 +23,6 @@ const loginError = ref(null);
 // API 요청 중 중복 클릭을 막고 버튼 문구를 바꿀 때 사용한다.
 const isSubmitting = ref(false);
 
-// 로그인 성공 후 대시보드로 이동하기 전에 안내 문구를 표시한다.
-const showLoginSuccess = ref(false);
-
 // 각 입력창 바로 아래에 표시할 검증 오류이다.
 const fieldErrors = reactive({
   email: '',
@@ -88,18 +85,13 @@ const clearFieldError = (field) => {
   loginError.value = null;
 };
 
-// 성공 안내를 사용자가 읽을 수 있도록 지정한 시간만큼 기다린다.
-const wait = (milliseconds) =>
-  new Promise((resolve) => window.setTimeout(resolve, milliseconds));
-
 /**
  * 로그인 버튼 클릭 흐름
  * 1. 입력값 검증 → 2. 로그인 API 호출 → 3. JWT 저장
- * 4. 성공 안내 표시 → 5. 1초 후 대시보드 이동
+ * 4. 대시보드로 즉시 이동
  */
 const login = async () => {
   loginError.value = null;
-  showLoginSuccess.value = false;
 
   if (!validateForm()) {
     return;
@@ -114,8 +106,6 @@ const login = async () => {
       password: form.password,
     });
 
-    showLoginSuccess.value = true;
-    await wait(1000);
     await router.replace('/dashboard');
   } catch (error) {
     if (error.response?.status === 401) {
@@ -227,16 +217,6 @@ const login = async () => {
         <span>비밀번호 찾기</span>
       </div>
 
-      <Transition name="success-toast">
-        <div
-          v-if="showLoginSuccess"
-          class="success-toast"
-          role="status"
-          aria-live="polite"
-        >
-          로그인 성공 <span aria-hidden="true">·</span> 홈 대시보드로 이동합니다.
-        </div>
-      </Transition>
     </section>
   </main>
 </template>
@@ -459,30 +439,4 @@ const login = async () => {
   background: #ddd7ce;
 }
 
-.success-toast {
-  width: fit-content;
-  max-width: 100%;
-  margin: 22px auto 0;
-  padding: 13px 20px;
-  border-radius: 10px;
-  background: #222;
-  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.2);
-  color: #fff;
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 1.4;
-  text-align: center;
-  white-space: nowrap;
-}
-
-.success-toast-enter-active,
-.success-toast-leave-active {
-  transition: opacity 0.18s ease, transform 0.18s ease;
-}
-
-.success-toast-enter-from,
-.success-toast-leave-to {
-  opacity: 0;
-  transform: translateY(8px);
-}
 </style>
