@@ -125,7 +125,7 @@ const handleLogout = () => {
   if (confirm('로그아웃 하시겠습니까?')) {
     auth.logout();
     alert('로그아웃 되었습니다.');
-    router.push('/auth/login');
+    router.push('/login');
   }
 };
 

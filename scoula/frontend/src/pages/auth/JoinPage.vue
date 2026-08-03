@@ -1,143 +1,368 @@
 <script setup>
-import { reactive, ref } from 'vue';
+import { computed, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import authApi from '@/api/authApi';
+import { useAuthStore } from '@/stores/auth';
+import deuksilLogo from '@/assets/images/deuksil-logo.png';
+import { EMAIL_DOMAINS } from '@/constants/emailDomains';
+import EmailDomainSelect from '@/components/auth/EmailDomainSelect.vue';
 
 const router = useRouter();
-const avatar = ref(null);
-const checkError = ref('');
+const auth = useAuthStore();
 
-const member = reactive({
-  // 테스트용 초기화
-  email: 'hong@gmail.com',
-  password: '12',
-  password2: '12',
-  avatar: null,
+// 회원가입 화면의 입력값을 Vue가 반응형으로 관리한다.
+const form = reactive({
+  name: '',
+  emailLocal: '',
+  emailDomain: 'naver.com',
+  password: '',
 });
 
-const disableSubmit = ref(true);
+// 중복 이메일 외의 서버 오류를 표시할 때 사용한다.
+const errorMessage = ref('');
 
-// email 중복 체크
-const checkEmail = async () => {
-  if (!member.email) {
-    return alert('이메일을 입력하세요.');
+// 회원가입과 자동 로그인 요청이 진행 중인지 나타낸다.
+const isSubmitting = ref(false);
+
+// 이름·이메일·비밀번호 입력창 아래에 각각 표시할 오류이다.
+const fieldErrors = reactive({
+  name: '',
+  email: '',
+  password: '',
+});
+
+const emailLocalPattern = /^[^\s@]+$/;
+
+// 사용자가 선택한 이메일 아이디와 도메인을 하나의 이메일 주소로 합친다.
+const email = computed(
+  () => `${form.emailLocal.trim()}@${form.emailDomain}`,
+);
+
+// 필수값이 비어 있을 때 "다음" 버튼을 비활성 색상으로 표시한다.
+const isFormIncomplete = computed(() => {
+  return (
+    !form.name.trim() ||
+    !form.emailLocal.trim() ||
+    !form.password
+  );
+});
+
+// 백엔드 호출 전에 필수값과 이메일 아이디 형식을 검사한다.
+const validateForm = () => {
+  fieldErrors.name = '';
+  fieldErrors.email = '';
+  fieldErrors.password = '';
+
+  if (!form.name.trim()) {
+    fieldErrors.name = '이름을 입력해 주세요.';
   }
 
-  disableSubmit.value = await authApi.checkEmail(member.email);
-  console.log(disableSubmit.value, typeof disableSubmit.value);
-  checkError.value = disableSubmit.value
-    ? '이미 사용중인 이메일입니다.'
-    : '사용가능한 이메일입니다.';
-};
-
-// email 입력 핸들러
-const changeEmail = () => {
-  disableSubmit.value = true;
-  if (member.email) {
-    checkError.value = '이메일 중복 체크를 하셔야 합니다.';
-  } else {
-    checkError.value = '';
+  if (!form.emailLocal.trim()) {
+    fieldErrors.email = '이메일을 입력해 주세요.';
+  } else if (!emailLocalPattern.test(form.emailLocal.trim())) {
+    fieldErrors.email = '올바른 이메일 형식으로 입력해 주세요.';
   }
+
+  if (!form.password) {
+    fieldErrors.password = '비밀번호를 입력해 주세요.';
+  }
+
+  return !fieldErrors.name && !fieldErrors.email && !fieldErrors.password;
 };
 
+// 사용자가 값을 다시 입력하면 해당 입력창의 이전 오류를 지운다.
+const clearFieldError = (field) => {
+  fieldErrors[field] = '';
+  errorMessage.value = '';
+};
+
+/**
+ * 회원가입 버튼 클릭 흐름
+ * 1. 입력값 검증 → 2. users 저장 → 3. 자동 로그인 → 4. 가입 완료 화면 이동
+ */
 const join = async () => {
-  if (member.password != member.password2) {
-    return alert('비밀번호가 일치하지 않습니다.');
+  errorMessage.value = '';
+
+  if (!validateForm()) {
+    return;
   }
 
-  if (avatar.value.files.length > 0) {
-    member.avatar = avatar.value.files[0];
-  }
+  isSubmitting.value = true;
 
   try {
-    await authApi.create(member); // 회원가입
-    router.push({ name: 'home' }); // 회원 가입 성공 시, 첫 페이지로 이동 또는 로그인 페이지로 이동
-  } catch (e) {
-    console.error(e);
+    // 이름·이메일·비밀번호를 회원가입 API에 전달한다.
+    await authApi.signup({
+      name: form.name.trim(),
+      email: email.value,
+      password: form.password,
+    });
+
+    // 가입 완료 화면과 다음 기능에서 JWT를 사용할 수 있도록 바로 로그인한다.
+    await auth.login({
+      email: email.value,
+      password: form.password,
+    });
+
+    router.push('/signup/complete');
+  } catch (error) {
+    // 백엔드가 중복 이메일을 409로 응답하면 이메일 입력창 아래에 안내한다.
+    if (error.response?.status === 409) {
+      fieldErrors.email =
+        '중복된 이메일이 존재합니다. 다시 입력해주세요.';
+      return;
+    }
+
+    errorMessage.value =
+      error.response?.data || '회원가입 처리 중 오류가 발생했습니다.';
+  } finally {
+    isSubmitting.value = false;
   }
 };
 </script>
 
 <template>
-  <div class="mt-5 mx-auto" style="width: 500px">
-    <h1 class="my-5">
-      <i class="fa-solid fa-user-plus"></i>
-      회원 가입
-    </h1>
-
-    <form @submit.prevent="join">
-      <div class="mb-3 mt-3">
-        <label for="avatar" class="form-label">
-          <i class="fa-solid fa-user-astronaut"></i>
-          아바타 이미지:
-        </label>
-        <input
-          type="file"
-          class="form-control"
-          ref="avatar"
-          id="avatar"
-          accept="image/png, image/jpeg"
-        />
+  <main class="signup-page">
+    <section class="signup-card">
+      <!-- 회원가입 로고와 현재 단계 -->
+      <div class="brand-mark">
+        <img class="brand-logo" :src="deuksilLogo" alt="득실 로고" />
+        <div>
+          <p class="brand-title">득실 회원가입</p>
+          <p class="brand-subtitle">기본 정보</p>
+        </div>
       </div>
 
-      <div class="mb-3 mt-3">
-        <label for="email" class="form-label">
-          <i class="fa-solid fa-envelope"></i>
-          이메일 :
-          <button
-            type="button"
-            class="btn btn-success btn-sm py-0 me-2"
-            @click="checkEmail"
+      <!-- 회원가입 진행 상태 표시 -->
+      <div class="progress-bar">
+        <span></span>
+      </div>
+
+      <!-- 이름·이메일·비밀번호 입력 폼 -->
+      <form class="signup-form" @submit.prevent="join">
+        <label class="field">
+          <span>이름</span>
+          <input
+            v-model="form.name"
+            type="text"
+            autocomplete="name"
+            placeholder="이름 입력"
+            :class="{ 'input-error': fieldErrors.name }"
+            @input="clearFieldError('name')"
+          />
+          <p v-if="fieldErrors.name" class="field-error">
+            {{ fieldErrors.name }}
+          </p>
+        </label>
+
+        <label class="field">
+          <span>이메일</span>
+          <div
+            class="email-input-row"
+            :class="{ 'has-error': fieldErrors.email }"
           >
-            이메일 중복 확인
-          </button>
-          <span :class="disableSubmit ? 'text-danger' : 'text-primary'">{{
-            checkError
-          }}</span>
+            <input
+              v-model="form.emailLocal"
+              type="text"
+              inputmode="email"
+              autocomplete="off"
+              placeholder="아이디 입력"
+              @input="clearFieldError('email')"
+            />
+            <span class="email-at">@</span>
+            <EmailDomainSelect
+              v-model="form.emailDomain"
+              :options="EMAIL_DOMAINS"
+              :invalid="Boolean(fieldErrors.email)"
+              @change="clearFieldError('email')"
+            />
+          </div>
+          <p v-if="fieldErrors.email" class="field-error">
+            {{ fieldErrors.email }}
+          </p>
         </label>
-        <input
-          type="email"
-          class="form-control"
-          placeholder="Email"
-          id="email"
-          @input="changeEmail"
-          v-model="member.email"
-        />
-      </div>
-      <div class="mb-3">
-        <label for="password" class="form-label">
-          <i class="fa-solid fa-lock"></i> 비밀번호:
-        </label>
-        <input
-          type="password"
-          class="form-control"
-          placeholder="비밀번호"
-          id="password"
-          v-model="member.password"
-        />
-      </div>
 
-      <div class="mb-3">
-        <label for="password" class="form-label">
-          <i class="fa-solid fa-lock"></i> 비밀번호 확인:
+        <label class="field">
+          <span>비밀번호</span>
+          <input
+            v-model="form.password"
+            type="password"
+            autocomplete="new-password"
+            placeholder="비밀번호 입력"
+            :class="{ 'input-error': fieldErrors.password }"
+            @input="clearFieldError('password')"
+          />
+          <p v-if="fieldErrors.password" class="field-error">
+            {{ fieldErrors.password }}
+          </p>
         </label>
-        <input
-          type="password"
-          class="form-control"
-          placeholder="비밀번호 확인"
-          id="password2"
-          v-model="member.password2"
-        />
-      </div>
 
-      <button
-        type="submit"
-        class="btn btn-primary mt-4"
-        :disabled="disableSubmit"
-      >
-        <i class="fa-solid fa-user-plus"></i>
-        확인
-      </button>
-    </form>
-  </div>
+        <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
+
+        <button
+          class="submit-button"
+          :class="{ 'is-incomplete': isFormIncomplete }"
+          type="submit"
+          :disabled="isSubmitting"
+        >
+          {{ isSubmitting ? '처리 중...' : '다음' }}
+        </button>
+      </form>
+    </section>
+  </main>
 </template>
+
+<style scoped>
+.signup-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  background: #f7f6f2;
+}
+
+.signup-card {
+  width: 100%;
+  max-width: 390px;
+  min-height: 620px;
+  padding: 42px 28px 28px;
+  background: #fffdfa;
+  border: 1px solid #eee9df;
+  border-radius: 28px;
+  box-shadow: 0 18px 40px rgba(36, 30, 18, 0.12);
+}
+
+.brand-mark {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.brand-logo {
+  width: 76px;
+  height: auto;
+  display: block;
+  object-fit: contain;
+  filter: brightness(1.03);
+}
+
+.brand-title {
+  margin: 0;
+  color: #222;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.brand-subtitle {
+  margin: 4px 0 0;
+  color: #9a948a;
+  font-size: 12px;
+}
+
+.progress-bar {
+  height: 4px;
+  margin: 30px 0 60px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #ece8df;
+}
+
+.progress-bar span {
+  display: block;
+  width: 50%;
+  height: 100%;
+  background: #ffbd00;
+}
+
+.signup-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  color: #2f2c28;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.field input,
+.field select {
+  width: 100%;
+  height: 46px;
+  padding: 0 14px;
+  border: 1px solid #e4ded3;
+  border-radius: 10px;
+  background: #fff;
+  color: #222;
+  font-size: 14px;
+  outline: none;
+}
+
+.field select {
+  cursor: pointer;
+}
+
+.field input:focus,
+.field select:focus {
+  border-color: #ffbd00;
+  box-shadow: 0 0 0 3px rgba(255, 189, 0, 0.15);
+}
+
+.field input.input-error,
+.email-input-row.has-error input,
+.email-input-row.has-error select {
+  border-color: #ef7772;
+}
+
+.email-input-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1.15fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.email-at {
+  color: #9a948a;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.error-message,
+.field-error {
+  margin: 0;
+  color: #e54848;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.field-error {
+  margin-top: -1px;
+}
+
+.submit-button {
+  width: 100%;
+  height: 48px;
+  margin-top: 26px;
+  border: 0;
+  border-radius: 10px;
+  background: #ffbd00;
+  color: #1f1f1f;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.submit-button.is-incomplete {
+  background: #e2cf96;
+  color: #796f58;
+}
+
+.submit-button:disabled {
+  cursor: not-allowed;
+}
+</style>

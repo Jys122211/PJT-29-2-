@@ -21,14 +21,14 @@ public class LoginUser {
      * @throws IllegalStateException 인증 정보가 없는 경우
      */
     public static Long getUserId() {
-      Authentication authentication =
-             SecurityContextHolder.getContext().getAuthentication();
+        Authentication authentication =
+                SecurityContextHolder.getContext().getAuthentication();
 
-      if (authentication == null || !(authentication.getPrincipal() instanceof CustomUser)) {
-           throw new IllegalStateException("로그인 정보를 확인할 수 없습니다");
-       }
+        if (authentication == null || !(authentication.getPrincipal() instanceof CustomUser)) {
+            throw new IllegalStateException("로그인 정보를 확인할 수 없습니다");
+        }
 
-       CustomUser user = (CustomUser) authentication.getPrincipal();
+        CustomUser user = (CustomUser) authentication.getPrincipal();
         return user.getMember().getUserId();
-   }
+    }
 }

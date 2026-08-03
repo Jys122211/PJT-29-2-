@@ -5,6 +5,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.scoula.member.dto.MemberDTO;
+import org.scoula.member.dto.MemberUpdateDTO;
 import org.scoula.member.service.MemberService;
 import org.scoula.security.account.domain.CustomUser;
 import org.scoula.security.account.domain.MemberVO;
@@ -16,6 +17,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(MockitoExtension.class)
@@ -56,5 +58,42 @@ class MemberControllerPayloadTest {
                 .andExpect(status().isOk());
 
         verify(service).updateMaxMonthlyPayment(userId, monthlyPayment);
+    }
+
+    @Test
+    void updateProfile_usesAuthenticatedUserIdInsteadOfRequestedEmail() throws Exception {
+        Long userId = 42L;
+        CustomUser customUser = new CustomUser(MemberVO.builder()
+                .userId(userId)
+                .username("login@example.com")
+                .password("encoded-password")
+                .build());
+        var authentication = new UsernamePasswordAuthenticationToken(
+                customUser,
+                null,
+                customUser.getAuthorities()
+        );
+
+        when(service.update(org.mockito.ArgumentMatchers.eq(userId),
+                org.mockito.ArgumentMatchers.any(MemberUpdateDTO.class)))
+                .thenReturn(MemberDTO.builder()
+                        .userId(userId)
+                        .email("login@example.com")
+                        .name("로그인 사용자")
+                        .build());
+
+        MockMvc mockMvc = MockMvcBuilders
+                .standaloneSetup(new MemberController(service))
+                .build();
+
+        mockMvc.perform(put("/api/users/me")
+                        .principal(authentication)
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .param("email", "other@example.com")
+                        .param("name", "로그인 사용자"))
+                .andExpect(status().isOk());
+
+        verify(service).update(org.mockito.ArgumentMatchers.eq(userId),
+                org.mockito.ArgumentMatchers.any(MemberUpdateDTO.class));
     }
 }

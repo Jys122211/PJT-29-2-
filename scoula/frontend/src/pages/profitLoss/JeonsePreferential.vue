@@ -3,12 +3,43 @@ import { computed, ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import profitLossApi from '@/api/profitLossApi';
 import { useProfitLossStore } from '@/stores/profitLoss';
+import AlertModal from '@/components/AlertModal.vue';
 
 const router = useRouter();
 const profitLossStore = useProfitLossStore();
 const isSubmitting = ref(false);
 const isLoading = ref(true);
 const calculationError = ref('');
+
+const isErrorModalOpen = ref(false);
+const errorModalMessage = ref('');
+const errorModalConfirmText = ref('확인');
+const shouldReturnToInput = ref(false);
+
+const NEXT_STEP_GUIDE = {
+  PAYMENT_TOO_LOW: '월 상환 가능 금액을 늘리거나 필요 금액을 줄여보세요.',
+  EXCEED_LOAN_LIMIT: '필요 금액을 줄이거나 다른 대출 상품을 선택해 보세요.',
+  DEPOSIT_NOT_FOUND: '예금을 다시 선택해 주세요.',
+  GRADE_RATE_UNAVAILABLE: '잠시 후 다시 시도해 주세요.',
+};
+
+function openErrorModal(message, returnToInput = false) {
+  errorModalMessage.value = message;
+  errorModalConfirmText.value = returnToInput ? '입력 화면으로 돌아가기' : '확인';
+  shouldReturnToInput.value = returnToInput;
+  isErrorModalOpen.value = true;
+}
+
+function closeErrorModal() {
+  isErrorModalOpen.value = false;
+}
+
+function confirmErrorModal() {
+  isErrorModalOpen.value = false;
+  if (shouldReturnToInput.value) {
+    router.push({ name: 'comparisonInput' });
+  }
+}
 
 const cardUsageGroup = computed(() =>
   profitLossStore.state.jeonsePreferential.groups.find(
@@ -106,8 +137,16 @@ async function continueToNextStep() {
     });
   } catch (error) {
     console.error('손익비교 요청 실패:', error);
-    calculationError.value =
-      '손익비교를 요청하지 못했습니다. 잠시 후 다시 시도해 주세요.';
+
+    const status = error.response?.status;
+    const code = error.response?.data?.code;
+    const serverMessage = error.response?.data?.message;
+    const guide = NEXT_STEP_GUIDE[code] ?? '잠시 후 다시 시도해 주세요.';
+
+    openErrorModal(
+      `${serverMessage ?? '손익비교를 요청하지 못했습니다.'} ${guide}`,
+      status === 400 || status === 404,
+    );
   } finally {
     isSubmitting.value = false;
   }
@@ -237,6 +276,15 @@ async function continueToNextStep() {
         <p>잠시만 기다려 주세요</p>
       </div>
     </div>
+
+    <AlertModal
+      :visible="isErrorModalOpen"
+      title="손익비교 실패"
+      :message="errorModalMessage"
+      :confirm-text="errorModalConfirmText"
+      @confirm="confirmErrorModal"
+      @close="closeErrorModal"
+    />
   </main>
 </template>
 
