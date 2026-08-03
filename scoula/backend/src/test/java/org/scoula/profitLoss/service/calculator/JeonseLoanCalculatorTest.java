@@ -127,4 +127,27 @@ class JeonseLoanCalculatorTest {
                 JeonseLoanCalculator.compare(deposit, 40_000_000L, 50_000L, true, RATE_OPTIONS, BigDecimal.ZERO));
         assertTrue(thrown.getMessage().contains("최장 약정기간"));
     }
+
+    // B안 가능·A안 불가(기간초과)도 실제로 발생한다 — 방어 코드가 아니라 필요한 분기다.
+    // 예금원금 100만/만기이율 15%/기본이율 2.40%/계약36개월/경과14개월(잔여22개월), 급전 300만(부족분 200만), 월납입 9만.
+    //
+    // B안: 실제기간=예금잔여기간=22(≤24). 만기이율이 높아 depositMaturityAmount(1,380,700)가 커서
+    //      상환재원이 여유 있고(3,074,150 ≥ 3,000,000), 조기상환도 없어(약정기간=실제기간=22) 수수료 0으로
+    //      가능 판정된다 — bTotalLoss=286,550(대출이자만).
+    // A안: 부족분(200만)의 실제기간=ceil(200만/(90,000-8,683))=ceil(24.6)=25로 최장 약정기간(24개월)을 넘어
+    //      불가 판정된다 — aTotalLoss는 해지손실(372,409)만 반영된다.
+    @Test
+    @DisplayName("B안 가능·A안 불가(기간초과)가 실제로 발생하는 경우: LOAN, 절약 0원")
+    void bFeasibleButWithdrawalInfeasibleDueToTermCap() {
+        JeonseLoanCalculator.DepositInput deposit = new JeonseLoanCalculator.DepositInput(
+                1_000_000L, new BigDecimal("15.00"), new BigDecimal("2.40"), 36, 14);
+
+        JeonseLoanCalculator.Result result = JeonseLoanCalculator.compare(
+                deposit, 3_000_000L, 90_000L, false, RATE_OPTIONS, BigDecimal.ZERO);
+
+        assertEquals(372_409L, result.aTotalLoss()); // 해지손실만 (부족분 대출은 기간초과로 불가)
+        assertEquals(286_550L, result.bTotalLoss());
+        assertEquals(JeonseLoanCalculator.Winner.LOAN, result.winner());
+        assertEquals(0L, result.savingAmount());
+    }
 }
