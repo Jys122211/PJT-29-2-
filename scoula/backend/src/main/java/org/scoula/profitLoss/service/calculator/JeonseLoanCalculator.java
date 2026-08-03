@@ -141,8 +141,12 @@ public final class JeonseLoanCalculator {
 
         long bTotalLoss = mainLoan.cost();
 
+        // savingAmount는 항상 |A총손실-B총손실|이다 — 한쪽만 가능해도 0으로 두지 않는다.
+        // Service 계층(comparisons 21컬럼)은 winner/aFinalBalance/bFinalBalance만 저장하고
+        // savingAmount는 GET 재조회 시 |aFinalBalance-bFinalBalance|로 다시 계산한다(ProfitLossServiceImpl
+        // buildResponse 참고). 여기서 0으로 강제해도 저장되지 않는 값이라 재조회하면 원래 차액으로
+        // 되돌아간다 — "판정은 winner로, 차액 크기는 savingAmount로" 각자의 역할을 분리한다.
         Winner winner;
-        long savingAmount;
         if (withdrawalFeasibility.feasible() && loanFeasibility.feasible()) {
             if (aTotalLoss < bTotalLoss) {
                 winner = Winner.WITHDRAWAL;
@@ -151,16 +155,14 @@ public final class JeonseLoanCalculator {
             } else {
                 winner = Winner.TIE;
             }
-            savingAmount = Math.abs(aTotalLoss - bTotalLoss);
         } else if (loanFeasibility.feasible()) {
             // A안(예금 해지)이 불가능 — B안만 실행 가능하므로 비교 없이 B안으로 확정.
             winner = Winner.LOAN;
-            savingAmount = 0L;
         } else {
             // B안(전세대출 전액)이 불가능 — A안만 실행 가능하므로 비교 없이 A안으로 확정.
             winner = Winner.WITHDRAWAL;
-            savingAmount = 0L;
         }
+        long savingAmount = Math.abs(aTotalLoss - bTotalLoss);
 
         LoanResult loanResult = new LoanResult(finalRate, commitmentMonths, mainLoan.interest(), mainLoan.fee(), mainLoan.cost());
         DepositResult depositResult = new DepositResult(cancelInterestRate, cancelInterest, maintainInterest);

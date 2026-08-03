@@ -99,9 +99,12 @@ class JeonseLoanCalculatorTest {
     // 원 대출(B안)은 urgentAmount 4,000만 전액을 실제기간 11개월(예금잔여)로 갚아야 해 월납입 90만으로는
     // 만기 상환재원이 부족해 불가능하다. 반면 부족분(1,000만) 대출(A안)은 월적립 856,583원으로
     // 실제기간 12개월(≤24, 가능) 만에 완납할 수 있다 — B안 불가·A안 가능이므로 비교 없이 WITHDRAWAL로
-    // 확정되고, 이 경우 savingAmount는 0이다.
+    // 확정된다. savingAmount는 0으로 두지 않는다 — comparisons 테이블에는 winner/aFinalBalance/
+    // bFinalBalance만 저장되고 savingAmount는 GET 재조회 시 |aFinalBalance-bFinalBalance|로 다시
+    // 계산되므로(ProfitLossServiceImpl.buildResponse), 여기서 0으로 강제해도 저장되지 않아 사라진다.
+    // winner가 "무엇을 할지"를, savingAmount는 "그 차이가 얼마인지"를 각각 담당한다.
     @Test
-    @DisplayName("경우4 · 급전(4,000만) > 예금원금 · 월납입 90만: B안 불가·A안 가능 → WITHDRAWAL, 절약 0원")
+    @DisplayName("경우4 · 급전(4,000만) > 예금원금 · 월납입 90만: B안 불가·A안 가능 → WITHDRAWAL, 절약 597,288원")
     void condition4_onlyWithdrawalFeasible() {
         JeonseLoanCalculator.DepositInput deposit = new JeonseLoanCalculator.DepositInput(
                 DEPOSIT_PRINCIPAL, MATURITY_RATE, BASE_RATE, CONTRACT_MONTHS, 1);
@@ -112,7 +115,7 @@ class JeonseLoanCalculatorTest {
         assertEquals(1_331_049L, result.aTotalLoss()); // 해지손실(810,045) + 부족분대출비용(521,004)
         assertEquals(1_928_337L, result.bTotalLoss()); // 원 대출(B안) 값 자체는 실행 가능 여부와 무관하게 그대로 계산된다
         assertEquals(JeonseLoanCalculator.Winner.WITHDRAWAL, result.winner());
-        assertEquals(0L, result.savingAmount());
+        assertEquals(597_288L, result.savingAmount()); // |1,331,049-1,928,337|
     }
 
     // 원 대출(B안)은 이자조차 못 낸다(월납입 5만 < 월이자 173,667). 부족분 대출(A안)은 이자는 겨우
@@ -137,7 +140,7 @@ class JeonseLoanCalculatorTest {
     // A안: 부족분(200만)의 실제기간=ceil(200만/(90,000-8,683))=ceil(24.6)=25로 최장 약정기간(24개월)을 넘어
     //      불가 판정된다 — aTotalLoss는 해지손실(372,409)만 반영된다.
     @Test
-    @DisplayName("B안 가능·A안 불가(기간초과)가 실제로 발생하는 경우: LOAN, 절약 0원")
+    @DisplayName("B안 가능·A안 불가(기간초과)가 실제로 발생하는 경우: LOAN, 절약 85,859원")
     void bFeasibleButWithdrawalInfeasibleDueToTermCap() {
         JeonseLoanCalculator.DepositInput deposit = new JeonseLoanCalculator.DepositInput(
                 1_000_000L, new BigDecimal("15.00"), new BigDecimal("2.40"), 36, 14);
@@ -148,7 +151,7 @@ class JeonseLoanCalculatorTest {
         assertEquals(372_409L, result.aTotalLoss()); // 해지손실만 (부족분 대출은 기간초과로 불가)
         assertEquals(286_550L, result.bTotalLoss());
         assertEquals(JeonseLoanCalculator.Winner.LOAN, result.winner());
-        assertEquals(0L, result.savingAmount());
+        assertEquals(85_859L, result.savingAmount()); // |372,409-286,550|
     }
 
     // isLumpSum=X(비목돈상환) 검산. 예금원금 3,000만/만기3.20%/기본2.40%/계약12개월/경과1개월,
@@ -179,9 +182,10 @@ class JeonseLoanCalculatorTest {
 
     // (나) 월납입 90만: 월이자 86,833 → 월적립 813,167 → 실제기간 ceil(2,000만/813,167)=25로
     //      최장 약정기간(24개월) 초과 → B안 불가. A안(부분해지, case1)은 대출이 얽히지 않아 항상 가능
-    //      → 비교 없이 WITHDRAWAL 확정, savingAmount=0.
+    //      → 비교 없이 WITHDRAWAL 확정. 기간초과라 실제기간(25)은 계산되므로 대출이자(86,833×25=
+    //      2,170,825)는 그대로 산출되고(수수료는 실제=약정이라 0), savingAmount는 |540,030-2,170,825|.
     @Test
-    @DisplayName("isLumpSum=X · 월납입 90만: 실제기간 24개월 초과로 B안 불가 → WITHDRAWAL, 절약 0원")
+    @DisplayName("isLumpSum=X · 월납입 90만: 실제기간 24개월 초과로 B안 불가 → WITHDRAWAL, 절약 1,630,795원")
     void nonLumpSum_monthlyPayment900k_exceedsTermCap() {
         JeonseLoanCalculator.DepositInput deposit = new JeonseLoanCalculator.DepositInput(
                 DEPOSIT_PRINCIPAL, MATURITY_RATE, BASE_RATE, CONTRACT_MONTHS, 1);
@@ -190,7 +194,8 @@ class JeonseLoanCalculatorTest {
                 deposit, 20_000_000L, 900_000L, true, false, RATE_OPTIONS, BigDecimal.ZERO);
 
         assertEquals(540_030L, result.aTotalLoss());
+        assertEquals(2_170_825L, result.bTotalLoss());
         assertEquals(JeonseLoanCalculator.Winner.WITHDRAWAL, result.winner());
-        assertEquals(0L, result.savingAmount());
+        assertEquals(1_630_795L, result.savingAmount()); // |540,030-2,170,825|
     }
 }
