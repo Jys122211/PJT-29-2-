@@ -93,7 +93,8 @@ onMounted(load);
 .date-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 .rec-badge {
   display: inline-flex;
@@ -111,13 +112,9 @@ onMounted(load);
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 5px 11px;
-  border: 1px solid var(--kb-line);
-  border-radius: 999px;
   font-size: 11px;
-  font-weight: 700;
-  color: var(--kb-text);
-  background: #fff;
+  font-weight: 600;
+  color: var(--kb-muted);
 }
 
 .page {
