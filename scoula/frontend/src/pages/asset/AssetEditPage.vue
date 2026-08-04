@@ -514,13 +514,13 @@ onMounted(load);
 }
 
 .sec-label {
-  margin: 0 2px 10px;
-  font-size: 14px;
+  margin: 0 2px var(--kb-space-sm);
+  font-size: var(--kb-font-md);
   font-weight: 700;
 }
 
 .form-card {
-  padding: 16px 15px;
+  padding: var(--kb-space-lg) var(--kb-space-md);
   border: 1px solid var(--kb-border);
   border-radius: 14px;
   background: #fff;
@@ -528,32 +528,38 @@ onMounted(load);
 
 .row {
   display: flex;
-  gap: 10px;
-  margin-bottom: 10px;
+  gap: var(--kb-space-sm);
+  margin-bottom: var(--kb-space-sm);
 }
 
 .row > * {
   flex: 1;
   min-width: 0;
+  width: auto;
 }
 
 .fld {
   width: 100%;
-  padding: 13px;
-  border: 1px solid var(--kb-border);
-  border-radius: 10px;
+  height: var(--kb-input-height);
+  padding: 0 var(--kb-space-md);
+  border: 1px solid #e1dbce;
+  border-radius: 8px;
   font: inherit;
-  font-size: 13px;
+  font-size: var(--kb-font-md);
   color: var(--kb-text);
-  background: #fff;
+  background: #faf9f7;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
 }
 
 .fld::placeholder {
-  color: #b8b1a8;
+  color: #aaa39a;
 }
 
 .fld:focus {
-  border-color: #f4a70b;
+  border-color: var(--kb-yellow);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(255, 188, 0, 0.15);
   outline: 0;
 }
 

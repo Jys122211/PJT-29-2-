@@ -364,7 +364,7 @@ onMounted(() => {
           <strong>비교할 보유 예금이 없어요</strong>
           <p>자산 등록에서 예금을 먼저 등록해주세요</p>
 
-          <button type="button" @click="registerAsset">자산 등록하기</button>
+          <button class="kb-btn kb-btn-primary" type="button" @click="registerAsset">자산 등록하기</button>
         </div>
 
         <!-- 두 번째 그림 -->
@@ -373,7 +373,7 @@ onMounted(() => {
             v-for="deposit in deposits"
             :key="deposit.id"
             type="button"
-            class="deposit-card"
+            class="kb-card deposit-card"
             :class="{
               selected:
                 profitLossStore.state.deposit.userDepositId === deposit.id,
@@ -496,7 +496,7 @@ onMounted(() => {
       <!-- 상태에 따라 같은 버튼의 문구와 활성 상태 변경 -->
       <button
         type="button"
-        class="compare-button"
+        class="kb-btn kb-btn-primary compare-button"
         :disabled="!canCompare"
         @click="compareProfitLoss"
       >
@@ -573,8 +573,8 @@ button {
 .amount-input {
   display: flex;
   align-items: center;
-  height: 60px;
-  padding: 0 16px;
+  height: clamp(54px, 15vw, 60px);
+  padding: 0 clamp(12px, 4vw, 16px);
   border: 1px solid var(--kb-border);
   border-radius: 14px;
   background: #fff;
@@ -618,11 +618,17 @@ button {
 }
 
 .amount-actions button {
-  height: 36px;
+  height: clamp(32px, 9vw, 36px);
   border: 1px solid var(--kb-border);
   border-radius: 9px;
   color: #615b54;
   background: #fff;
+  font-size: clamp(12px, 3.5vw, 14px);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.amount-actions button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .empty-deposit {
@@ -651,20 +657,16 @@ button {
 .empty-deposit button {
   min-width: 180px;
   height: 40px;
-  border: 0;
-  border-radius: 22px;
-  background: var(--kb-yellow);
 }
 
 .deposit-list {
   display: grid;
-  gap: 9px;
+  gap: clamp(6px, 2vw, 9px);
   max-height: 175px;
-  padding-right: 4px;
+  padding: clamp(2px, 1vw, 4px) 0;
   overflow-y: auto;
   overscroll-behavior-y: contain;
   scrollbar-color: #c8bfae transparent;
-  scrollbar-gutter: stable;
   scrollbar-width: thin;
 }
 
@@ -684,14 +686,12 @@ button {
 .deposit-card {
   display: flex;
   width: 100%;
-  min-height: 70px;
-  padding: 13px 14px;
-  border: 1px solid var(--kb-border);
-  border-radius: 14px;
+  min-height: clamp(60px, 18vw, 70px);
+  padding: clamp(10px, 3.5vw, 14px) clamp(12px, 4vw, 16px);
   align-items: center;
   justify-content: space-between;
   text-align: left;
-  background: #fff;
+  box-sizing: border-box;
 }
 
 .deposit-card.selected {
@@ -729,14 +729,14 @@ button {
 .credit-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 9px;
-  margin-bottom: 10px;
+  gap: clamp(6px, 2vw, 9px);
+  margin-bottom: clamp(8px, 2.5vw, 10px);
 }
 
 .information-box {
   display: flex;
   min-height: 50px;
-  padding: 10px 12px;
+  padding: clamp(8px, 2.5vw, 10px) clamp(10px, 3vw, 12px);
   border: 1px solid var(--kb-border);
   border-radius: 11px;
   flex-direction: column;
@@ -813,6 +813,11 @@ button {
   border: 1px solid var(--kb-border);
   border-radius: 22px;
   background: #fff;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.loan-options button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .loan-options button.selected {
@@ -825,17 +830,7 @@ button {
   height: 54px;
   min-height: 54px;
   margin-top: auto;
-  border: 0;
-  border-radius: 13px;
   flex-shrink: 0;
-  font-weight: 700;
-  color: #292725;
-  background: var(--kb-yellow);
-}
-
-.compare-button:disabled {
-  color: #8c857a;
-  background: #ddd5c3;
 }
 
 </style>

@@ -159,7 +159,7 @@ const formatDate = (isoDate) => isoDate.replaceAll('-', '.');
     </div>
 
     <div class="deposit-list" v-if="deposits.length">
-      <div class="deposit-card" v-for="d in deposits" :key="d.id">
+      <div class="kb-card deposit-card" v-for="d in deposits" :key="d.id">
         <div class="deposit-info">
           <p class="deposit-bank">{{ d.bankName }}</p>
           <p class="deposit-product">{{ d.productName }}</p>
@@ -394,6 +394,11 @@ const formatDate = (isoDate) => isoDate.replaceAll('-', '.');
   font-size: 13px;
   color: #26221c;
   cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.empty-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(255, 188, 0, 0.25);
 }
 
 .register-toast {
@@ -480,6 +485,11 @@ const formatDate = (isoDate) => isoDate.replaceAll('-', '.');
   justify-content: center;
   font-weight: 700;
   font-size: 14px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.avatar:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(138, 100, 0, 0.2);
 }
 
 .asset-card {
@@ -518,20 +528,27 @@ const formatDate = (isoDate) => isoDate.replaceAll('-', '.');
   box-sizing: border-box;
   display: flex;
   align-items: center;
-  width: calc(100% - 40px);
-  height: 76px;
-  margin: 14px auto 0;
-  padding: 0 20px;
+  width: calc(100% - var(--kb-space-xl));
+  height: clamp(66px, 18vw, 76px);
+  margin: var(--kb-space-md) auto 0;
+  padding: 0 var(--kb-space-lg);
   border-radius: 18px;
   border: none;
   cursor: pointer;
   text-align: left;
   text-decoration: none;
   color: inherit;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.cta:hover {
+  transform: translateY(-3px);
 }
 .cta-primary {
   background: #ffbc00;
   box-shadow: 0 6px 16px rgba(255, 188, 0, 0.3);
+}
+.cta-primary:hover {
+  box-shadow: 0 10px 24px rgba(255, 188, 0, 0.4);
 }
 .cta-icon {
   flex-shrink: 0;
@@ -555,11 +572,11 @@ const formatDate = (isoDate) => isoDate.replaceAll('-', '.');
 }
 .cta-title {
   font-weight: 700;
-  font-size: 15px;
+  font-size: var(--kb-font-md);
   color: #4a4237;
 }
 .cta-subtitle {
-  font-size: 12px;
+  font-size: var(--kb-font-sm);
   color: #7a6a45;
 }
 .cta-arrow {
@@ -569,16 +586,15 @@ const formatDate = (isoDate) => isoDate.replaceAll('-', '.');
 }
 
 .cta-secondary {
-  height: 56px;
+  height: var(--kb-btn-height);
   background: #fff;
   border: 1px solid #ffbc00;
   justify-content: space-between;
 }
-.cta-text-solo {
-  font-weight: 700;
-  font-size: 14px;
-  color: #4a4237;
+.cta-secondary:hover {
+  box-shadow: 0 8px 20px rgba(255, 188, 0, 0.2);
 }
+.cta-text-solo { font-weight: 700; font-size: var(--kb-font-md); color: #4a4237; }
 
 .section-header {
   display: flex;
@@ -628,43 +644,15 @@ const formatDate = (isoDate) => isoDate.replaceAll('-', '.');
   align-items: center;
   justify-content: space-between;
   padding: 17px 19px;
-  background: #fff;
-  border: 1px solid #efe9dd;
-  border-radius: 16px;
 }
-.deposit-bank {
-  font-size: 12px;
-  color: #8c8371;
-}
-.deposit-product {
-  margin-top: 4px;
-  font-weight: 700;
-  font-size: 14px;
-  color: #26221c;
-}
-.deposit-detail {
-  margin-top: 4px;
-  font-size: 12px;
-  color: #a49a86;
-}
-.deposit-meta {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 8px;
-}
-.d-day-badge {
-  padding: 5px 10px;
-  background: #fff3cf;
-  border-radius: 999px;
-  font-weight: 700;
-  font-size: 11px;
-  color: #8a6400;
-}
-.deposit-maturity {
-  font-size: 11px;
-  color: #b3aa99;
-}
+.deposit-bank { font-size: 12px; color: #8c8371; }
+.deposit-product { margin-top: 4px; font-weight: 700; font-size: 14px; color: #26221c; }
+.deposit-detail { margin-top: 4px; font-size: 12px; color: #a49a86; }
+.deposit-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+.d-day-badge { padding: 5px 10px; background: #fff3cf; border-radius: 999px; font-weight: 700; font-size: 11px; color: #8a6400; }
+.deposit-maturity { font-size: 11px; color: #b3aa99; }
+
+
 
 .menu-overlay {
   position: fixed;
