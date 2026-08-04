@@ -11,6 +11,7 @@ import org.scoula.profitLoss.dto.ComparisonResponse;
 import org.scoula.profitLoss.enums.LoanType;
 import org.scoula.profitLoss.mapper.ProfitLossMapper;
 import org.scoula.profitLoss.service.calculator.ComparisonCalculator;
+import org.scoula.profitLoss.vo.JeonseLoanProductVO;
 import org.scoula.profitLoss.vo.LoanProductRateVO;
 
 import java.math.BigDecimal;
@@ -231,6 +232,73 @@ class ProfitLossServiceImplTest {
 
         assertEquals(ComparisonCalculator.Winner.WITHDRAWAL, response.getWinner());
         assertSavingAmount(299_798L, response.getSavingAmount());
+    }
+
+    // 회귀 방지: buildResponse()는 계산기 Result.savingAmount()를 쓰지 않고 저장된 aFinalBalance/
+    // bFinalBalance 둘만으로 savingAmount를 다시 계산한다(GET 재조회 대응 설계). 전세 STEP6 경우4에서
+    // B안이 불가능해도 JeonseLoanCalculator가 savingAmount를 0으로 강제하면, 여기서 재계산되는 값과
+    // 어긋나 버그가 났었다 — 실제 계산기 단위테스트는 다 통과했는데 API 응답만 틀렸던 사례.
+    // 급전(4,000만) > 예금원금(3,000만) · 월납입 90만 → B안 상환재원 부족으로 불가, A안만 가능.
+    @Test
+    void compare_jeonseCase4_onlyWithdrawalFeasible_savingAmountReflectsRealGap() {
+        Long userId = 1L;
+
+        LocalDate joinDate = LocalDate.now(SEOUL).minusMonths(1);
+        UserDepositVO deposit = UserDepositVO.builder()
+                .userDepositId(10L)
+                .userId(userId)
+                .productName("KB Star 정기예금")
+                .principalAmount(30_000_000L)
+                .appliedRate(new BigDecimal("3.2"))
+                .baseRate(new BigDecimal("2.4"))
+                .joinDate(joinDate)
+                .maturityDate(joinDate.plusMonths(12))
+                .build();
+        when(mapper.selectUserDeposit(10L, userId)).thenReturn(deposit);
+        when(mapper.selectJeonseLoanProducts(List.of(200L))).thenReturn(List.of(
+                jeonseRate("3.05", "2.16"), // 5.21 (최소)
+                jeonseRate("2.94", "2.34"),
+                jeonseRate("2.94", "2.34"),
+                jeonseRate("3.05", "2.27"),
+                jeonseRate("2.54", "2.96"),
+                jeonseRate("2.54", "2.99")
+        ));
+
+        ComparisonRequest request = ComparisonRequest.builder()
+                .userFinancialInfo(ComparisonRequest.UserFinancialInfo.builder()
+                        .monthlyPayment(900_000L)
+                        .creditGrade(3)
+                        .build())
+                .deposit(ComparisonRequest.DepositCondition.builder()
+                        .userDepositId(10L)
+                        .isPartialAllowed(true)
+                        .build())
+                .loan(ComparisonRequest.LoanCondition.builder()
+                        .loanProductId(List.of(200L))
+                        .loanType(LoanType.JEONSE)
+                        .totalDiscountRate(BigDecimal.ZERO)
+                        .build())
+                .comparisonCondition(ComparisonRequest.ComparisonCondition.builder()
+                        .urgentAmount(40_000_000L)
+                        .isLumpSum(true)
+                        .build())
+                .build();
+
+        ComparisonResponse response = service.compare(userId, request);
+
+        assertEquals(ComparisonCalculator.Winner.WITHDRAWAL, response.getWinner());
+        assertEquals(597_288L, response.getSavingAmount());
+    }
+
+    private static JeonseLoanProductVO jeonseRate(String baseRate, String spreadRate) {
+        return JeonseLoanProductVO.builder()
+                .productId(200L)
+                .productName("KB 주택전세자금대출")
+                .rateType("신규COFIX6개월")
+                .baseRate(new BigDecimal(baseRate))
+                .spreadRate(new BigDecimal(spreadRate))
+                .maxLoanLimit(444_000_000L)
+                .build();
     }
 
     private static LoanProductRateVO loanRate(int ratePeriodMonths, String baseRate) {

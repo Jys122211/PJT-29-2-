@@ -3,6 +3,7 @@ package org.scoula.profitLoss.mapper;
 import org.apache.ibatis.annotations.Param;
 import org.scoula.profitLoss.domain.UserDepositVO;
 import org.scoula.profitLoss.vo.ComparisonVO;
+import org.scoula.profitLoss.vo.JeonseLoanProductVO;
 import org.scoula.profitLoss.vo.LoanProductRateVO;
 
 import java.math.BigDecimal;
@@ -40,4 +41,7 @@ public interface ProfitLossMapper {
     // 대출 상품별 rate_period(3/6/12)당 base/spread/우대금리 + 등급별 평균 가산금리(등급배율 산출용).
     // credit_loan_products / credit_loan_grade_rate 테이블: XML TODO 참고
     List<LoanProductRateVO> selectLoanProducts(@Param("productIds") List<Long> productIds, @Param("creditGrade") Integer creditGrade);
+
+    // 전세대출 상품별 COFIX 금리옵션(rate_type) 6종. jeonse_rate_option × jeonse_product 조인.
+    List<JeonseLoanProductVO> selectJeonseLoanProducts(@Param("productIds") List<Long> productIds);
 }

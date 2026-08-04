@@ -9,8 +9,8 @@ export default {
     formData.append('file', file);
 
     const { data } = await api.post(`${BASE_URL}/extract`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-      timeout: 30000, // Gemini 호출 5~6초. 전역 기본값으로는 부족
+      // Content-Type은 브라우저가 multipart boundary와 함께 설정합니다.
+      timeout: 45000,
     });
     return data;
   },
