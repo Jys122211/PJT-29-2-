@@ -324,8 +324,14 @@ public class ProfitLossServiceImpl implements ProfitLossService {
                         .urgentAmount(vo.getUrgentAmount())
                         .recommended(resolveRecommendedLabel(vo))
                         .savingAmount(Math.abs(vo.getAFinalBalance() - vo.getBFinalBalance()))
+                        .depositName(vo.getDepositName())          // 추가
+                        .loanTypeLabel(loanTypeLabel(vo))          // 추가
                         .build())
                 .collect(Collectors.toList());
+    }
+    // 추가
+    private static String loanTypeLabel(ComparisonVO vo) {
+        return vo.getLoanType() == LoanType.CREDIT ? "신용대출" : "전세자금대출";
     }
 
     // 대출금리(기간) = base_rate(기간·등급) + spread_rate(기간·등급) − 우대금리(기간, 사용자 적용분)
