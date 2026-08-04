@@ -21,6 +21,7 @@
             ud.principal_amount
         FROM user_deposits ud
         WHERE ud.user_id = #{userId}
+          AND ud.is_deleted = 'N'
         ORDER BY ud.maturity_date ASC, ud.user_deposit_id DESC
     </select>
 
@@ -161,6 +162,29 @@
              ON p.loan_product_id = g.loan_product_id
         WHERE g.credit_grade = #{creditGrade}
           AND g.loan_product_id IN
+        <foreach collection="productIds" item="productId" open="(" separator="," close=")">
+            #{productId}
+        </foreach>
+    </select>
+    <select id="selectComparisonsByUserId" resultType="org.scoula.profitLoss.vo.ComparisonVO">
+        SELECT *
+        FROM comparisons
+        WHERE user_id = #{userId}
+        ORDER BY created_at DESC
+    </select>
+
+    <select id="selectJeonseLoanProducts" resultType="org.scoula.profitLoss.vo.JeonseLoanProductVO">
+        SELECT
+            p.product_id,
+            p.product_name,
+            r.rate_type,
+            r.base_rate,
+            r.spread_rate,
+            p.max_loan_limit
+        FROM jeonse_rate_option r
+        JOIN jeonse_product p
+             ON p.product_id = r.product_id
+        WHERE r.product_id IN
         <foreach collection="productIds" item="productId" open="(" separator="," close=")">
             #{productId}
         </foreach>

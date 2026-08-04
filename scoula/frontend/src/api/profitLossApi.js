@@ -52,6 +52,10 @@ export default {
     console.log('COMPARISON GET: ', data);
     return data;
   },
+  async getComparisons() {
+    const { data } = await api.get(COMPARISONS_URL);
+    return data;
+  },
 
   // 전세대출 메서드 추가
   async getJeonseEligibilityQuestions() {

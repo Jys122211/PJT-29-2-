@@ -238,6 +238,7 @@ function resetAmount() {
 function registerAsset() {
   // 실제 자산 등록 페이지가 만들어지면 변경
   console.log('자산 등록 페이지로 이동');
+  router.replace({ name: 'assetRegister' });
 }
 
 async function compareProfitLoss() {
@@ -267,13 +268,7 @@ async function compareProfitLoss() {
   if (profitLossStore.state.loan.loanType === 'CREDIT') {
     router.push({ name: 'creditEligibility' });
     return;
-  } else if (profitLossStore.state.loan.loanType === 'JEONSE') {
-    router.push({ name: 'jeonseEligibility' });
-    return;
   }
-
-  // 추후 백엔드가 구현되면:
-  // await api.post('/profit-loss/compare', profitLossStore.requestPayload);
 }
 
 // onMounted 함수 정의
