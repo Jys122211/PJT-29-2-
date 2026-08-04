@@ -17,7 +17,7 @@
                DATEDIFF(maturity_date, CURDATE()) AS d_day
         FROM user_deposits
         WHERE user_id = #{userId}
-          AND is_deleted = FALSE
+          AND is_deleted = 'N'
         ORDER BY maturity_date
     </select>
 
@@ -26,7 +26,7 @@
         SELECT COUNT(*)
         FROM user_deposits
         WHERE user_id = #{userId}
-          AND is_deleted = FALSE
+          AND is_deleted = 'N'
     </select>
 
     <!-- 3. 상세 (화면 07-10 진입) -->
@@ -36,7 +36,7 @@
         FROM user_deposits
         WHERE user_deposit_id = #{userDepositId}
           AND user_id = #{userId}
-          AND is_deleted = FALSE
+          AND is_deleted = 'N'
     </select>
 
     <!-- 4. 등록 (화면 07-01, 07-04, 07-07) -->
@@ -69,17 +69,17 @@
             updated_by       = #{updatedBy}
         WHERE user_deposit_id = #{userDepositId}
           AND user_id = #{userId}
-          AND is_deleted = FALSE
+          AND is_deleted = 'N'
     </update>
 
     <!-- 6. 삭제 (화면 07-11). 물리 삭제가 아닌 soft delete -->
     <update id="softDelete">
         UPDATE user_deposits
-        SET is_deleted = TRUE,
+        SET is_deleted = 'Y',
             updated_by = #{userId}
         WHERE user_deposit_id = #{userDepositId}
           AND user_id = #{userId}
-          AND is_deleted = FALSE
+          AND is_deleted = 'N'
     </update>
 
 </mapper>

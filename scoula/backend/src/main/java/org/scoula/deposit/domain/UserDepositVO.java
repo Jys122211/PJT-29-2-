@@ -38,7 +38,7 @@ public class UserDepositVO {
 
     private Long principalAmount;
 
-    /** BOOLEAN(TINYINT(1)) 컬럼. MyBatis가 0/1 <-> Boolean 자동 변환 */
+    /** char(1) 'Y'/'N' 컬럼 */
     private String isDeleted;
 
     private Date createdAt;
