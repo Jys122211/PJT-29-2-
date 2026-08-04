@@ -57,9 +57,7 @@ const displayedError = computed(() => loginError.value || routeError.value);
 const emailLocalPattern = /^[^\s@]+$/;
 
 // 분리된 이메일 아이디와 도메인을 실제 로그인 이메일 주소로 합친다.
-const email = computed(
-  () => `${form.emailLocal.trim()}@${form.emailDomain}`,
-);
+const email = computed(() => `${form.emailLocal.trim()}@${form.emailDomain}`);
 
 // 필수값이 비어 있으면 버튼을 비활성 색상으로 보여주기 위한 값이다.
 const isFormIncomplete = computed(() => {
@@ -115,8 +113,7 @@ const login = async () => {
     });
 
     showLoginSuccess.value = true;
-    await wait(1000);
-    await router.replace('/dashboard');
+    await router.replace({ name: 'home' });
   } catch (error) {
     if (error.response?.status === 401) {
       // 이메일 또는 비밀번호가 틀린 경우 피그마 형태의 오류 모달을 표시한다.
@@ -234,7 +231,8 @@ const login = async () => {
           role="status"
           aria-live="polite"
         >
-          로그인 성공 <span aria-hidden="true">·</span> 홈 대시보드로 이동합니다.
+          로그인 성공 <span aria-hidden="true">·</span> 홈 대시보드로
+          이동합니다.
         </div>
       </Transition>
     </section>
@@ -477,7 +475,9 @@ const login = async () => {
 
 .success-toast-enter-active,
 .success-toast-leave-active {
-  transition: opacity 0.18s ease, transform 0.18s ease;
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease;
 }
 
 .success-toast-enter-from,

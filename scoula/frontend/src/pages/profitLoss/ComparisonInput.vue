@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router';
 import profitLossApi from '@/api/profitLossApi';
 import { useProfitLossStore } from '@/stores/profitLoss';
 import api from '@/api';
+import BottomNav from '@/components/mobile/BottomNav.vue';
 
 const router = useRouter();
 const profitLossStore = useProfitLossStore();
@@ -503,43 +504,7 @@ onMounted(() => {
       </button>
     </section>
 
-    <nav class="bottom-nav">
-      <router-link
-        :to="{ name: 'home' }"
-        class="nav-item"
-        exact-active-class="active"
-      >
-        <span class="nav-dot"></span>
-        <span>홈</span>
-      </router-link>
-
-      <router-link
-        :to="{ name: 'comparisonInput' }"
-        class="nav-item"
-        active-class="active"
-      >
-        <span class="nav-dot"></span>
-        <span>계산기</span>
-      </router-link>
-
-      <router-link
-        :to="{ name: 'assetRegister' }"
-        class="nav-item"
-        active-class="active"
-      >
-        <span class="nav-dot"></span>
-        <span>자산</span>
-      </router-link>
-
-      <router-link
-        :to="{ name: 'profile' }"
-        class="nav-item"
-        active-class="active"
-      >
-        <span class="nav-dot"></span>
-        <span>내정보</span>
-      </router-link>
-    </nav>
+    <BottomNav active="calculator" />
   </main>
 </template>
 
@@ -900,43 +865,4 @@ button {
   background: #ddd5c3;
 }
 
-.bottom-nav {
-  position: fixed;
-  bottom: 0;
-  left: 50%;
-  display: flex;
-  width: 100%;
-  max-width: 390px;
-  padding: 10px 0 16px;
-  border-top: 1px solid #efe9dd;
-  background: #fff;
-  transform: translateX(-50%);
-  justify-content: space-around;
-}
-
-.nav-item {
-  display: flex;
-  align-items: center;
-  flex-direction: column;
-  gap: 4px;
-  font-size: 11px;
-  color: #a49a86;
-  text-decoration: none;
-}
-
-.nav-item.active {
-  font-weight: 700;
-  color: #26221c;
-}
-
-.nav-dot {
-  width: 20px;
-  height: 20px;
-  border-radius: 6px;
-  background: #efe9dd;
-}
-
-.nav-item.active .nav-dot {
-  background: var(--kb-yellow);
-}
 </style>
