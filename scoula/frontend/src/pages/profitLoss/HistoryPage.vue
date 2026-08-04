@@ -29,7 +29,7 @@ function toDotDate(isoString) {
 }
 
 function goDetail(item) {
-  router.push({ name: 'comparisonHistory', params: { comparisonId: item.comparisonId } });
+  router.push({ name: 'comparisons/result', params: { comparisonId: item.comparisonId } });
 }
 
 onMounted(load);
