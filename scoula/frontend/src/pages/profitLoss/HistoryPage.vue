@@ -64,13 +64,22 @@ onMounted(load);
     <ul v-else class="history-list">
       <li v-for="item in comparisons" :key="item.comparisonId">
         <button type="button" class="history-card" @click="goDetail(item)">
-          <div class="date">{{ toDotDate(item.createdAt) }}</div>
+          <div class="date-row">
+            <span class="date">{{ toDotDate(item.createdAt) }}</span>
+            <span class="meta">
+      <i class="fa-solid fa-right-left"></i>
+      {{ item.depositName }} · {{ item.loanTypeLabel }} 비교
+    </span>
+          </div>
           <div class="row-amount">
             <strong class="amount">{{ formatNumber(item.urgentAmount) }}원 필요</strong>
             <i class="fa-solid fa-chevron-right chev"></i>
           </div>
           <div class="row-result">
-            <span class="rec-badge">{{ item.recommended }} 추천</span>
+    <span class="rec-badge">
+      <i class="fa-solid fa-check"></i>
+      {{ item.recommended }} 추천
+    </span>
             <span class="saving">{{ formatNumber(item.savingAmount) }}원 이득</span>
           </div>
         </button>
@@ -81,19 +90,36 @@ onMounted(load);
 </template>
 
 <style scoped>
-.register-toast {
-  position: fixed;
-  bottom: 100px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #26221c;
-  color: #fff;
-  padding: 10px 18px;
-  border-radius: 999px;
-  font-size: 12px;
-  z-index: 20;
-  white-space: nowrap;
+.date-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
+.rec-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--kb-text);
+  background: var(--kb-yellow);
+}
+
+.meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border: 1px solid var(--kb-line);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--kb-text);
+  background: #fff;
+}
+
 .page {
   --kb-yellow: #ffbc00;
   --kb-border: #e9e0d2;
@@ -230,14 +256,7 @@ onMounted(load);
   margin-top: 12px;
 }
 
-.rec-badge {
-  padding: 6px 12px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 700;
-  color: #7a6218;
-  background: var(--kb-soft);
-}
+
 
 .saving {
   font-size: 13px;
