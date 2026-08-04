@@ -658,6 +658,11 @@ button {
   border-radius: 9px;
   color: #615b54;
   background: #fff;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.amount-actions button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .empty-deposit {
@@ -689,12 +694,19 @@ button {
   border: 0;
   border-radius: 22px;
   background: var(--kb-yellow);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.empty-deposit button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(255, 188, 0, 0.3);
 }
 
 .deposit-list {
   display: grid;
   gap: 9px;
   max-height: 175px;
+  padding-top: 4px;
+  padding-bottom: 4px;
   padding-right: 4px;
   overflow-y: auto;
   overscroll-behavior-y: contain;
@@ -727,6 +739,11 @@ button {
   justify-content: space-between;
   text-align: left;
   background: #fff;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.deposit-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
 }
 
 .deposit-card.selected {
@@ -848,6 +865,11 @@ button {
   border: 1px solid var(--kb-border);
   border-radius: 22px;
   background: #fff;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.loan-options button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .loan-options button.selected {
@@ -866,6 +888,11 @@ button {
   font-weight: 700;
   color: #292725;
   background: var(--kb-yellow);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.compare-button:not(:disabled):hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(255, 188, 0, 0.35);
 }
 
 .compare-button:disabled {

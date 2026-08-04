@@ -229,6 +229,11 @@ const formatDate = (isoDate) => isoDate.replaceAll('-', '.');
   font-size: 13px;
   color: #26221c;
   cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.empty-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(255, 188, 0, 0.25);
 }
 
 .register-toast {
@@ -315,6 +320,11 @@ const formatDate = (isoDate) => isoDate.replaceAll('-', '.');
   justify-content: center;
   font-weight: 700;
   font-size: 14px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.avatar:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(138, 100, 0, 0.2);
 }
 
 .asset-card {
@@ -349,10 +359,17 @@ const formatDate = (isoDate) => isoDate.replaceAll('-', '.');
   text-align: left;
   text-decoration: none;
   color: inherit;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.cta:hover {
+  transform: translateY(-3px);
 }
 .cta-primary {
   background: #ffbc00;
   box-shadow: 0 6px 16px rgba(255, 188, 0, 0.3);
+}
+.cta-primary:hover {
+  box-shadow: 0 10px 24px rgba(255, 188, 0, 0.4);
 }
 .cta-icon {
   flex-shrink: 0;
@@ -377,6 +394,9 @@ const formatDate = (isoDate) => isoDate.replaceAll('-', '.');
   background: #fff;
   border: 1px solid #ffbc00;
   justify-content: space-between;
+}
+.cta-secondary:hover {
+  box-shadow: 0 8px 20px rgba(255, 188, 0, 0.2);
 }
 .cta-text-solo { font-weight: 700; font-size: 14px; color: #4a4237; }
 
@@ -423,6 +443,11 @@ const formatDate = (isoDate) => isoDate.replaceAll('-', '.');
   background: #fff;
   border: 1px solid #efe9dd;
   border-radius: 16px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.deposit-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
 }
 .deposit-bank { font-size: 12px; color: #8c8371; }
 .deposit-product { margin-top: 4px; font-weight: 700; font-size: 14px; color: #26221c; }

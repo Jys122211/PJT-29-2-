@@ -337,6 +337,11 @@ button {
   flex-shrink: 0;
   color: #746d65;
   background: #fff;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.answer-options button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
 }
 .answer-options button.selected {
   border-color: var(--kb-yellow);
@@ -362,6 +367,11 @@ button {
   font-weight: 700;
   color: #292725;
   background: var(--kb-yellow);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.next-button:not(:disabled):hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(255, 188, 0, 0.35);
 }
 .next-button:disabled {
   color: #8c857a;
