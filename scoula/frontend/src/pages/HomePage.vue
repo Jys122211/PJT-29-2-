@@ -138,7 +138,7 @@ const formatDate = (isoDate) => isoDate.replaceAll('-', '.');
     <button class="cta cta-primary" @click="goToComparisonInput">
       <span class="cta-icon">₩</span>
       <span class="cta-text">
-        <span class="cta-title">목돈이 필요하신가요?</span>
+        <span class="cta-title">갑작스럽게 돈이 필요하신가요?</span>
         <span class="cta-subtitle">해지 vs 대출, 득실 계산기로 비교하기</span>
       </span>
       <span class="cta-arrow">›</span>
@@ -394,7 +394,9 @@ const formatDate = (isoDate) => isoDate.replaceAll('-', '.');
   font-size: 13px;
   color: #26221c;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 .empty-cta:hover {
   transform: translateY(-2px);
@@ -485,7 +487,9 @@ const formatDate = (isoDate) => isoDate.replaceAll('-', '.');
   justify-content: center;
   font-weight: 700;
   font-size: 14px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 .avatar:hover {
   transform: translateY(-2px);
@@ -538,7 +542,9 @@ const formatDate = (isoDate) => isoDate.replaceAll('-', '.');
   text-align: left;
   text-decoration: none;
   color: inherit;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 .cta:hover {
   transform: translateY(-3px);
@@ -594,7 +600,11 @@ const formatDate = (isoDate) => isoDate.replaceAll('-', '.');
 .cta-secondary:hover {
   box-shadow: 0 8px 20px rgba(255, 188, 0, 0.2);
 }
-.cta-text-solo { font-weight: 700; font-size: var(--kb-font-md); color: #4a4237; }
+.cta-text-solo {
+  font-weight: 700;
+  font-size: var(--kb-font-md);
+  color: #4a4237;
+}
 
 .section-header {
   display: flex;
@@ -645,14 +655,39 @@ const formatDate = (isoDate) => isoDate.replaceAll('-', '.');
   justify-content: space-between;
   padding: 17px 19px;
 }
-.deposit-bank { font-size: 12px; color: #8c8371; }
-.deposit-product { margin-top: 4px; font-weight: 700; font-size: 14px; color: #26221c; }
-.deposit-detail { margin-top: 4px; font-size: 12px; color: #a49a86; }
-.deposit-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
-.d-day-badge { padding: 5px 10px; background: #fff3cf; border-radius: 999px; font-weight: 700; font-size: 11px; color: #8a6400; }
-.deposit-maturity { font-size: 11px; color: #b3aa99; }
-
-
+.deposit-bank {
+  font-size: 12px;
+  color: #8c8371;
+}
+.deposit-product {
+  margin-top: 4px;
+  font-weight: 700;
+  font-size: 14px;
+  color: #26221c;
+}
+.deposit-detail {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #a49a86;
+}
+.deposit-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+.d-day-badge {
+  padding: 5px 10px;
+  background: #fff3cf;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 11px;
+  color: #8a6400;
+}
+.deposit-maturity {
+  font-size: 11px;
+  color: #b3aa99;
+}
 
 .menu-overlay {
   position: fixed;
