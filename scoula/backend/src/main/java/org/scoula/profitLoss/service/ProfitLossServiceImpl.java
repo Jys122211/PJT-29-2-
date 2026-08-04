@@ -363,7 +363,8 @@ public class ProfitLossServiceImpl implements ProfitLossService {
         long netProfit = vo.getDepositMaintainInterest() - cost;
         long withdrawalProfit = vo.getAFinalBalance() - depositPrincipal;
         long savingAmount = Math.abs(vo.getAFinalBalance() - vo.getBFinalBalance());
-        boolean isBelowMinimumWage = savingAmount < MinimumWageConstants.DAILY_MINIMUM_WAGE;
+        boolean isBelowMinimumWage = vo.getWinner() == ComparisonCalculator.Winner.LOAN
+                && savingAmount < MinimumWageConstants.DAILY_MINIMUM_WAGE;
 
         ComparisonResponse.Warning warning = ComparisonResponse.Warning.builder()
                 .isBelowMinimumWage(isBelowMinimumWage)
