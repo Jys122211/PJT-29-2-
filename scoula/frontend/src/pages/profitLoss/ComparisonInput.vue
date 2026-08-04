@@ -27,9 +27,22 @@ const monthlyAmountError = ref('');
 const MAX_REQUIRED_AMOUNT = 100_000_000_000_000;
 const MAX_MONTHLY_AVAILABLE_AMOUNT = 100_000_000_000;
 
-const amountModel = computed(() =>
-  requiredAmount.value.toLocaleString('ko-KR'),
-);
+// 입력 중에는 앞자리 숫자를 지운 뒤 남는 0들을 보존한다.
+// 예: 200,000,000에서 2를 지우면 00,000,000을 유지하고,
+// 포커스를 벗어날 때 실제 숫자값인 0으로 정리한다.
+const requiredAmountDraft = ref(null);
+
+function formatDigitString(digits) {
+  return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+const amountModel = computed(() => {
+  if (requiredAmountDraft.value !== null) {
+    return formatDigitString(requiredAmountDraft.value);
+  }
+
+  return requiredAmount.value.toLocaleString('ko-KR');
+});
 
 function applyFormattedValue(input, formattedValue, digitsBeforeCursor) {
   input.value = formattedValue;
@@ -61,6 +74,7 @@ function handleRequiredAmountInput(event) {
   const numbers = String(input.value).replace(/[^0-9]/g, '');
 
   if (numbers === '') {
+    requiredAmountDraft.value = '';
     requiredAmount.value = 0;
     requiredAmountError.value = '';
     input.value = '';
@@ -69,7 +83,10 @@ function handleRequiredAmountInput(event) {
 
   const inputAmount = Number(numbers);
   const limitedAmount = Math.min(inputAmount, MAX_REQUIRED_AMOUNT);
+  const limitedDigits =
+    inputAmount > MAX_REQUIRED_AMOUNT ? String(limitedAmount) : numbers;
 
+  requiredAmountDraft.value = limitedDigits;
   requiredAmount.value = limitedAmount;
   requiredAmountError.value =
     inputAmount > MAX_REQUIRED_AMOUNT
@@ -77,9 +94,21 @@ function handleRequiredAmountInput(event) {
       : '';
   applyFormattedValue(
     input,
-    limitedAmount.toLocaleString('ko-KR'),
+    formatDigitString(limitedDigits),
     digitsBeforeCursor,
   );
+}
+
+function handleRequiredAmountFocus(event) {
+  requiredAmountDraft.value = String(event.target.value).replace(
+    /[^0-9]/g,
+    '',
+  );
+}
+
+function handleRequiredAmountBlur(event) {
+  requiredAmountDraft.value = null;
+  event.target.value = requiredAmount.value.toLocaleString('ko-KR');
 }
 
 function handleCreditScoreInput(event) {
@@ -327,7 +356,9 @@ onMounted(() => {
           <input
             id="requiredAmount"
             :value="amountModel"
+            @focus="handleRequiredAmountFocus"
             @input="handleRequiredAmountInput"
+            @blur="handleRequiredAmountBlur"
             inputmode="numeric"
             aria-label="필요한 금액"
           />
