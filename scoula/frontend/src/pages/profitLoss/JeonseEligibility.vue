@@ -321,9 +321,10 @@ button {
   gap: 8px;
 }
 .answer-options button {
-  width: 64px;
-  min-width: 64px;
-  height: 34px;
+  width: clamp(56px, 15vw, 64px);
+  min-width: clamp(56px, 15vw, 64px);
+  height: clamp(30px, 9vw, 36px);
+  font-size: var(--kb-font-sm);
   padding: 0;
   border: 1px solid var(--kb-border);
   border-radius: 8px;
@@ -351,8 +352,8 @@ button {
 }
 .next-button {
   width: 100%;
-  height: 54px;
-  min-height: 54px;
+  height: var(--kb-btn-height);
+  min-height: var(--kb-btn-height);
   margin-top: auto;
   flex-shrink: 0;
 }
@@ -368,7 +369,7 @@ button {
 .eligibility-modal {
   width: 100%;
   max-width: 320px;
-  padding: 24px 20px 18px;
+  padding: var(--kb-space-lg);
   border-radius: 16px;
   color: #292725;
   background: #fff;
@@ -377,17 +378,17 @@ button {
 }
 .eligibility-modal h2 {
   margin: 0;
-  font-size: 17px;
+  font-size: var(--kb-font-lg);
   font-weight: 700;
 }
 .eligibility-modal p {
   margin: 10px 0 20px;
-  font-size: 13px;
+  font-size: var(--kb-font-md);
   line-height: 1.6;
   color: #716a62;
 }
 .eligibility-modal button {
   width: 100%;
-  height: 44px;
+  height: clamp(40px, 11vw, 44px);
 }
 </style>

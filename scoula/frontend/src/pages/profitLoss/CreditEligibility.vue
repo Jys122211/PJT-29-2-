@@ -262,7 +262,7 @@ button {
 
 .page-header h1 {
   margin: 0;
-  font-size: 17px;
+  font-size: var(--kb-font-lg);
   font-weight: 700;
   line-height: 1.35;
 }
@@ -279,7 +279,7 @@ button {
 
 .question-section h2 {
   margin: 0 0 11px;
-  font-size: 12px;
+  font-size: var(--kb-font-sm);
   font-weight: 700;
   color: #716a62;
 }
@@ -287,13 +287,13 @@ button {
 .question-card {
   min-height: 102px;
   margin-bottom: 14px;
-  padding: 17px 16px 15px;
+  padding: var(--kb-space-md);
 }
 
 .question-card h3 {
   min-height: 34px;
   margin: 0 0 12px;
-  font-size: 12px;
+  font-size: var(--kb-font-sm);
   font-weight: 700;
   line-height: 1.5;
 }
@@ -304,9 +304,10 @@ button {
 }
 
 .answer-options button {
-  width: 64px;
-  min-width: 64px;
-  height: 34px;
+  width: clamp(56px, 15vw, 64px);
+  min-width: clamp(56px, 15vw, 64px);
+  height: clamp(30px, 9vw, 36px);
+  font-size: var(--kb-font-sm);
   padding: 0;
   border: 1px solid var(--kb-border);
   border-radius: 8px;
@@ -351,8 +352,8 @@ button {
 
 .next-button {
   width: 100%;
-  height: 54px;
-  min-height: 54px;
+  height: var(--kb-btn-height);
+  min-height: var(--kb-btn-height);
   margin-top: auto;
   flex-shrink: 0;
 }

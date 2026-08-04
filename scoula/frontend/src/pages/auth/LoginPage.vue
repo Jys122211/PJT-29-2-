@@ -253,7 +253,7 @@ const login = async () => {
   width: 100%;
   max-width: 390px;
   min-height: 620px;
-  padding: 64px 28px 36px;
+  padding: 64px var(--kb-space-xl) 36px;
   background: #fffdfa;
   border: 1px solid #eee9df;
   border-radius: 28px;
@@ -280,7 +280,7 @@ const login = async () => {
 .brand-title {
   margin: 0;
   color: #222;
-  font-size: 27px;
+  font-size: var(--kb-font-xl);
   font-weight: 900;
   line-height: 1;
 }
@@ -295,7 +295,7 @@ const login = async () => {
   margin: 48px 0 24px;
   color: #918a80;
   text-align: center;
-  font-size: 13px;
+  font-size: var(--kb-font-md);
   line-height: 1.7;
 }
 
@@ -360,22 +360,22 @@ const login = async () => {
 .field {
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: var(--kb-space-xs);
   color: #2f2c28;
-  font-size: 12px;
+  font-size: var(--kb-font-sm);
   font-weight: 700;
 }
 
 .field input,
 .field select {
   width: 100%;
-  height: 46px;
-  padding: 0 14px;
+  height: var(--kb-input-height);
+  padding: 0 var(--kb-space-md);
   border: 1px solid #e4ded3;
   border-radius: 10px;
   background: #fff;
   color: #222;
-  font-size: 14px;
+  font-size: var(--kb-font-md);
   outline: none;
 }
 
@@ -417,13 +417,13 @@ const login = async () => {
 
 .login-button {
   width: 100%;
-  height: 48px;
+  height: var(--kb-btn-height);
   margin-top: 12px;
   border: 0;
   border-radius: 10px;
   background: #ffbd00;
   color: #1f1f1f;
-  font-size: 15px;
+  font-size: var(--kb-font-lg);
   font-weight: 800;
 }
 

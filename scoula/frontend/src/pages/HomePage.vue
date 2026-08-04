@@ -528,10 +528,10 @@ const formatDate = (isoDate) => isoDate.replaceAll('-', '.');
   box-sizing: border-box;
   display: flex;
   align-items: center;
-  width: calc(100% - 40px);
-  height: 76px;
-  margin: 14px auto 0;
-  padding: 0 20px;
+  width: calc(100% - var(--kb-space-xl));
+  height: clamp(66px, 18vw, 76px);
+  margin: var(--kb-space-md) auto 0;
+  padding: 0 var(--kb-space-lg);
   border-radius: 18px;
   border: none;
   cursor: pointer;
@@ -572,11 +572,11 @@ const formatDate = (isoDate) => isoDate.replaceAll('-', '.');
 }
 .cta-title {
   font-weight: 700;
-  font-size: 15px;
+  font-size: var(--kb-font-md);
   color: #4a4237;
 }
 .cta-subtitle {
-  font-size: 12px;
+  font-size: var(--kb-font-sm);
   color: #7a6a45;
 }
 .cta-arrow {
@@ -586,7 +586,7 @@ const formatDate = (isoDate) => isoDate.replaceAll('-', '.');
 }
 
 .cta-secondary {
-  height: 56px;
+  height: var(--kb-btn-height);
   background: #fff;
   border: 1px solid #ffbc00;
   justify-content: space-between;
@@ -594,7 +594,7 @@ const formatDate = (isoDate) => isoDate.replaceAll('-', '.');
 .cta-secondary:hover {
   box-shadow: 0 8px 20px rgba(255, 188, 0, 0.2);
 }
-.cta-text-solo { font-weight: 700; font-size: 14px; color: #4a4237; }
+.cta-text-solo { font-weight: 700; font-size: var(--kb-font-md); color: #4a4237; }
 
 .section-header {
   display: flex;

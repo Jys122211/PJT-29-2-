@@ -514,13 +514,13 @@ onMounted(load);
 }
 
 .sec-label {
-  margin: 0 2px 10px;
-  font-size: 14px;
+  margin: 0 2px var(--kb-space-sm);
+  font-size: var(--kb-font-md);
   font-weight: 700;
 }
 
 .form-card {
-  padding: clamp(16px, 6vw, 28px) clamp(16px, 5vw, 24px);
+  padding: var(--kb-space-lg) var(--kb-space-md);
   border: 1px solid var(--kb-border);
   border-radius: 14px;
   background: #fff;
@@ -528,8 +528,8 @@ onMounted(load);
 
 .row {
   display: flex;
-  gap: clamp(8px, 2.5vw, 14px);
-  margin-bottom: clamp(10px, 3vw, 16px);
+  gap: var(--kb-space-sm);
+  margin-bottom: var(--kb-space-sm);
 }
 
 .row > * {
@@ -540,12 +540,12 @@ onMounted(load);
 
 .fld {
   width: 100%;
-  height: 48px;
-  padding: 0 clamp(10px, 3.5vw, 16px);
+  height: var(--kb-input-height);
+  padding: 0 var(--kb-space-md);
   border: 1px solid #e1dbce;
   border-radius: 8px;
   font: inherit;
-  font-size: clamp(13px, 3.5vw, 14px);
+  font-size: var(--kb-font-md);
   color: var(--kb-text);
   background: #faf9f7;
   box-sizing: border-box;

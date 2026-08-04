@@ -225,7 +225,7 @@ const join = async () => {
   width: 100%;
   max-width: 390px;
   min-height: 620px;
-  padding: 42px 28px 28px;
+  padding: 42px var(--kb-space-xl) 28px;
   background: #fffdfa;
   border: 1px solid #eee9df;
   border-radius: 28px;
@@ -251,14 +251,14 @@ const join = async () => {
 .brand-title {
   margin: 0;
   color: #222;
-  font-size: 20px;
+  font-size: var(--kb-font-xl);
   font-weight: 800;
 }
 
 .brand-subtitle {
   margin: 4px 0 0;
   color: #9a948a;
-  font-size: 12px;
+  font-size: var(--kb-font-sm);
 }
 
 .progress-bar {
@@ -285,22 +285,22 @@ const join = async () => {
 .field {
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: var(--kb-space-xs);
   color: #2f2c28;
-  font-size: 12px;
+  font-size: var(--kb-font-sm);
   font-weight: 700;
 }
 
 .field input,
 .field select {
   width: 100%;
-  height: 46px;
-  padding: 0 14px;
+  height: var(--kb-input-height);
+  padding: 0 var(--kb-space-md);
   border: 1px solid #e4ded3;
   border-radius: 10px;
   background: #fff;
   color: #222;
-  font-size: 14px;
+  font-size: var(--kb-font-md);
   outline: none;
 }
 
@@ -347,13 +347,13 @@ const join = async () => {
 
 .submit-button {
   width: 100%;
-  height: 48px;
+  height: var(--kb-btn-height);
   margin-top: 26px;
   border: 0;
   border-radius: 10px;
   background: #ffbd00;
   color: #1f1f1f;
-  font-size: 15px;
+  font-size: var(--kb-font-lg);
   font-weight: 800;
 }
 

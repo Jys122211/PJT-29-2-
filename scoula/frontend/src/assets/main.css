@@ -43,6 +43,24 @@ html body {
   --kb-shadow-sm: 0 4px 10px rgba(0, 0, 0, 0.08);
   --kb-shadow-md: 0 6px 16px rgba(0, 0, 0, 0.06);
   --kb-shadow-hover: 0 8px 20px rgba(255, 188, 0, 0.35);
+
+  /* Adaptive Spacings */
+  --kb-space-xs: clamp(4px, 1.5vw, 8px);
+  --kb-space-sm: clamp(8px, 2.5vw, 12px);
+  --kb-space-md: clamp(12px, 4vw, 16px);
+  --kb-space-lg: clamp(16px, 5vw, 24px);
+  --kb-space-xl: clamp(24px, 7vw, 32px);
+
+  /* Adaptive Fonts */
+  --kb-font-xs: clamp(10px, 3vw, 11px);
+  --kb-font-sm: clamp(11px, 3.5vw, 13px);
+  --kb-font-md: clamp(13px, 4vw, 15px);
+  --kb-font-lg: clamp(16px, 5vw, 18px);
+  --kb-font-xl: clamp(20px, 6vw, 24px);
+
+  /* Adaptive Heights */
+  --kb-btn-height: clamp(44px, 12vw, 54px);
+  --kb-input-height: clamp(40px, 11vw, 48px);
 }
 
 button {
