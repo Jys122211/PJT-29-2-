@@ -214,7 +214,7 @@ async function continueToNextStep() {
         >
           <h3>{{ item.title }}</h3>
 
-          <div class="question-card">
+          <div class="kb-card question-card">
             <p>{{ item.text }}</p>
 
             <div class="answer-options">
@@ -361,23 +361,13 @@ button {
 .preferential-section {
   min-height: 0;
   margin-bottom: 16px;
-  padding-right: 5px;
   overflow-y: auto;
   flex: 1;
   overscroll-behavior-y: contain;
-  scrollbar-color: #c8bfae transparent;
-  scrollbar-gutter: stable;
-  scrollbar-width: thin;
+  scrollbar-width: none;
 }
 .preferential-section::-webkit-scrollbar {
-  width: 5px;
-}
-.preferential-section::-webkit-scrollbar-track {
-  background: transparent;
-}
-.preferential-section::-webkit-scrollbar-thumb {
-  border-radius: 999px;
-  background: #c8bfae;
+  display: none;
 }
 .preferential-section > h2 {
   margin: 0 0 10px;
@@ -403,6 +393,7 @@ button {
   display: flex;
   gap: 8px;
   flex-direction: column;
+  padding: 2px;
 }
 .card-usage-option {
   display: flex;
@@ -422,7 +413,7 @@ button {
   border-color: var(--kb-yellow);
   font-weight: 700;
   background: #fff8df;
-  box-shadow: 0 0 0 1px var(--kb-yellow);
+  box-shadow: inset 0 0 0 1px var(--kb-yellow);
 }
 .radio-icon {
   width: 18px;
@@ -437,7 +428,7 @@ button {
 }
 .question-card {
   min-height: 102px;
-  padding: 17px 14px 14px;
+  padding: var(--kb-space-md);
   border: 1px solid var(--kb-border);
   border-radius: 14px;
   background: #fff;
@@ -445,7 +436,7 @@ button {
 .question-card p {
   min-height: 38px;
   margin: 0 0 12px;
-  font-size: 11px;
+  font-size: var(--kb-font-sm);
   font-weight: 600;
   line-height: 1.55;
 }
@@ -454,15 +445,21 @@ button {
   gap: 8px;
 }
 .answer-options button {
-  width: 64px;
-  min-width: 64px;
-  height: 34px;
+  width: clamp(56px, 15vw, 64px);
+  min-width: clamp(56px, 15vw, 64px);
+  height: clamp(30px, 9vw, 36px);
   padding: 0;
   border: 1px solid var(--kb-border);
   border-radius: 8px;
   flex-shrink: 0;
   color: #746d65;
   background: #fff;
+  font-size: var(--kb-font-sm);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.answer-options button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
 }
 .answer-options button.selected {
   border-color: var(--kb-yellow);
@@ -479,8 +476,8 @@ button {
 }
 .next-button {
   width: 100%;
-  height: 54px;
-  min-height: 54px;
+  height: var(--kb-btn-height);
+  min-height: var(--kb-btn-height);
   margin-top: 0;
   border: 0;
   border-radius: 13px;

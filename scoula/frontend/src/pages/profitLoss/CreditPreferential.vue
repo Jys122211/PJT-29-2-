@@ -192,7 +192,7 @@ async function continueToNextStep() {
         >
           <h3>{{ group.title }}</h3>
 
-          <div class="question-card">
+          <div class="kb-card question-card">
             <p>{{ group.text }}</p>
 
             <div class="answer-options">
@@ -339,26 +339,14 @@ button {
 .preferential-section {
   min-height: 0;
   margin-bottom: 16px;
-  padding-right: 5px;
   overflow-y: auto;
   flex: 1;
   overscroll-behavior-y: contain;
-  scrollbar-color: #c8bfae transparent;
-  scrollbar-gutter: stable;
-  scrollbar-width: thin;
+  scrollbar-width: none;
 }
 
 .preferential-section::-webkit-scrollbar {
-  width: 5px;
-}
-
-.preferential-section::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.preferential-section::-webkit-scrollbar-thumb {
-  border-radius: 999px;
-  background: #c8bfae;
+  display: none;
 }
 
 .preferential-section > h2 {
@@ -387,10 +375,10 @@ button {
 }
 
 .card-usage-options {
-  overflow: hidden;
   border: 1px solid var(--kb-border);
   border-radius: 14px;
   background: #fff;
+  padding: 2px;
 }
 
 .card-usage-option {
@@ -413,8 +401,15 @@ button {
   background: #fffdf6;
 }
 
+.card-usage-option:first-child {
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+}
+
 .card-usage-option:last-child {
   border-bottom: 0;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
 }
 
 .radio-icon {
@@ -436,7 +431,7 @@ button {
 
 .question-card {
   min-height: 102px;
-  padding: 17px 14px 14px;
+  padding: var(--kb-space-md);
   border: 1px solid var(--kb-border);
   border-radius: 14px;
   background: #fff;
@@ -445,7 +440,7 @@ button {
 .question-card p {
   min-height: 38px;
   margin: 0 0 12px;
-  font-size: 11px;
+  font-size: var(--kb-font-sm);
   font-weight: 600;
   line-height: 1.55;
 }
@@ -456,9 +451,10 @@ button {
 }
 
 .answer-options button {
-  width: 64px;
-  min-width: 64px;
-  height: 34px;
+  width: clamp(56px, 15vw, 64px);
+  min-width: clamp(56px, 15vw, 64px);
+  height: clamp(30px, 9vw, 36px);
+  font-size: var(--kb-font-sm);
   padding: 0;
   border: 1px solid var(--kb-border);
   border-radius: 8px;
@@ -490,8 +486,8 @@ button {
 
 .next-button {
   width: 100%;
-  height: 54px;
-  min-height: 54px;
+  height: var(--kb-btn-height);
+  min-height: var(--kb-btn-height);
   margin-top: 0;
   border: 0;
   border-radius: 13px;
