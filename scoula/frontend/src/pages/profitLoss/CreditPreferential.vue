@@ -42,13 +42,18 @@ const preferentialGroups = computed(
   () => profitLossStore.state.creditPreferential.groups,
 );
 
-const cardUsageGroup = computed(() =>
-  preferentialGroups.value.find((group) => group.type === 'SINGLE_SELECT'),
-);
-
-const yesNoGroups = computed(() =>
-  preferentialGroups.value.filter((group) => group.type === 'YES_NO'),
-);
+const visiblePreferentialGroups = computed(() => {
+  const all = preferentialGroups.value;
+  const visible = [];
+  for (let i = 0; i < all.length; i++) {
+    visible.push(all[i]);
+    const ans = selectedAnswer(all[i].id);
+    if (ans === undefined || ans === null) {
+      break;
+    }
+  }
+  return visible;
+});
 
 const isComplete = computed(() => profitLossStore.isCreditPreferentialComplete);
 
@@ -155,70 +160,75 @@ async function continueToNextStep() {
       </header>
 
       <section class="preferential-section">
-        <h2>대출 우대금리</h2>
+        <div class="group-container">
+          <h2>대출 우대금리</h2>
 
-        <template v-if="cardUsageGroup">
-          <article class="preferential-group">
-            <h3>{{ cardUsageGroup.title }}</h3>
-            <p class="group-description">
-              {{ cardUsageGroup.description }}
-            </p>
+          <TransitionGroup name="question-fade" tag="div">
+            <template v-for="group in visiblePreferentialGroups" :key="group.id">
+              
+              <article v-if="group.type === 'SINGLE_SELECT'" class="preferential-group">
+                <h3>{{ group.title }}</h3>
+                <p class="group-description">
+                  {{ group.description }}
+                </p>
 
-            <div class="card-usage-options">
-              <button
-                v-for="option in cardUsageGroup.options"
-                :key="option.value"
-                type="button"
-                class="card-usage-option"
-                :class="{
-                  selected: selectedAnswer(cardUsageGroup.id) === option.value,
-                }"
-                :aria-pressed="
-                  selectedAnswer(cardUsageGroup.id) === option.value
-                "
-                @click="answerGroup(cardUsageGroup.id, option.value)"
+                <div class="card-usage-options">
+                  <button
+                    v-for="option in group.options"
+                    :key="option.value"
+                    type="button"
+                    class="card-usage-option"
+                    :class="{
+                      selected: selectedAnswer(group.id) === option.value,
+                    }"
+                    :aria-pressed="
+                      selectedAnswer(group.id) === option.value
+                    "
+                    @click="answerGroup(group.id, option.value)"
+                  >
+                    <span class="radio-icon" aria-hidden="true"></span>
+                    <span>{{ option.text }}</span>
+                  </button>
+                </div>
+              </article>
+
+              <article
+                v-else-if="group.type === 'YES_NO'"
+                class="preferential-group yes-no-group"
               >
-                <span class="radio-icon" aria-hidden="true"></span>
-                <span>{{ option.text }}</span>
-              </button>
-            </div>
-          </article>
-        </template>
+                <h3>{{ group.title }}</h3>
 
-        <article
-          v-for="group in yesNoGroups"
-          :key="group.id"
-          class="preferential-group yes-no-group"
-        >
-          <h3>{{ group.title }}</h3>
+                <div class="kb-card question-card">
+                  <p>{{ group.text }}</p>
 
-          <div class="question-card">
-            <p>{{ group.text }}</p>
-
-            <div class="answer-options">
-              <button
-                type="button"
-                :class="{
-                  selected: selectedAnswer(group.id) === true,
-                }"
-                :aria-pressed="selectedAnswer(group.id) === true"
-                @click="answerGroup(group.id, true)"
-              >
-                예
-              </button>
-              <button
-                type="button"
-                :class="{
-                  selected: selectedAnswer(group.id) === false,
-                }"
-                :aria-pressed="selectedAnswer(group.id) === false"
-                @click="answerGroup(group.id, false)"
-              >
-                아니요
-              </button>
-            </div>
-          </div>
-        </article>
+                  <div class="answer-options">
+                    <button
+                      type="button"
+                      :class="{
+                        selected: selectedAnswer(group.id) === true,
+                      }"
+                      :aria-pressed="selectedAnswer(group.id) === true"
+                      @click="answerGroup(group.id, true)"
+                    >
+                      예
+                    </button>
+                    <button
+                      type="button"
+                      :class="{
+                        selected: selectedAnswer(group.id) === false,
+                      }"
+                      :aria-pressed="selectedAnswer(group.id) === false"
+                      @click="answerGroup(group.id, false)"
+                    >
+                      아니요
+                    </button>
+                  </div>
+                </div>
+              </article>
+              
+            </template>
+          </TransitionGroup>
+        </div>
       </section>
 
       <button
@@ -277,6 +287,8 @@ button {
   --kb-muted: #aaa39a;
   --kb-border: #e8e0d4;
 
+  display: flex;
+  flex-direction: column;
   width: 100%;
   max-width: 390px;
   height: 100vh;
@@ -292,6 +304,7 @@ button {
 }
 
 .preferential-content {
+  flex: 1;
   display: flex;
   height: 100%;
   min-height: 0;
@@ -339,26 +352,14 @@ button {
 .preferential-section {
   min-height: 0;
   margin-bottom: 16px;
-  padding-right: 5px;
   overflow-y: auto;
   flex: 1;
   overscroll-behavior-y: contain;
-  scrollbar-color: #c8bfae transparent;
-  scrollbar-gutter: stable;
-  scrollbar-width: thin;
+  scrollbar-width: none;
 }
 
 .preferential-section::-webkit-scrollbar {
-  width: 5px;
-}
-
-.preferential-section::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.preferential-section::-webkit-scrollbar-thumb {
-  border-radius: 999px;
-  background: #c8bfae;
+  display: none;
 }
 
 .preferential-section > h2 {
@@ -387,10 +388,10 @@ button {
 }
 
 .card-usage-options {
-  overflow: hidden;
   border: 1px solid var(--kb-border);
   border-radius: 14px;
   background: #fff;
+  padding: 2px;
 }
 
 .card-usage-option {
@@ -407,10 +408,21 @@ button {
   color: var(--kb-text);
   text-align: left;
   background: #fff;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+.card-usage-option:hover {
+  background: #fffdf6;
+}
+
+.card-usage-option:first-child {
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
 }
 
 .card-usage-option:last-child {
   border-bottom: 0;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
 }
 
 .radio-icon {
@@ -432,7 +444,7 @@ button {
 
 .question-card {
   min-height: 102px;
-  padding: 17px 14px 14px;
+  padding: var(--kb-space-md);
   border: 1px solid var(--kb-border);
   border-radius: 14px;
   background: #fff;
@@ -441,7 +453,7 @@ button {
 .question-card p {
   min-height: 38px;
   margin: 0 0 12px;
-  font-size: 11px;
+  font-size: var(--kb-font-sm);
   font-weight: 600;
   line-height: 1.55;
 }
@@ -452,15 +464,21 @@ button {
 }
 
 .answer-options button {
-  width: 64px;
-  min-width: 64px;
-  height: 34px;
+  width: clamp(56px, 15vw, 64px);
+  min-width: clamp(56px, 15vw, 64px);
+  height: clamp(30px, 9vw, 36px);
+  font-size: var(--kb-font-sm);
   padding: 0;
   border: 1px solid var(--kb-border);
   border-radius: 8px;
   flex-shrink: 0;
   color: #746d65;
   background: #fff;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.answer-options button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
 }
 
 .answer-options button.selected {
@@ -481,8 +499,8 @@ button {
 
 .next-button {
   width: 100%;
-  height: 54px;
-  min-height: 54px;
+  height: var(--kb-btn-height);
+  min-height: var(--kb-btn-height);
   margin-top: 0;
   border: 0;
   border-radius: 13px;
@@ -490,6 +508,11 @@ button {
   font-weight: 700;
   color: var(--kb-text);
   background: var(--kb-yellow);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.next-button:not(:disabled):hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(255, 188, 0, 0.35);
 }
 
 .loading-overlay {

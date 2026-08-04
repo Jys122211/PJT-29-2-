@@ -307,7 +307,7 @@ const initialChar = computed(() => {
   max-width: 390px;
   min-height: 100vh;
   margin: 0 auto;
-  padding: 28px 20px 90px;
+  padding: var(--kb-space-xl) var(--kb-space-lg) 90px;
   font-family: '42dot Sans', sans-serif;
   color: #26221c;
   background: #fff;
@@ -315,13 +315,13 @@ const initialChar = computed(() => {
 
 .profile-container > h3 {
   margin: 0 0 24px !important;
-  font-size: 17px;
+  font-size: var(--kb-font-lg);
   font-weight: 700;
   line-height: 1.35;
 }
 
 .profile-container h5 {
-  font-size: 15px;
+  font-size: var(--kb-font-md);
 }
 
 .avatar-circle {
@@ -334,13 +334,13 @@ const initialChar = computed(() => {
 }
 
 .email-text {
-  font-size: 0.9rem;
+  font-size: var(--kb-font-sm);
 }
 
 .edit-btn {
   color: #b5852a;
   border-color: #e5cc98;
-  font-size: 0.85rem;
+  font-size: var(--kb-font-xs);
 }
 
 .edit-btn:hover {
@@ -386,7 +386,7 @@ const initialChar = computed(() => {
 }
 
 .input-message {
-  font-size: 0.8rem;
+  font-size: var(--kb-font-xs);
   line-height: 1.35;
 }
 

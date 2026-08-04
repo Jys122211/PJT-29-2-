@@ -18,11 +18,43 @@ const qualificationQuestions = computed(() =>
   ),
 );
 
+const visibleQualificationQuestions = computed(() => {
+  const all = qualificationQuestions.value;
+  const visible = [];
+  for (let i = 0; i < all.length; i++) {
+    visible.push(all[i]);
+    const ans = selectedAnswer(all[i].id);
+    if (ans === undefined || ans === null) {
+      break;
+    }
+  }
+  return visible;
+});
+
+const isQualificationComplete = computed(() => {
+  return qualificationQuestions.value.length > 0 &&
+         qualificationQuestions.value.every(q => selectedAnswer(q.id) !== undefined && selectedAnswer(q.id) !== null);
+});
+
 const comparisonConditionQuestions = computed(() =>
   profitLossStore.state.creditEligibility.questions.filter(
     (question) => question.type === 'COMPARISON_CONDITION',
   ),
 );
+
+const visibleComparisonConditionQuestions = computed(() => {
+  if (!isQualificationComplete.value) return [];
+  const all = comparisonConditionQuestions.value;
+  const visible = [];
+  for (let i = 0; i < all.length; i++) {
+    visible.push(all[i]);
+    const ans = selectedAnswer(all[i].id);
+    if (ans === undefined || ans === null) {
+      break;
+    }
+  }
+  return visible;
+});
 
 const isComplete = computed(() => profitLossStore.isCreditEligibilityComplete);
 
@@ -104,7 +136,7 @@ async function continueToNextStep() {
     <section class="eligibility-content">
       <header class="page-header">
         <button
-          class="back-button"
+          class="kb-btn kb-btn-secondary back-button"
           type="button"
           aria-label="이전 화면으로 이동"
           @click="goBack"
@@ -119,74 +151,82 @@ async function continueToNextStep() {
       </header>
 
       <section class="question-section">
-        <h2>대출 신청자격</h2>
-
-        <article
-          v-for="question in qualificationQuestions"
-          :key="`qualification-${question.id}`"
-          class="question-card"
-        >
-          <h3>{{ question.text }}</h3>
-
-          <div class="answer-options">
-            <button
-              type="button"
-              :class="{ selected: selectedAnswer(question.id) === true }"
-              :aria-pressed="selectedAnswer(question.id) === true"
-              @click="answerQuestion(question.id, true)"
+        <div class="group-container">
+          <h2>자격조건 질문</h2>
+          <TransitionGroup name="question-fade" tag="div">
+            <article
+              v-for="item in visibleQualificationQuestions"
+              :key="item.id"
+              class="kb-card question-card"
             >
-              예
-            </button>
-            <button
-              type="button"
-              :class="{ selected: selectedAnswer(question.id) === false }"
-              :aria-pressed="selectedAnswer(question.id) === false"
-              @click="answerQuestion(question.id, false)"
+              <h3>{{ item.text }}</h3>
+
+              <div class="answer-options">
+                <button
+                  type="button"
+                  :class="{
+                    selected: selectedAnswer(item.id) === true,
+                  }"
+                  :aria-pressed="selectedAnswer(item.id) === true"
+                  @click="answerQuestion(item.id, true)"
+                >
+                  예
+                </button>
+                <button
+                  type="button"
+                  :class="{
+                    selected: selectedAnswer(item.id) === false,
+                  }"
+                  :aria-pressed="selectedAnswer(item.id) === false"
+                  @click="answerQuestion(item.id, false)"
+                >
+                  아니요
+                </button>
+              </div>
+            </article>
+          </TransitionGroup>
+
+          <p class="qualification-notice">
+            ※ 위 두 질문은 건강보험관리공단 사이트에서 건강보험자격득실확인서로
+            확인 가능합니다.
+          </p>
+        </div>
+
+        <div class="group-container" v-if="visibleComparisonConditionQuestions.length > 0">
+          <h2>득실 계산 조건</h2>
+          <TransitionGroup name="question-fade" tag="div">
+            <article
+              v-for="item in visibleComparisonConditionQuestions"
+              :key="item.id"
+              class="kb-card question-card"
             >
-              아니요
-            </button>
-          </div>
-        </article>
+              <h3>{{ item.text }}</h3>
 
-        <p class="qualification-notice">
-          ※ 위 두 질문은 건강보험관리공단 사이트에서 건강보험자격득실확인서로
-          확인 가능합니다.
-        </p>
-      </section>
-
-      <section class="question-section preferential-section">
-        <h2>특별 우대 조건</h2>
-
-        <article
-          v-for="question in comparisonConditionQuestions"
-          :key="`comparison-condition-${question.id}`"
-          class="question-card"
-        >
-          <h3>{{ question.text }}</h3>
-
-          <div class="answer-options">
-            <button
-              type="button"
-              :class="{ selected: selectedAnswer(question.id) === true }"
-              :aria-pressed="selectedAnswer(question.id) === true"
-              @click="answerQuestion(question.id, true)"
-            >
-              예
-            </button>
-            <button
-              type="button"
-              :class="{ selected: selectedAnswer(question.id) === false }"
-              :aria-pressed="selectedAnswer(question.id) === false"
-              @click="answerQuestion(question.id, false)"
-            >
-              아니요
-            </button>
-          </div>
-        </article>
+              <div class="answer-options">
+                <button
+                  type="button"
+                  :class="{ selected: selectedAnswer(item.id) === true }"
+                  :aria-pressed="selectedAnswer(item.id) === true"
+                  @click="answerQuestion(item.id, true)"
+                >
+                  예
+                </button>
+                <button
+                  type="button"
+                  :class="{ selected: selectedAnswer(item.id) === false }"
+                  :aria-pressed="selectedAnswer(item.id) === false"
+                  @click="answerQuestion(item.id, false)"
+                >
+                  아니요
+                </button>
+              </div>
+            </article>
+          </TransitionGroup>
+        </div>
       </section>
 
       <button
-        class="next-button"
+        class="kb-btn kb-btn-primary next-button"
         type="button"
         :disabled="!isComplete || isSubmitting"
         @click="continueToNextStep"
@@ -221,25 +261,29 @@ button {
 }
 
 .eligibility-page {
-  --kb-yellow: #ffbc00;
-  --kb-text: #292725;
-  --kb-muted: #aaa39a;
-  --kb-border: #e8e0d4;
-
+  display: flex;
+  flex-direction: column;
   width: 100%;
   max-width: 390px;
+  height: 100vh;
+  height: 100dvh;
   min-height: 100vh;
   margin: 0 auto;
+  overflow: hidden;
+  position: relative;
   color: var(--kb-text);
-  background: #faf9f7;
-  border-right: 1px solid #e9e0d2;
-  border-left: 1px solid #e9e0d2;
+  background: var(--kb-bg-light);
+  border-right: 1px solid var(--kb-border-light);
+  border-left: 1px solid var(--kb-border-light);
 }
 
 .eligibility-content {
+  flex: 1;
   display: flex;
-  min-height: 100vh;
+  height: 100%;
+  min-height: 0;
   padding: 18px 12px 20px;
+  overflow: hidden;
   flex-direction: column;
 }
 
@@ -267,7 +311,7 @@ button {
 
 .page-header h1 {
   margin: 0;
-  font-size: 17px;
+  font-size: var(--kb-font-lg);
   font-weight: 700;
   line-height: 1.35;
 }
@@ -279,12 +323,20 @@ button {
 }
 
 .question-section {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
   margin-bottom: 22px;
+  overscroll-behavior-y: contain;
+  scrollbar-width: none;
+}
+.question-section::-webkit-scrollbar {
+  display: none;
 }
 
 .question-section h2 {
   margin: 0 0 11px;
-  font-size: 12px;
+  font-size: var(--kb-font-sm);
   font-weight: 700;
   color: #716a62;
 }
@@ -292,16 +344,13 @@ button {
 .question-card {
   min-height: 102px;
   margin-bottom: 14px;
-  padding: 17px 16px 15px;
-  border: 1px solid var(--kb-border);
-  border-radius: 14px;
-  background: #fff;
+  padding: var(--kb-space-md);
 }
 
 .question-card h3 {
   min-height: 34px;
   margin: 0 0 12px;
-  font-size: 12px;
+  font-size: var(--kb-font-sm);
   font-weight: 700;
   line-height: 1.5;
 }
@@ -312,15 +361,21 @@ button {
 }
 
 .answer-options button {
-  width: 64px;
-  min-width: 64px;
-  height: 34px;
+  width: clamp(56px, 15vw, 64px);
+  min-width: clamp(56px, 15vw, 64px);
+  height: clamp(30px, 9vw, 36px);
+  font-size: var(--kb-font-sm);
   padding: 0;
   border: 1px solid var(--kb-border);
   border-radius: 8px;
   flex-shrink: 0;
   color: #746d65;
   background: #fff;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.answer-options button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
 }
 
 .answer-options button.selected {
@@ -354,19 +409,9 @@ button {
 
 .next-button {
   width: 100%;
-  height: 54px;
-  min-height: 54px;
+  height: var(--kb-btn-height);
+  min-height: var(--kb-btn-height);
   margin-top: auto;
-  border: 0;
-  border-radius: 13px;
   flex-shrink: 0;
-  font-weight: 700;
-  color: #292725;
-  background: var(--kb-yellow);
-}
-
-.next-button:disabled {
-  color: #8c857a;
-  background: #ddd5c3;
 }
 </style>
