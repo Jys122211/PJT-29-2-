@@ -41,17 +41,22 @@ function confirmErrorModal() {
   }
 }
 
-const cardUsageGroup = computed(() =>
-  profitLossStore.state.jeonsePreferential.groups.find(
-    (g) => g.id === 'JEONSE_CARD_USAGE'
-  )
+const preferentialGroups = computed(
+  () => profitLossStore.state.jeonsePreferential.groups
 );
 
-const yesNoGroups = computed(() =>
-  profitLossStore.state.jeonsePreferential.groups.filter(
-    (g) => g.type === 'YES_NO'
-  )
-);
+const visiblePreferentialGroups = computed(() => {
+  const all = preferentialGroups.value;
+  const visible = [];
+  for (let i = 0; i < all.length; i++) {
+    visible.push(all[i]);
+    const ans = selectedAnswer(all[i].id);
+    if (ans === undefined || ans === null) {
+      break;
+    }
+  }
+  return visible;
+});
 
 const isComplete = computed(() => profitLossStore.isJeonsePreferentialComplete);
 
@@ -177,70 +182,75 @@ async function continueToNextStep() {
       </div>
 
       <section v-else class="preferential-section">
-        <h2>대출 우대금리</h2>
+        <div class="group-container">
+          <h2>대출 우대금리</h2>
 
-        <template v-if="cardUsageGroup">
-          <article class="preferential-group">
-            <h3>{{ cardUsageGroup.title }}</h3>
-            <p class="group-description">
-              {{ cardUsageGroup.description }}
-            </p>
+          <TransitionGroup name="question-fade" tag="div">
+            <template v-for="group in visiblePreferentialGroups" :key="group.id">
+              
+              <article v-if="group.type === 'SINGLE_SELECT'" class="preferential-group">
+                <h3>{{ group.title }}</h3>
+                <p class="group-description">
+                  {{ group.description }}
+                </p>
 
-            <div class="card-usage-options">
-              <button
-                v-for="option in cardUsageGroup.options"
-                :key="option.value"
-                type="button"
-                class="card-usage-option"
-                :class="{
-                  selected: selectedAnswer(cardUsageGroup.id) === option.value,
-                }"
-                :aria-pressed="
-                  selectedAnswer(cardUsageGroup.id) === option.value
-                "
-                @click="answerItem(cardUsageGroup.id, option.value)"
+                <div class="card-usage-options">
+                  <button
+                    v-for="option in group.options"
+                    :key="option.value"
+                    type="button"
+                    class="card-usage-option"
+                    :class="{
+                      selected: selectedAnswer(group.id) === option.value,
+                    }"
+                    :aria-pressed="
+                      selectedAnswer(group.id) === option.value
+                    "
+                    @click="answerItem(group.id, option.value)"
+                  >
+                    <span class="radio-icon" aria-hidden="true"></span>
+                    <span>{{ option.text }}</span>
+                  </button>
+                </div>
+              </article>
+
+              <article
+                v-else-if="group.type === 'YES_NO'"
+                class="preferential-group yes-no-group"
               >
-                <span class="radio-icon" aria-hidden="true"></span>
-                <span>{{ option.text }}</span>
-              </button>
-            </div>
-          </article>
-        </template>
+                <h3>{{ group.title }}</h3>
 
-        <article
-          v-for="item in yesNoGroups"
-          :key="item.id"
-          class="preferential-group yes-no-group"
-        >
-          <h3>{{ item.title }}</h3>
+                <div class="kb-card question-card">
+                  <p>{{ group.text }}</p>
 
-          <div class="kb-card question-card">
-            <p>{{ item.text }}</p>
+                  <div class="answer-options">
+                    <button
+                      type="button"
+                      :class="{
+                        selected: selectedAnswer(group.id) === true,
+                      }"
+                      :aria-pressed="selectedAnswer(group.id) === true"
+                      @click="answerItem(group.id, true)"
+                    >
+                      예
+                    </button>
+                    <button
+                      type="button"
+                      :class="{
+                        selected: selectedAnswer(group.id) === false,
+                      }"
+                      :aria-pressed="selectedAnswer(group.id) === false"
+                      @click="answerItem(group.id, false)"
+                    >
+                      아니요
+                    </button>
+                  </div>
+                </div>
+              </article>
 
-            <div class="answer-options">
-              <button
-                type="button"
-                :class="{
-                  selected: selectedAnswer(item.id) === true,
-                }"
-                :aria-pressed="selectedAnswer(item.id) === true"
-                @click="answerItem(item.id, true)"
-              >
-                예
-              </button>
-              <button
-                type="button"
-                :class="{
-                  selected: selectedAnswer(item.id) === false,
-                }"
-                :aria-pressed="selectedAnswer(item.id) === false"
-                @click="answerItem(item.id, false)"
-              >
-                아니요
-              </button>
-            </div>
-          </div>
-        </article>
+            </template>
+          </TransitionGroup>
+        </div>
       </section>
 
       <p v-if="calculationError" class="calculation-error">
@@ -300,6 +310,8 @@ button {
   --kb-text: #292725;
   --kb-muted: #aaa39a;
   --kb-border: #e8e0d4;
+  display: flex;
+  flex-direction: column;
   width: 100%;
   max-width: 390px;
   height: 100vh;
@@ -314,6 +326,7 @@ button {
   border-left: 1px solid #e9e0d2;
 }
 .preferential-content {
+  flex: 1;
   display: flex;
   height: 100%;
   min-height: 0;

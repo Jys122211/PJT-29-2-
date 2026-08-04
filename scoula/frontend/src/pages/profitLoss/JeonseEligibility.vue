@@ -16,9 +16,41 @@ const qualificationQuestions = computed(() =>
   profitLossStore.state.jeonseEligibility.questions.filter((q) => q.type === 'QUALIFICATION')
 );
 
+const visibleQualificationQuestions = computed(() => {
+  const all = qualificationQuestions.value;
+  const visible = [];
+  for (let i = 0; i < all.length; i++) {
+    visible.push(all[i]);
+    const ans = selectedAnswer(all[i].id);
+    if (ans === undefined || ans === null) {
+      break;
+    }
+  }
+  return visible;
+});
+
+const isQualificationComplete = computed(() => {
+  return qualificationQuestions.value.length > 0 &&
+         qualificationQuestions.value.every(q => selectedAnswer(q.id) !== undefined && selectedAnswer(q.id) !== null);
+});
+
 const comparisonConditionQuestions = computed(() =>
   profitLossStore.state.jeonseEligibility.questions.filter((q) => q.type === 'COMPARISON_CONDITION')
 );
+
+const visibleComparisonConditionQuestions = computed(() => {
+  if (!isQualificationComplete.value) return [];
+  const all = comparisonConditionQuestions.value;
+  const visible = [];
+  for (let i = 0; i < all.length; i++) {
+    visible.push(all[i]);
+    const ans = selectedAnswer(all[i].id);
+    if (ans === undefined || ans === null) {
+      break;
+    }
+  }
+  return visible;
+});
 
 const isComplete = computed(() => profitLossStore.isJeonseEligibilityComplete);
 
@@ -136,65 +168,69 @@ async function continueToNextStep() {
       </div>
 
       <section v-else class="question-section">
-        <h2>대출 신청자격</h2>
-
-        <article
-          v-for="question in qualificationQuestions"
-          :key="`qualification-${question.id}`"
-          class="kb-card question-card"
-        >
-          <h3>{{ question.text }}</h3>
-
-          <div class="answer-options">
-            <button
-              type="button"
-              :class="{ selected: selectedAnswer(question.id) === true }"
-              :aria-pressed="selectedAnswer(question.id) === true"
-              @click="answerQuestion(question.id, true)"
+        <div class="group-container">
+          <h2>자격조건 질문</h2>
+          <TransitionGroup name="question-fade" tag="div">
+            <article
+              v-for="question in visibleQualificationQuestions"
+              :key="`qualification-${question.id}`"
+              class="kb-card question-card"
             >
-              예
-            </button>
-            <button
-              type="button"
-              :class="{ selected: selectedAnswer(question.id) === false }"
-              :aria-pressed="selectedAnswer(question.id) === false"
-              @click="answerQuestion(question.id, false)"
-            >
-              아니요
-            </button>
-          </div>
-        </article>
-      </section>
+              <h3>{{ question.text }}</h3>
 
-      <section class="question-section preferential-section">
-        <h2>득실 계산 조건</h2>
+              <div class="answer-options">
+                <button
+                  type="button"
+                  :class="{ selected: selectedAnswer(question.id) === true }"
+                  :aria-pressed="selectedAnswer(question.id) === true"
+                  @click="answerQuestion(question.id, true)"
+                >
+                  예
+                </button>
+                <button
+                  type="button"
+                  :class="{ selected: selectedAnswer(question.id) === false }"
+                  :aria-pressed="selectedAnswer(question.id) === false"
+                  @click="answerQuestion(question.id, false)"
+                >
+                  아니요
+                </button>
+              </div>
+            </article>
+          </TransitionGroup>
+        </div>
 
-        <article
-          v-for="question in comparisonConditionQuestions"
-          :key="`comparison-condition-${question.id}`"
-          class="kb-card question-card"
-        >
-          <h3>{{ question.text }}</h3>
+        <div class="group-container" v-if="visibleComparisonConditionQuestions.length > 0">
+          <h2>득실 계산 조건</h2>
+          <TransitionGroup name="question-fade" tag="div">
+            <article
+              v-for="question in visibleComparisonConditionQuestions"
+              :key="`comparison-condition-${question.id}`"
+              class="kb-card question-card"
+            >
+              <h3>{{ question.text }}</h3>
 
-          <div class="answer-options">
-            <button
-              type="button"
-              :class="{ selected: selectedAnswer(question.id) === true }"
-              :aria-pressed="selectedAnswer(question.id) === true"
-              @click="answerQuestion(question.id, true)"
-            >
-              예
-            </button>
-            <button
-              type="button"
-              :class="{ selected: selectedAnswer(question.id) === false }"
-              :aria-pressed="selectedAnswer(question.id) === false"
-              @click="answerQuestion(question.id, false)"
-            >
-              아니요
-            </button>
-          </div>
-        </article>
+              <div class="answer-options">
+                <button
+                  type="button"
+                  :class="{ selected: selectedAnswer(question.id) === true }"
+                  :aria-pressed="selectedAnswer(question.id) === true"
+                  @click="answerQuestion(question.id, true)"
+                >
+                  예
+                </button>
+                <button
+                  type="button"
+                  :class="{ selected: selectedAnswer(question.id) === false }"
+                  :aria-pressed="selectedAnswer(question.id) === false"
+                  @click="answerQuestion(question.id, false)"
+                >
+                  아니요
+                </button>
+              </div>
+            </article>
+          </TransitionGroup>
+        </div>
       </section>
 
       <button
@@ -241,19 +277,28 @@ button {
   font: inherit;
 }
 .eligibility-page {
+  display: flex;
+  flex-direction: column;
   width: 100%;
   max-width: 390px;
+  height: 100vh;
+  height: 100dvh;
   min-height: 100vh;
   margin: 0 auto;
+  overflow: hidden;
+  position: relative;
   color: var(--kb-text);
   background: var(--kb-bg-light);
   border-right: 1px solid var(--kb-border-light);
   border-left: 1px solid var(--kb-border-light);
 }
 .eligibility-content {
+  flex: 1;
   display: flex;
-  min-height: 100vh;
+  height: 100%;
+  min-height: 0;
   padding: 18px 12px 20px;
+  overflow: hidden;
   flex-direction: column;
 }
 .page-header {
@@ -293,7 +338,15 @@ button {
   color: var(--kb-muted);
 }
 .question-section {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
   margin-bottom: 22px;
+  overscroll-behavior-y: contain;
+  scrollbar-width: none;
+}
+.question-section::-webkit-scrollbar {
+  display: none;
 }
 .preferential-section {
   margin-bottom: 26px;
