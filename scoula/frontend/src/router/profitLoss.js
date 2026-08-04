@@ -152,7 +152,7 @@ export default [
     {
         path: '/comparison/history',
         name: 'comparisonHistory',
-        component: () => import('../pages/comparison/HistoryPage.vue'),
+        component: () => import('../pages/profitLoss/HistoryPage.vue'),
         meta: { requiresAuth: true },
     },
     {

@@ -6,6 +6,7 @@ import org.scoula.profitLoss.constant.MinimumWageConstants;
 import org.scoula.profitLoss.domain.UserDepositVO;
 import org.scoula.profitLoss.dto.ComparisonRequest;
 import org.scoula.profitLoss.dto.ComparisonResponse;
+import org.scoula.profitLoss.dto.ComparisonSummaryDTO;
 import org.scoula.profitLoss.dto.UserDepositDTO;
 import org.scoula.profitLoss.enums.LoanType;
 import org.scoula.profitLoss.mapper.ProfitLossMapper;
@@ -216,6 +217,20 @@ public class ProfitLossServiceImpl implements ProfitLossService {
         }
 
         return buildResponse(vo, deposit.getPrincipalAmount());
+    }
+
+    // 히스토리
+    @Override
+    public List<ComparisonSummaryDTO> getComparisons(Long userId) {
+        return mapper.selectComparisonsByUserId(userId).stream()
+                .map(vo -> ComparisonSummaryDTO.builder()
+                        .comparisonId(vo.getComparisonId())
+                        .createdAt(vo.getCreatedAt())
+                        .urgentAmount(vo.getUrgentAmount())
+                        .recommended(resolveRecommendedLabel(vo))
+                        .savingAmount(Math.abs(vo.getAFinalBalance() - vo.getBFinalBalance()))
+                        .build())
+                .collect(Collectors.toList());
     }
 
     // 대출금리(기간) = base_rate(기간·등급) + spread_rate(기간·등급) − 우대금리(기간, 사용자 적용분)

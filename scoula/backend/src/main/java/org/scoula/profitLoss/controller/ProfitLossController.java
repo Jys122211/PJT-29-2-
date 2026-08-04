@@ -2,15 +2,7 @@ package org.scoula.profitLoss.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.scoula.profitLoss.dto.ComparisonRequest;
-import org.scoula.profitLoss.dto.ComparisonResponse;
-import org.scoula.profitLoss.dto.CreditLoanPreferentialRateRequestDTO;
-import org.scoula.profitLoss.dto.CreditLoanQualificationRequestDTO;
-import org.scoula.profitLoss.dto.UserDepositDTO;
-import org.scoula.profitLoss.dto.JeonseEligibilityQuestionDTO;
-import org.scoula.profitLoss.dto.JeonsePreferentialItemDTO;
-import org.scoula.profitLoss.dto.JeonseQualificationRequestDTO;
-import org.scoula.profitLoss.dto.JeonsePreferentialRateRequestDTO;
+import org.scoula.profitLoss.dto.*;
 import org.scoula.profitLoss.service.JeonseLoanService;
 import org.scoula.profitLoss.service.ComparisonNotFoundException;
 import org.scoula.profitLoss.service.DepositNotFoundException;
@@ -124,6 +116,12 @@ public class ProfitLossController {
     ) {
         ComparisonResponse response = service.compare(currentUserId(authentication), request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    // 히스토리
+    @GetMapping("/api/comparisons")
+    public ResponseEntity<List<ComparisonSummaryDTO>> getComparisons(Authentication authentication) {
+        return ResponseEntity.ok(service.getComparisons(currentUserId(authentication)));
     }
 
     @GetMapping("/api/comparisons/{comparisonId}")
