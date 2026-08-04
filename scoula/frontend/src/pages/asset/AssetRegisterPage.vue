@@ -298,7 +298,7 @@ async function submit() {
     });
 
     toast.value = '등록 완료 · 대시보드에 반영되었습니다';
-    setTimeout(() => router.push({ name: 'assetList' }), 900);
+    setTimeout(() => router.push({ name: 'assetList' }));
   } catch (error) {
     const { field, message } = extractApiError(error);
     if (field && field in errors) {
