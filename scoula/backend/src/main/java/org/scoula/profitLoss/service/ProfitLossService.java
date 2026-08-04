@@ -2,6 +2,7 @@ package org.scoula.profitLoss.service;
 
 import org.scoula.profitLoss.dto.ComparisonRequest;
 import org.scoula.profitLoss.dto.ComparisonResponse;
+import org.scoula.profitLoss.dto.ComparisonSummaryDTO;
 import org.scoula.profitLoss.dto.UserDepositDTO;
 
 import java.math.BigDecimal;
@@ -23,4 +24,7 @@ public interface ProfitLossService {
     ComparisonResponse compare(Long userId, ComparisonRequest request);
 
     ComparisonResponse getComparison(Long userId, Long comparisonId);
+
+    // 득실 비교 히스토리
+    List<ComparisonSummaryDTO> getComparisons(Long userId);
 }

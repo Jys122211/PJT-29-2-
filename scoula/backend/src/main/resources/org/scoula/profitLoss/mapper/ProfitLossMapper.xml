@@ -166,6 +166,12 @@
             #{productId}
         </foreach>
     </select>
+    <select id="selectComparisonsByUserId" resultType="org.scoula.profitLoss.vo.ComparisonVO">
+        SELECT *
+        FROM comparisons
+        WHERE user_id = #{userId}
+        ORDER BY created_at DESC
+    </select>
 
     <select id="selectJeonseLoanProducts" resultType="org.scoula.profitLoss.vo.JeonseLoanProductVO">
         SELECT

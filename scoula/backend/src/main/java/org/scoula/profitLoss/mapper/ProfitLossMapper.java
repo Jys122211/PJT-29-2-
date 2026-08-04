@@ -32,6 +32,9 @@ public interface ProfitLossMapper {
     // 본인 이력만 조회 (WHERE comparison_id = ? AND user_id = ?)
     ComparisonVO selectComparisonById(@Param("comparisonId") Long comparisonId, @Param("userId") Long userId);
 
+    // 히스토리
+    List<ComparisonVO> selectComparisonsByUserId(@Param("userId") Long userId);
+
     // 본인 소유 예금만 조회 (WHERE user_deposit_id = ? AND user_id = ?)
     UserDepositVO selectUserDeposit(@Param("userDepositId") Long userDepositId, @Param("userId") Long userId);
 
