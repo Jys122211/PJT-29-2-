@@ -520,7 +520,7 @@ onMounted(load);
 }
 
 .form-card {
-  padding: 16px 15px;
+  padding: clamp(16px, 6vw, 28px) clamp(16px, 5vw, 24px);
   border: 1px solid var(--kb-border);
   border-radius: 14px;
   background: #fff;
@@ -528,32 +528,38 @@ onMounted(load);
 
 .row {
   display: flex;
-  gap: 10px;
-  margin-bottom: 10px;
+  gap: clamp(8px, 2.5vw, 14px);
+  margin-bottom: clamp(10px, 3vw, 16px);
 }
 
 .row > * {
   flex: 1;
   min-width: 0;
+  width: auto;
 }
 
 .fld {
   width: 100%;
-  padding: 13px;
-  border: 1px solid var(--kb-border);
-  border-radius: 10px;
+  height: 48px;
+  padding: 0 clamp(10px, 3.5vw, 16px);
+  border: 1px solid #e1dbce;
+  border-radius: 8px;
   font: inherit;
-  font-size: 13px;
+  font-size: clamp(13px, 3.5vw, 14px);
   color: var(--kb-text);
-  background: #fff;
+  background: #faf9f7;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
 }
 
 .fld::placeholder {
-  color: #b8b1a8;
+  color: #aaa39a;
 }
 
 .fld:focus {
-  border-color: #f4a70b;
+  border-color: var(--kb-yellow);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(255, 188, 0, 0.15);
   outline: 0;
 }
 

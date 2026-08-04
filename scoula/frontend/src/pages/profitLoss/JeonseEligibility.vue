@@ -117,7 +117,7 @@ async function continueToNextStep() {
     <section class="eligibility-content">
       <header class="page-header">
         <button
-          class="back-button"
+          class="kb-btn kb-btn-secondary back-button"
           type="button"
           aria-label="이전 화면으로 이동"
           @click="goBack"
@@ -141,7 +141,7 @@ async function continueToNextStep() {
         <article
           v-for="question in qualificationQuestions"
           :key="`qualification-${question.id}`"
-          class="question-card"
+          class="kb-card question-card"
         >
           <h3>{{ question.text }}</h3>
 
@@ -172,7 +172,7 @@ async function continueToNextStep() {
         <article
           v-for="question in comparisonConditionQuestions"
           :key="`comparison-condition-${question.id}`"
-          class="question-card"
+          class="kb-card question-card"
         >
           <h3>{{ question.text }}</h3>
 
@@ -198,7 +198,7 @@ async function continueToNextStep() {
       </section>
 
       <button
-        class="next-button"
+        class="kb-btn kb-btn-primary next-button"
         type="button"
         :disabled="!isComplete || isSubmitting || isLoading"
         @click="continueToNextStep"
@@ -226,7 +226,7 @@ async function continueToNextStep() {
         >
           <h2>{{ resultModalTitle }}</h2>
           <p>{{ resultModalMessage }}</p>
-          <button type="button" @click="closeResultModal">확인</button>
+          <button class="kb-btn kb-btn-primary" type="button" @click="closeResultModal">확인</button>
         </section>
       </div>
     </Teleport>
@@ -241,18 +241,14 @@ button {
   font: inherit;
 }
 .eligibility-page {
-  --kb-yellow: #ffbc00;
-  --kb-text: #292725;
-  --kb-muted: #aaa39a;
-  --kb-border: #e8e0d4;
   width: 100%;
   max-width: 390px;
   min-height: 100vh;
   margin: 0 auto;
   color: var(--kb-text);
-  background: #faf9f7;
-  border-right: 1px solid #e9e0d2;
-  border-left: 1px solid #e9e0d2;
+  background: var(--kb-bg-light);
+  border-right: 1px solid var(--kb-border-light);
+  border-left: 1px solid var(--kb-border-light);
 }
 .eligibility-content {
   display: flex;
@@ -312,9 +308,6 @@ button {
   min-height: 102px;
   margin-bottom: 14px;
   padding: 17px 16px 15px;
-  border: 1px solid var(--kb-border);
-  border-radius: 14px;
-  background: #fff;
 }
 .question-card h3 {
   min-height: 34px;
@@ -361,21 +354,7 @@ button {
   height: 54px;
   min-height: 54px;
   margin-top: auto;
-  border: 0;
-  border-radius: 13px;
   flex-shrink: 0;
-  font-weight: 700;
-  color: #292725;
-  background: var(--kb-yellow);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-.next-button:not(:disabled):hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(255, 188, 0, 0.35);
-}
-.next-button:disabled {
-  color: #8c857a;
-  background: #ddd5c3;
 }
 .eligibility-modal-overlay {
   position: fixed;
@@ -410,10 +389,5 @@ button {
 .eligibility-modal button {
   width: 100%;
   height: 44px;
-  border: 0;
-  border-radius: 11px;
-  font-weight: 700;
-  color: #292725;
-  background: var(--kb-yellow, #ffbc00);
 }
 </style>

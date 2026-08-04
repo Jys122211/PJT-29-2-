@@ -159,7 +159,7 @@ const formatDate = (isoDate) => isoDate.replaceAll('-', '.');
     </div>
 
     <div class="deposit-list" v-if="deposits.length">
-      <div class="deposit-card" v-for="d in deposits" :key="d.id">
+      <div class="kb-card deposit-card" v-for="d in deposits" :key="d.id">
         <div class="deposit-info">
           <p class="deposit-bank">{{ d.bankName }}</p>
           <p class="deposit-product">{{ d.productName }}</p>
@@ -644,14 +644,6 @@ const formatDate = (isoDate) => isoDate.replaceAll('-', '.');
   align-items: center;
   justify-content: space-between;
   padding: 17px 19px;
-  background: #fff;
-  border: 1px solid #efe9dd;
-  border-radius: 16px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-.deposit-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
 }
 .deposit-bank { font-size: 12px; color: #8c8371; }
 .deposit-product { margin-top: 4px; font-weight: 700; font-size: 14px; color: #26221c; }

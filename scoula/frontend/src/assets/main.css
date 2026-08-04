@@ -31,3 +31,67 @@ html body {
   width: 80px;
   height: 80px;
 }
+
+:root {
+  --kb-yellow: #ffbc00;
+  --kb-text: #292725;
+  --kb-muted: #aaa39a;
+  --kb-border: #e8e0d4;
+  --kb-bg-light: #faf9f7;
+  --kb-bg-hover: #fff8df;
+  --kb-border-light: #e9e0d2;
+  --kb-shadow-sm: 0 4px 10px rgba(0, 0, 0, 0.08);
+  --kb-shadow-md: 0 6px 16px rgba(0, 0, 0, 0.06);
+  --kb-shadow-hover: 0 8px 20px rgba(255, 188, 0, 0.35);
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+.kb-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 13px;
+  font-weight: 700;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border: 0;
+}
+
+.kb-btn-primary {
+  color: var(--kb-text);
+  background: var(--kb-yellow);
+}
+
+.kb-btn-primary:not(:disabled):hover {
+  transform: translateY(-3px);
+  box-shadow: var(--kb-shadow-hover);
+}
+
+.kb-btn-primary:disabled {
+  color: #8c857a;
+  background: #ddd5c3;
+  cursor: not-allowed;
+}
+
+.kb-card {
+  background: #fff;
+  border: 1px solid var(--kb-border);
+  border-radius: 14px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.kb-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--kb-shadow-md);
+}
+
+/* Global input sizing reset to prevent overflow and enforce container ratios */
+input:not([type="radio"]):not([type="checkbox"]):not([type="submit"]):not([type="button"]):not([type="file"]):not([type="color"]),
+select,
+textarea {
+  min-width: 0;
+  box-sizing: border-box;
+}
