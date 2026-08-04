@@ -225,7 +225,7 @@ async function submit() {
     });
 
     toast.value = '수정 완료';
-    setTimeout(() => router.push({ name: 'assetList' }), 800);
+    setTimeout(() => router.push({ name: 'assetList' }));
   } catch (error) {
     const { field, message } = extractApiError(error);
     if (field && field in errors) {
@@ -247,7 +247,7 @@ async function confirmDelete() {
     await depositApi.remove(userDepositId);
     showDeleteModal.value = false;
     toast.value = '삭제 완료';
-    setTimeout(() => router.push({ name: 'assetList' }), 800);
+    setTimeout(() => router.push({ name: 'assetList' }));
   } catch (error) {
     showDeleteModal.value = false;
     submitError.value = extractApiError(error).message;
