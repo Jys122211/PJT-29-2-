@@ -269,6 +269,11 @@ async function compareProfitLoss() {
     router.push({ name: 'creditEligibility' });
     return;
   }
+
+  if (profitLossStore.state.loan.loanType === 'JEONSE') {
+    router.push({ name: 'jeonseEligibility' });
+    return;
+  }
 }
 
 // onMounted 함수 정의
