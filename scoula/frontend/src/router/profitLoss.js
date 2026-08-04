@@ -149,12 +149,12 @@ export default [
     },
     props: true,
   },
-    {
-        path: '/comparison/history',
-        name: 'comparisonHistory',
-        component: () => import('../pages/comparison/HistoryPage.vue'),
-        meta: { requiresAuth: true },
-    },
+  {
+    path: '/comparison/history',
+    name: 'comparisonHistory',
+    component: () => import('../pages/profitLoss/HistoryPage.vue'),
+    meta: { layout: 'mobile', requiresAuth: true },
+  },
     {
         path: '/asset/register',
         name: 'assetRegister',
