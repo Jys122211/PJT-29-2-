@@ -1,9 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import HomePage from '../pages/HomePage.vue';
 import authRoutes from './auth';
-import boardRoutes from './board';
-import travelRoutes from './travel';
-import galleryRoutes from './gallery';
 import profitLossRoutes from './profitLoss';
 import { useAuthStore } from '@/stores/auth';
 
@@ -32,9 +29,6 @@ const router = createRouter({
       redirect: { name: 'assetRegister' },
     },
     ...authRoutes,
-    ...boardRoutes,
-    ...travelRoutes,
-    ...galleryRoutes,
     ...profitLossRoutes,
     // ===============
     ...assetRoutes,

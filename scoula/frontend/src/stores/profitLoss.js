@@ -18,13 +18,13 @@ const CREDIT_ELIGIBILITY_QUESTIONS = [
     id: 3,
     type: 'COMPARISON_CONDITION',
     requestField: 'IS_PARTIAL_ALLOWED',
-    text: '분할 인출이 가능한가요? (계좌별 3회(해지 포함)이내 가능)',
+    text: '분할 인출이 가능하신가요? (계좌별 3회(해지 포함)이내 가능)',
   },
   {
     id: 4,
     type: 'COMPARISON_CONDITION',
     requestField: 'IS_LUMP_SUM',
-    text: '예금이 만기되면, 예금 만기 금액으로 대출을 갚으실 예정인가요?',
+    text: '예금이 만기되면, 예금 만기 금액으로 대출을 갚으실 예정이신가요?',
   },
 ];
 
@@ -33,13 +33,13 @@ const JEONSE_COMPARISON_CONDITIONS = [
     id: 'jeonse_comp_1',
     type: 'COMPARISON_CONDITION',
     requestField: 'IS_PARTIAL_ALLOWED',
-    text: '분할 인출이 가능한가요? (계좌별 3회(해지 포함)이내 가능)',
+    text: '분할 인출이 가능하신가요? (계좌별 3회(해지 포함)이내 가능)',
   },
   {
     id: 'jeonse_comp_2',
     type: 'COMPARISON_CONDITION',
     requestField: 'IS_LUMP_SUM',
-    text: '예금이 만기되면, 예금 만기 금액으로 대출을 갚으실 예정인가요?',
+    text: '예금이 만기되면, 예금 만기 금액으로 대출을 갚으실 예정이신가요?',
   },
 ];
 

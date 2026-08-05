@@ -100,9 +100,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.POST, "/api/credit-loans/preferential-rate").authenticated()
                 .antMatchers(HttpMethod.POST, "/api/comparisons").authenticated()
                 .antMatchers(HttpMethod.GET, "/api/comparisons/**").authenticated()
-                .antMatchers(HttpMethod.POST, "/api/board/**").authenticated()
-                .antMatchers(HttpMethod.PUT, "/api/board/**").authenticated()
-                .antMatchers(HttpMethod.DELETE, "/api/board/**").authenticated()
                 .anyRequest().permitAll(); // 나머지는 로그인 된 경우 모두 허용
 
     }
