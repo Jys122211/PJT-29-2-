@@ -18,6 +18,7 @@ public class ComparisonSummaryDTO {
     private Long urgentAmount;
     private String recommended;
     private Long savingAmount;
-    private String depositName;      // 추가
-    private String loanTypeLabel;    // 추가
+    private String depositName; // 추가
+    private String loanTypeLabel; // 추가
+    private String accountNumber;
 }

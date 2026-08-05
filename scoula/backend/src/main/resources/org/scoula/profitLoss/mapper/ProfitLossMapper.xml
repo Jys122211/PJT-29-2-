@@ -167,10 +167,11 @@
         </foreach>
     </select>
     <select id="selectComparisonsByUserId" resultType="org.scoula.profitLoss.vo.ComparisonVO">
-        SELECT *
-        FROM comparisons
-        WHERE user_id = #{userId}
-        ORDER BY created_at DESC
+        SELECT c.*, ud.account_number
+        FROM comparisons c
+        LEFT JOIN user_deposits ud ON c.user_deposit_id = ud.user_deposit_id
+        WHERE c.user_id = #{userId}
+        ORDER BY c.created_at DESC
     </select>
 
     <select id="selectJeonseLoanProducts" resultType="org.scoula.profitLoss.vo.JeonseLoanProductVO">

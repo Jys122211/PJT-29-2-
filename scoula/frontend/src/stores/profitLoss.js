@@ -396,22 +396,22 @@ export const useProfitLossStore = defineStore('profitLoss', () => {
       return;
     }
 
-    const cardItems = items.filter(item => item.conditionName === 'KB국민카드(신용) 이용실적 우대');
-    const otherItems = items.filter(item => item.conditionName !== 'KB국민카드(신용) 이용실적 우대');
+    const cardItems = items.filter(item => item.conditionName.includes('KB국민카드 이용실적'));
+    const otherItems = items.filter(item => !item.conditionName.includes('KB국민카드 이용실적'));
 
     const groups = [];
     if (cardItems.length > 0) {
       groups.push({
         id: 'JEONSE_CARD_USAGE',
         type: 'SINGLE_SELECT',
-        title: cardItems[0].conditionName,
+        title: 'KB국민카드 이용실적 우대',
         description: '※ 결제계좌를 KB국민은행으로 지정하고, 최근 3개월 이용실적 기준',
         options: [
           ...cardItems.sort((a, b) => b.id - a.id).map(item => {
             let formattedText = item.conditionDetail;
-            if (formattedText.includes('90')) formattedText = '최근 3개월 KB국민은행 계좌 결제 90만원 이상';
-            else if (formattedText.includes('60')) formattedText = '최근 3개월 KB국민은행 계좌 결제 60만원 이상';
-            else if (formattedText.includes('30')) formattedText = '최근 3개월 KB국민은행 계좌 결제 30만원 이상';
+            if (formattedText.includes('90')) formattedText = '최근 3개월 90만원 이상';
+            else if (formattedText.includes('60')) formattedText = '최근 3개월 60만원 이상';
+            else if (formattedText.includes('30')) formattedText = '최근 3개월 30만원 이상';
 
             return {
               value: item.id.toString(),
