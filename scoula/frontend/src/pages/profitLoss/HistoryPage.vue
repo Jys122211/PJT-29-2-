@@ -83,7 +83,7 @@ onMounted(load);
             <span class="saving">{{ formatNumber(item.savingAmount) }}원 이득</span>
           </div>
           <div class="account-row" v-if="item.accountNumber">
-            {{ item.accountNumber }}
+            계좌번호: {{ item.accountNumber }}
           </div>
         </button>
       </li>
