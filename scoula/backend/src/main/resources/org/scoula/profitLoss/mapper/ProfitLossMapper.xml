@@ -14,6 +14,7 @@
             ud.user_id,
             ud.bank_name,
             ud.product_name,
+            ud.account_number,
             ud.join_date,
             ud.maturity_date,
             ud.applied_rate,
@@ -125,11 +126,16 @@
         )
     </insert>
 
+    <!-- deposit_account_number: comparisons에는 없는 계좌번호를 user_deposits와 LEFT JOIN해서 붙인다.
+         예금이 삭제(is_deleted='Y')돼도 이력 조회는 그대로 되어야 하므로 INNER JOIN을 쓰지 않는다 —
+         이 경우 계좌번호만 null이 된다. -->
     <select id="selectComparisonById" resultType="org.scoula.profitLoss.vo.ComparisonVO">
-        SELECT *
-        FROM comparisons
-        WHERE comparison_id = #{comparisonId}
-          AND user_id = #{userId}
+        SELECT c.*,
+               d.account_number AS deposit_account_number
+          FROM comparisons c
+          LEFT JOIN user_deposits d ON d.user_deposit_id = c.user_deposit_id
+         WHERE c.comparison_id = #{comparisonId}
+           AND c.user_id = #{userId}
     </select>
 
     <select id="selectUserDeposit" resultType="org.scoula.profitLoss.domain.UserDepositVO">
@@ -138,6 +144,7 @@
             user_id,
             bank_name,
             product_name,
+            account_number,
             join_date,
             maturity_date,
             applied_rate,

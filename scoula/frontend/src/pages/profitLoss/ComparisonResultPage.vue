@@ -138,6 +138,13 @@ const cancelModal = () => {
           <p v-if="comparison.deposit.name" class="compare-product" :title="comparison.deposit.name">
             {{ comparison.deposit.name }}
           </p>
+          <p
+            v-if="comparison.deposit.accountNumber"
+            class="compare-account"
+            :title="comparison.deposit.accountNumber"
+          >
+            {{ comparison.deposit.accountNumber }}
+          </p>
           <p class="compare-amount">{{ won(comparison.deposit.finalBalance) }}원</p>
 
           <div class="compare-divider"></div>
@@ -505,6 +512,15 @@ button {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.compare-account {
+  margin: 2px 0 0;
+  overflow: hidden;
+  font-size: 11px;
+  color: var(--gs-text-sub);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .info-icon {

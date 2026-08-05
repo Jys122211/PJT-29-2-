@@ -69,6 +69,7 @@ CREATE TABLE user_deposits (
                                user_id          BIGINT       NOT NULL                          COMMENT '예금을 보유한 사용자',
                                bank_name        VARCHAR(50)  NOT NULL                          COMMENT '은행명',
                                product_name      VARCHAR(50)  NOT NULL                          COMMENT '상품명',
+                               account_number   VARCHAR(30)      NULL                          COMMENT '계좌번호',
                                join_date        DATE         NOT NULL                          COMMENT '가입일',
                                maturity_date    DATE         NOT NULL                          COMMENT '만기일',
                                applied_rate     DECIMAL(5,3) NOT NULL                          COMMENT '적용금리(우대 포함, %)',

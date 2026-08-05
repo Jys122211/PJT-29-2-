@@ -200,6 +200,7 @@ public class ProfitLossServiceImpl implements ProfitLossService {
                 .loanInterest(bestResult.loan().interest())
                 .loanPenalty(bestResult.loan().penalty())
                 .depositName(deposit.getProductName())
+                .depositAccountNumber(deposit.getAccountNumber())
                 .depositMaintainInterest(bestResult.deposit().maintainInterest())
                 .depositCancelInterestRate(bestResult.deposit().cancelInterestRate())
                 .depositCancelInterest(bestResult.deposit().cancelInterest())
@@ -279,6 +280,7 @@ public class ProfitLossServiceImpl implements ProfitLossService {
                 .loanInterest(bestResult.loan().interest())
                 .loanPenalty(bestResult.loan().penalty())
                 .depositName(deposit.getProductName())
+                .depositAccountNumber(deposit.getAccountNumber())
                 .depositMaintainInterest(bestResult.deposit().maintainInterest())
                 .depositCancelInterestRate(bestResult.deposit().cancelInterestRate())
                 .depositCancelInterest(bestResult.deposit().cancelInterest())
@@ -393,6 +395,7 @@ public class ProfitLossServiceImpl implements ProfitLossService {
 
         ComparisonResponse.DepositInfo deposit = ComparisonResponse.DepositInfo.builder()
                 .name(vo.getDepositName())
+                .accountNumber(vo.getDepositAccountNumber())
                 .maintainInterest(vo.getDepositMaintainInterest())
                 .cancelInterestRate(vo.getDepositCancelInterestRate())
                 .cancelInterest(vo.getDepositCancelInterest())
