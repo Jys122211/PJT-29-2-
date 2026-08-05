@@ -24,7 +24,7 @@ const CREDIT_ELIGIBILITY_QUESTIONS = [
     id: 4,
     type: 'COMPARISON_CONDITION',
     requestField: 'IS_LUMP_SUM',
-    text: '예금이 만기시에, 만기된 예금으로 대출을 갚으실 예정인가요?',
+    text: '예금이 만기되면, 예금 만기 금액으로 대출을 갚으실 예정인가요?',
   },
 ];
 
@@ -406,11 +406,11 @@ export const useProfitLossStore = defineStore('profitLoss', () => {
       return;
     }
 
-    const cardItems = items.filter(
-      (item) => item.conditionName === 'KB국민카드(신용) 이용실적 우대',
+    const cardItems = items.filter((item) =>
+      item.conditionName.includes('KB국민카드 이용실적'),
     );
     const otherItems = items.filter(
-      (item) => item.conditionName !== 'KB국민카드(신용) 이용실적 우대',
+      (item) => !item.conditionName.includes('KB국민카드 이용실적'),
     );
 
     const groups = [];
@@ -418,7 +418,7 @@ export const useProfitLossStore = defineStore('profitLoss', () => {
       groups.push({
         id: 'JEONSE_CARD_USAGE',
         type: 'SINGLE_SELECT',
-        title: cardItems[0].conditionName,
+        title: 'KB국민카드 이용실적 우대',
         description:
           '※ 결제계좌를 KB국민은행으로 지정하고, 최근 3개월 이용실적 기준',
         options: [
@@ -427,11 +427,11 @@ export const useProfitLossStore = defineStore('profitLoss', () => {
             .map((item) => {
               let formattedText = item.conditionDetail;
               if (formattedText.includes('90'))
-                formattedText = '최근 3개월 KB국민은행 계좌 결제 90만원 이상';
+                formattedText = '최근 3개월 90만원 이상';
               else if (formattedText.includes('60'))
-                formattedText = '최근 3개월 KB국민은행 계좌 결제 60만원 이상';
+                formattedText = '최근 3개월 60만원 이상';
               else if (formattedText.includes('30'))
-                formattedText = '최근 3개월 KB국민은행 계좌 결제 30만원 이상';
+                formattedText = '최근 3개월 30만원 이상';
 
               return {
                 value: item.id.toString(),
