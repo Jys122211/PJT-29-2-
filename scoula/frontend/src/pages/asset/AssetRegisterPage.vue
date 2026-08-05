@@ -22,7 +22,9 @@ import {
   isValidCompactDate,
   parseNumber,
   sanitizeRate,
+   toCompactAccount,
   toCompactDate,
+   toDisplayAccount,
   toDisplayDate,
 } from '@/util/depositFormat';
 
@@ -47,6 +49,7 @@ const fileInput = ref(null);
 const form = reactive({
   bankName: '',
   productName: '',
+  accountNumber: '',
   joinDate: '',
   maturityDate: '',
   principalAmount: '',
@@ -57,6 +60,7 @@ const form = reactive({
 const errors = reactive({
   bankName: '',
   productName: '',
+  accountNumber: '',
   joinDate: '',
   maturityDate: '',
   principalAmount: '',
@@ -66,6 +70,14 @@ const errors = reactive({
 
 
 // ------------------------------------------------------------ 입력 핸들러
+function onAccountInput(event) {
+  const digits = toCompactAccount(event.target.value).slice(0, 16);
+  form.accountNumber = digits;
+  event.target.value = toDisplayAccount(digits);
+  markEdited('accountNumber');
+  errors.accountNumber = '';
+}
+
 function onAmountInput(event) {
   const parsed = parseNumber(event.target.value);
   form.principalAmount = parsed === null ? '' : parsed;
@@ -116,6 +128,7 @@ const isComplete = computed(
   () =>
     form.bankName.trim() !== '' &&
     form.productName.trim() !== '' &&
+    form.accountNumber.length >= 10 &&
     form.joinDate.length === 8 &&
     form.maturityDate.length === 8 &&
     form.principalAmount !== '' &&
@@ -155,10 +168,16 @@ function validate() {
 
   require('bankName', '은행명을 입력해주세요');
   require('productName', '상품명을 입력해주세요');
+  require('accountNumber', '계좌번호를 입력해주세요');
   require('joinDate', '가입일을 입력해주세요');
   require('maturityDate', '만기일을 입력해주세요');
   require('baseRate', '기본금리를 입력해주세요');
   require('appliedRate', '적용금리를 입력해주세요');
+
+  if (form.accountNumber !== '' && form.accountNumber.length < 10) {
+    errors.accountNumber = '계좌번호는 10자리 이상 입력해주세요';
+    firstInvalid = firstInvalid ?? 'accountNumber';
+  }
 
   if (form.principalAmount === '' || Number(form.principalAmount) <= 0) {
     errors.principalAmount = '가입금액을 입력해주세요';
@@ -257,6 +276,7 @@ function applyExtracted(extracted = {}) {
 
   assign('bankName', extracted.bankName);
   assign('productName', extracted.productName);
+    assign('accountNumber', toCompactAccount(extracted.accountNumber));
   assign('joinDate', extracted.joinDate);
   assign('maturityDate', extracted.maturityDate);
   assign('principalAmount', extracted.principalAmount);
@@ -290,6 +310,7 @@ async function submit() {
     await depositApi.create({
       bankName: form.bankName.trim(),
       productName: form.productName.trim(),
+      accountNumber: form.accountNumber,
       joinDate: form.joinDate,
       maturityDate: form.maturityDate,
       principalAmount: Number(form.principalAmount),
@@ -298,7 +319,7 @@ async function submit() {
     });
 
     toast.value = '등록 완료 · 대시보드에 반영되었습니다';
-    setTimeout(() => router.push({ name: 'assetList' }));
+    setTimeout(() => router.push({ name: 'assetList' }), 900);
   } catch (error) {
     const { field, message } = extractApiError(error);
     if (field && field in errors) {
@@ -426,6 +447,20 @@ onMounted(async () => {
         />
       </div>
       <p v-if="errors.productName" class="err-msg">! {{ errors.productName }}</p>
+
+      <div class="row">
+        <input
+          class="fld"
+          :class="fieldClass('accountNumber')"
+          :value="toDisplayAccount(form.accountNumber)"
+          placeholder="계좌번호 (숫자만 입력)"
+          inputmode="numeric"
+          maxlength="20"
+          aria-label="계좌번호"
+          @input="onAccountInput"
+        />
+      </div>
+      <p v-if="errors.accountNumber" class="err-msg">! {{ errors.accountNumber }}</p>
 
       <div class="row">
         <input
@@ -686,13 +721,13 @@ onMounted(async () => {
 
 /* ---------- 폼 ---------- */
 .sec-label {
-  margin: var(--kb-space-lg) 2px var(--kb-space-sm);
-  font-size: var(--kb-font-md);
+  margin: 20px 2px 10px;
+  font-size: 14px;
   font-weight: 700;
 }
 
 .form-card {
-  padding: var(--kb-space-lg) var(--kb-space-md);
+  padding: 16px 15px;
   border: 1px solid var(--kb-border);
   border-radius: 14px;
   background: #fff;
@@ -700,8 +735,8 @@ onMounted(async () => {
 
 .row {
   display: flex;
-  gap: var(--kb-space-sm);
-  margin-bottom: var(--kb-space-sm);
+  gap: 10px;
+  margin-bottom: 10px;
 }
 
 .row > * {
@@ -711,20 +746,17 @@ onMounted(async () => {
 
 .fld {
   width: 100%;
-  height: var(--kb-input-height);
-  padding: 0 var(--kb-space-md);
-  border: 1px solid #e1dbce;
-  border-radius: 8px;
+  padding: 13px;
+  border: 1px solid var(--kb-border);
+  border-radius: 10px;
   font: inherit;
-  font-size: var(--kb-font-md);
+  font-size: 13px;
   color: var(--kb-text);
-  background: #faf9f7;
-  box-sizing: border-box;
-  transition: all 0.2s ease;
+  background: #fff;
 }
 
 .fld::placeholder {
-  color: #aaa39a;
+  color: #b8b1a8;
 }
 
 .fld:disabled {
@@ -733,9 +765,7 @@ onMounted(async () => {
 }
 
 .fld:focus {
-  border-color: var(--kb-yellow);
-  background: #fff;
-  box-shadow: 0 0 0 3px rgba(255, 188, 0, 0.15);
+  border-color: #f4a70b;
   outline: 0;
 }
 

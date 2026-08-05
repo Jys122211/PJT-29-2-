@@ -64,6 +64,7 @@ async function load() {
 
     form.bankName = data.bankName ?? '';
     form.productName = data.productName ?? '';
+    form.accountNumber = toCompactAccount(data.accountNumber);
     form.joinDate = data.joinDate ?? '';
     form.maturityDate = data.maturityDate ?? '';
     form.principalAmount = data.principalAmount ?? '';
