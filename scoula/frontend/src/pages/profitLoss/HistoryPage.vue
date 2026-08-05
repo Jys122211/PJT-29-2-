@@ -82,6 +82,9 @@ onMounted(load);
     </span>
             <span class="saving">{{ formatNumber(item.savingAmount) }}원 이득</span>
           </div>
+          <div class="account-row" v-if="item.accountNumber">
+            {{ item.accountNumber }}
+          </div>
         </button>
       </li>
     </ul>
@@ -258,5 +261,14 @@ onMounted(load);
 .saving {
   font-size: 13px;
   color: var(--kb-muted);
+}
+
+.account-row {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--kb-border);
+  font-size: 12px;
+  color: var(--kb-muted);
+  text-align: left;
 }
 </style>

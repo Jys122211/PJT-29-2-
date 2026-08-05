@@ -37,4 +37,5 @@ public class ComparisonVO {
     private Long bFinalBalance;
     private ComparisonCalculator.Winner winner;
     private LocalDateTime createdAt;
+    private String accountNumber;
 }
