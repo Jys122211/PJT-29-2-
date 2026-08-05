@@ -15,7 +15,9 @@ import {
   isValidCompactDate,
   parseNumber,
   sanitizeRate,
+  toCompactAccount,
   toCompactDate,
+  toDisplayAccount,
   toDisplayDate,
 } from '@/util/depositFormat';
 
@@ -34,6 +36,7 @@ const deleting = ref(false);
 const form = reactive({
   bankName: '',
   productName: '',
+  accountNumber: '',
   joinDate: '',
   maturityDate: '',
   principalAmount: '',
@@ -47,6 +50,7 @@ const original = reactive({});
 const errors = reactive({
   bankName: '',
   productName: '',
+  accountNumber: '',
   joinDate: '',
   maturityDate: '',
   principalAmount: '',
@@ -64,6 +68,7 @@ async function load() {
 
     form.bankName = data.bankName ?? '';
     form.productName = data.productName ?? '';
+    form.accountNumber = toCompactAccount(data.accountNumber);
     form.joinDate = data.joinDate ?? '';
     form.maturityDate = data.maturityDate ?? '';
     form.principalAmount = data.principalAmount ?? '';
@@ -99,6 +104,13 @@ function onAmountInput(event) {
   errors.principalAmount = '';
 }
 
+function onAccountInput(event) {
+  const digits = toCompactAccount(event.target.value).slice(0, 16);
+  form.accountNumber = digits;
+  event.target.value = toDisplayAccount(digits);
+  errors.accountNumber = '';
+}
+
 function onRateInput(field, event) {
   const cleaned = sanitizeRate(event.target.value);
   form[field] = cleaned;
@@ -123,6 +135,7 @@ const isComplete = computed(
   () =>
     form.bankName.trim() !== '' &&
     form.productName.trim() !== '' &&
+    form.accountNumber.length >= 10 &&
     form.joinDate.length === 8 &&
     form.maturityDate.length === 8 &&
     form.principalAmount !== '' &&
@@ -152,9 +165,9 @@ const canSubmit = computed(
 
 const submitLabel = computed(() => {
   if (submitting.value) return '수정 중...';
-  if (!isComplete.value) return '필수 항목을 입력해주세요';
-  if (isDateReversed.value) return '날짜를 확인해주세요';
-  if (!hasChanges.value) return '변경된 내용이 없어요';
+  if (!isComplete.value) return '필수 항목 입력';
+  if (isDateReversed.value) return '날짜 확인 필요';
+  if (!hasChanges.value) return '변경 없음';
   return '수정하기';
 });
 
@@ -171,6 +184,7 @@ function validate() {
 
   require('bankName', '은행명을 입력해주세요');
   require('productName', '상품명을 입력해주세요');
+  require('accountNumber', '계좌번호를 입력해주세요');
   require('joinDate', '가입일을 입력해주세요');
   require('maturityDate', '만기일을 입력해주세요');
   require('baseRate', '기본금리를 입력해주세요');
@@ -217,6 +231,7 @@ async function submit() {
     await depositApi.update(userDepositId, {
       bankName: form.bankName.trim(),
       productName: form.productName.trim(),
+      accountNumber: form.accountNumber,
       joinDate: form.joinDate,
       maturityDate: form.maturityDate,
       principalAmount: Number(form.principalAmount),
@@ -288,7 +303,7 @@ onMounted(load);
 
       <form class="form-card" @submit.prevent="submit">
         <div class="row">
-          <input class="fld locked" value="예금" disabled aria-label="상품 유형" />
+          <input class="fld locked" value="정기예금" disabled aria-label="상품 유형" />
           <input
             class="fld"
             :class="fieldClass('bankName')"
@@ -311,6 +326,21 @@ onMounted(load);
           />
         </div>
         <p v-if="errors.productName" class="err-msg">! {{ errors.productName }}</p>
+
+<div class="row">
+          <input
+            class="fld"
+            :class="fieldClass('accountNumber')"
+            :value="toDisplayAccount(form.accountNumber)"
+            placeholder="계좌번호 (숫자만 입력)"
+            inputmode="numeric"
+            maxlength="20"
+            aria-label="계좌번호"
+            @input="onAccountInput"
+          />
+        </div>
+        <p v-if="errors.accountNumber" class="err-msg">! {{ errors.accountNumber }}</p>
+
 
         <div class="row">
           <input
@@ -600,12 +630,14 @@ onMounted(load);
 
 /* ---------- 버튼 ---------- */
 .btn {
-  padding: 15px;
+  padding: 15px 12px;
   border: 0;
   border-radius: 11px;
   font: inherit;
   font-size: 14.5px;
   font-weight: 700;
+  line-height: 1.35;
+  word-break: keep-all;
   cursor: pointer;
 }
 
@@ -646,7 +678,7 @@ onMounted(load);
 }
 
 .grow2 {
-  flex: 1.5;
+  flex: 2;
 }
 
 .grow1 {
