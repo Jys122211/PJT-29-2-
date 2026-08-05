@@ -132,14 +132,15 @@ const cancelModal = () => {
 
       <!-- 2. 결론 배너 카드 -->
       <section class="card banner-card">
-        <p v-if="!isTie" class="banner-product-name">{{ winnerProductName }}</p>
-        <p class="banner-main">
-          <template v-if="isTie">두 방법의 결과가 같습니다</template>
-          <template v-else>
-            {{ winnerTypeLabel }}
-            <span class="gold">{{ won(comparison.savingAmount) }}원</span> 더 이득
-          </template>
-        </p>
+        <template v-if="isTie">
+          <p class="banner-main">두 방법의 결과가 같습니다</p>
+        </template>
+        <template v-else>
+          <span class="banner-recommend">추천</span>
+          <p class="banner-product-name">{{ winnerProductName }}</p>
+          <p class="banner-type-name">{{ winnerTypeLabel }}</p>
+          <p class="banner-main"><span class="gold">{{ won(comparison.savingAmount) }}원</span> 더 이득</p>
+        </template>
 
         <div v-if="!isTie" class="badge-row">
           <span class="badge badge-soft">{{ partialAllowedText }}</span>
@@ -240,7 +241,7 @@ const cancelModal = () => {
       <!-- 5. 바 차트 카드 -->
       <section class="card chart-card">
         <div class="chart-header">
-          <span>얼마를 잃게 되나</span>
+          <span>손실 비교</span>
           <span class="gold">차이 {{ won(comparison.savingAmount) }}원</span>
         </div>
 
@@ -376,13 +377,15 @@ button {
   --gs-warn-bg: #fdecef;
   --gs-warn-line: #ffb8d6;
   --gs-warn-text: #99295a;
+  --gs-warn-icon: #e0316f;
+  --gs-warn-strong: #e54848;
   --gs-line: #e9e0d2;
 
   width: 100%;
   max-width: 390px;
   min-height: 100vh;
   margin: 0 auto;
-  padding: 18px 16px 28px;
+  padding: 16px 16px 28px;
   color: var(--gs-text);
   background: var(--gs-bg);
   border-right: 1px solid var(--gs-line);
@@ -401,7 +404,7 @@ button {
 }
 
 .result-content > * + * {
-  margin-top: 14px;
+  margin-top: 16px;
 }
 
 /* 1. 헤더 */
@@ -459,12 +462,33 @@ button {
   outline-offset: 2px;
 }
 
-/* 2. 결론 배너 — 상품명이 작게 받쳐주고 결론이 크게 온다. */
-.banner-product-name {
+/* 2. 결론 배너 — 추천/상품명/종류명이 작은 순으로 쌓이고 결론(금액)만 크다.
+   한 줄에 상품명+종류명+금액을 다 넣으면 390px 폭에서 "더 이득"이 잘려
+   다음 줄로 넘어가므로 줄을 나눴다. keep-all은 상품명이 길어져도 단어
+   중간이 아니라 스페이스에서만 줄바꿈되게 한다. */
+.banner-recommend {
+  display: block;
   margin: 0;
-  font-size: 14px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--gs-gold);
+  word-break: keep-all;
+}
+
+.banner-product-name {
+  margin: 4px 0 0;
+  font-size: 13px;
   font-weight: 700;
   color: var(--gs-text);
+  word-break: keep-all;
+}
+
+.banner-type-name {
+  margin: 4px 0 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--gs-text);
+  word-break: keep-all;
 }
 
 .banner-main {
@@ -472,17 +496,18 @@ button {
   font-size: 22px;
   font-weight: 700;
   line-height: 1.4;
+  word-break: keep-all;
 }
 
 .badge-row {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: 14px;
+  margin-top: 16px;
 }
 
 .badge {
-  padding: 6px 12px;
+  padding: 8px 12px;
   border-radius: 999px;
   font-size: 13px;
 }
@@ -495,7 +520,7 @@ button {
 /* 3. 최저임금 경고 */
 .warning-box {
   display: flex;
-  padding: 14px;
+  padding: 16px;
   border: 1px solid var(--gs-warn-line);
   border-radius: 12px;
   align-items: flex-start;
@@ -504,8 +529,8 @@ button {
 }
 
 .warning-icon {
-  margin-top: 1px;
-  color: #e0316f;
+  margin-top: 1px; /* 아이콘을 텍스트 첫 줄 높이에 맞추는 미세 보정, 4px 격자와 무관 */
+  color: var(--gs-warn-icon);
 }
 
 .warning-box p {
@@ -527,8 +552,8 @@ button {
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-template-rows: repeat(6, auto);
-  column-gap: 10px;
-  row-gap: 0;
+  column-gap: 12px;
+  row-gap: 0; /* subgrid 행은 margin으로만 간격을 두므로 0 고정 — 바꾸면 정렬이 깨진다 */
   align-items: stretch;
 }
 
@@ -548,9 +573,9 @@ button {
   position: absolute;
   top: -10px;
   left: 12px;
-  padding: 3px 10px;
+  padding: 4px 8px;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--gs-text);
   background: var(--gs-gold);
 }
@@ -564,7 +589,7 @@ button {
 
 .compare-product {
   grid-row: 2;
-  margin: 2px 0 0;
+  margin: 4px 0 0;
   font-size: 11px;
   font-weight: 700;
   line-height: 1.35;
@@ -577,7 +602,7 @@ button {
 
 .compare-account {
   grid-row: 3;
-  margin: 2px 0 0;
+  margin: 4px 0 0;
   overflow: hidden;
   font-size: 11px;
   line-height: 1.35;
@@ -592,7 +617,7 @@ button {
 
 .compare-amount {
   grid-row: 4;
-  margin: 6px 0 0;
+  margin: 8px 0 0;
   font-size: 20px;
   font-weight: 700;
   word-break: break-all;
@@ -627,9 +652,9 @@ button {
 .detail-row {
   display: flex;
   justify-content: space-between;
-  gap: 6px;
+  gap: 8px;
   margin-bottom: 8px;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--gs-text-sub);
   word-break: keep-all;
 }
@@ -645,37 +670,37 @@ button {
 
 .detail-value small {
   display: block;
-  font-size: 10px;
+  font-size: 11px;
   color: var(--gs-text-sub);
 }
 
 .detail-note {
   margin: 8px 0 0;
-  font-size: 10px;
-  color: #e54848;
+  font-size: 11px;
+  color: var(--gs-warn-strong);
 }
 
 /* 5. 바 차트 */
 .chart-header {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
   font-size: 15px;
   font-weight: 700;
 }
 
 .chart-header .gold {
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .chart-row + .chart-row {
-  margin-top: 14px;
+  margin-top: 16px;
 }
 
 .chart-row-label {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
   font-size: 13px;
 }
 
@@ -702,7 +727,7 @@ button {
 /* 6. 계산 조건 */
 .condition-title {
   margin: 0 0 12px;
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 700;
 }
 
@@ -721,7 +746,7 @@ button {
 .footnote {
   margin: 0;
   padding: 16px;
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1.7;
   color: var(--gs-text-sub);
 }
@@ -729,7 +754,7 @@ button {
 /* 8. 진행 버튼 */
 .proceed-row {
   display: flex;
-  gap: 10px;
+  gap: 12px;
 }
 
 .proceed-button {
@@ -765,7 +790,7 @@ button {
 .modal-card {
   width: 100%;
   max-width: 320px;
-  padding: 22px 20px 18px;
+  padding: 24px 20px 16px;
   border-radius: 16px;
   background: #fff;
   box-shadow: 0 16px 40px rgb(0 0 0 / 18%);
@@ -776,9 +801,9 @@ button {
   align-items: center;
   gap: 8px;
   margin: 0;
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 700;
-  color: #e54848;
+  color: var(--gs-warn-strong);
 }
 
 .modal-card p {
@@ -810,7 +835,7 @@ button {
 .modal-confirm {
   border: 0;
   color: #fff;
-  background: #e54848;
+  background: var(--gs-warn-strong);
 }
 
 /* 로딩 / 에러 */
@@ -850,7 +875,7 @@ button {
 }
 
 .retry-button {
-  padding: 10px 20px;
+  padding: 12px 20px;
   border: 0;
   border-radius: 12px;
   color: var(--gs-text);
