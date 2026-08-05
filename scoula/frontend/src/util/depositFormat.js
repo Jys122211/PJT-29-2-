@@ -111,9 +111,3 @@ export function toDisplayAccount(value) {
   return `${d.slice(0, 3)}-${d.slice(3, 6)}-${d.slice(6)}`;
 }
 
-/** 목록 표시용. 가운데를 가린다. '123456789012' → '123-***-**9012' */
-export function maskAccount(value) {
-  const d = toCompactAccount(value);
-  if (d.length < 8) return toDisplayAccount(d);
-  return `${d.slice(0, 3)}-***-**${d.slice(-4)}`;
-}
