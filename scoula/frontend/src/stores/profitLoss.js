@@ -24,7 +24,7 @@ const CREDIT_ELIGIBILITY_QUESTIONS = [
     id: 4,
     type: 'COMPARISON_CONDITION',
     requestField: 'IS_LUMP_SUM',
-    text: '예금이 만기되면, 예금 만기 금액으로 대출을 갚으실 예정이신가요?',
+    text: '예금 만기 시에, 만기된 예금으로 대출을 상환하실 예정인가요?',
   },
 ];
 
@@ -39,7 +39,7 @@ const JEONSE_COMPARISON_CONDITIONS = [
     id: 'jeonse_comp_2',
     type: 'COMPARISON_CONDITION',
     requestField: 'IS_LUMP_SUM',
-    text: '예금이 만기되면, 예금 만기 금액으로 대출을 갚으실 예정이신가요?',
+    text: '예금 만기 시에, 만기된 예금으로 대출을 상환하실 예정인가요?',
   },
 ];
 
