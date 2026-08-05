@@ -135,38 +135,38 @@ const cancelModal = () => {
         <div class="card compare-card" :class="{ winner: isDepositWinner }">
           <span v-if="isDepositWinner" class="winner-tag">추천</span>
           <p class="compare-title">① 중도 또는 부분해지 <span class="info-icon">ⓘ</span></p>
-          <div class="compare-meta">
-            <p v-if="comparison.deposit.name" class="compare-product" :title="comparison.deposit.name">
-              {{ comparison.deposit.name }}
-            </p>
-            <p
-              v-if="comparison.deposit.accountNumber"
-              class="compare-account"
-              :title="comparison.deposit.accountNumber"
-            >
-              {{ comparison.deposit.accountNumber }}
-            </p>
-          </div>
+          <p v-if="comparison.deposit.name" class="compare-product" :title="comparison.deposit.name">
+            {{ comparison.deposit.name }}
+          </p>
+          <p
+            v-if="comparison.deposit.accountNumber"
+            class="compare-account"
+            :title="comparison.deposit.accountNumber"
+          >
+            {{ comparison.deposit.accountNumber }}
+          </p>
           <p class="compare-amount">{{ won(comparison.deposit.finalBalance) }}원</p>
 
           <div class="compare-divider"></div>
 
-          <button
-            type="button"
-            class="detail-toggle"
-            @click="depositDetailOpen = !depositDetailOpen"
-          >
-            상세 보기 {{ depositDetailOpen ? '▲' : '▼' }}
-          </button>
+          <div class="compare-actions">
+            <button
+              type="button"
+              class="detail-toggle"
+              @click="depositDetailOpen = !depositDetailOpen"
+            >
+              상세 보기 {{ depositDetailOpen ? '▲' : '▼' }}
+            </button>
 
-          <div v-show="depositDetailOpen" class="detail-table">
-            <div class="detail-row">
-              <span>중도해지이율</span>
-              <span class="detail-value">연 {{ comparison.deposit.cancelInterestRate }}%</span>
-            </div>
-            <div class="detail-row">
-              <span>해지수익</span>
-              <span class="detail-value strong">{{ won(comparison.deposit.withdrawalProfit) }}원</span>
+            <div v-show="depositDetailOpen" class="detail-table">
+              <div class="detail-row">
+                <span>중도해지이율</span>
+                <span class="detail-value">연 {{ comparison.deposit.cancelInterestRate }}%</span>
+              </div>
+              <div class="detail-row">
+                <span>해지수익</span>
+                <span class="detail-value strong">{{ won(comparison.deposit.withdrawalProfit) }}원</span>
+              </div>
             </div>
           </div>
         </div>
@@ -174,42 +174,42 @@ const cancelModal = () => {
         <div class="card compare-card" :class="{ winner: isLoanWinner }">
           <span v-if="isLoanWinner" class="winner-tag">추천</span>
           <p class="compare-title">② {{ loanTypeLabel }} · 예금 유지</p>
-          <div class="compare-meta">
-            <p v-if="comparison.loan.name" class="compare-product" :title="comparison.loan.name">
-              {{ comparison.loan.name }}
-            </p>
-          </div>
+          <p v-if="comparison.loan.name" class="compare-product" :title="comparison.loan.name">
+            {{ comparison.loan.name }}
+          </p>
           <p class="compare-amount">{{ won(comparison.loan.finalBalance) }}원</p>
 
           <div class="compare-divider"></div>
 
-          <button
-            type="button"
-            class="detail-toggle"
-            @click="loanDetailOpen = !loanDetailOpen"
-          >
-            상세 보기 {{ loanDetailOpen ? '▲' : '▼' }}
-          </button>
+          <div class="compare-actions">
+            <button
+              type="button"
+              class="detail-toggle"
+              @click="loanDetailOpen = !loanDetailOpen"
+            >
+              상세 보기 {{ loanDetailOpen ? '▲' : '▼' }}
+            </button>
 
-          <div v-show="loanDetailOpen" class="detail-table">
-            <div class="detail-row">
-              <span>비용 (이자+수수료)</span>
-              <span class="detail-value">
-                {{ won(comparison.loan.cost) }}원
-                <small>(이자 {{ won(comparison.loan.interest) }} + 수수료 {{ won(comparison.loan.penalty) }})</small>
-              </span>
+            <div v-show="loanDetailOpen" class="detail-table">
+              <div class="detail-row">
+                <span>비용 (이자+수수료)</span>
+                <span class="detail-value">
+                  {{ won(comparison.loan.cost) }}원
+                  <small>(이자 {{ won(comparison.loan.interest) }} + 수수료 {{ won(comparison.loan.penalty) }})</small>
+                </span>
+              </div>
+              <div class="detail-row">
+                <span>만기이자</span>
+                <span class="detail-value">{{ won(comparison.deposit.maintainInterest) }}원</span>
+              </div>
+              <div class="detail-row">
+                <span>총 이득</span>
+                <span class="detail-value strong">{{ won(comparison.loan.netProfit) }}원</span>
+              </div>
+              <p v-if="comparison.loan.isRateEstimated" class="detail-note">
+                ※ 추정치이며 실제 심사금리와 다를 수 있습니다
+              </p>
             </div>
-            <div class="detail-row">
-              <span>만기이자</span>
-              <span class="detail-value">{{ won(comparison.deposit.maintainInterest) }}원</span>
-            </div>
-            <div class="detail-row">
-              <span>총 이득</span>
-              <span class="detail-value strong">{{ won(comparison.loan.netProfit) }}원</span>
-            </div>
-            <p v-if="comparison.loan.isRateEstimated" class="detail-note">
-              ※ 추정치이며 실제 심사금리와 다를 수 있습니다
-            </p>
           </div>
         </div>
       </section>
@@ -473,15 +473,34 @@ button {
   color: var(--gs-warn-text);
 }
 
-/* 4. 비교 카드 2장 */
+/* 4. 비교 카드 2장 — 두 카드가 같은 행 트랙을 공유하는 subgrid.
+   행: 1 제목 / 2 상품명 / 3 계좌번호 / 4 금액 / 5 구분선 / 6 상세 보기(버튼+펼침 내용).
+   각 요소가 grid-row로 행 번호를 직접 지정하기 때문에, 계좌번호가 없는 카드는
+   3행에 아무 요소도 놓이지 않아 자동으로 비워진다(그 행 높이는 계좌번호가
+   있는 카드 쪽 내용 기준으로 정해진다) — 그래도 4행(금액)은 항상 같은 위치에서
+   시작한다. 상세 보기 버튼과 펼침 내용(.detail-table)은 .compare-actions로
+   묶어서 같이 6행에 넣는다 — subgrid로 만든 행 트랙에 6개를 넘는 자식을
+   두면(예: 펼침 내용만 7행으로 따로 두기) Chrome이 그 초과분을 새 행으로
+   만들지 않고 마지막 subgrid 행 위에 겹쳐 그린다(구현 한계). 버튼은 항상
+   6행 맨 위에서 시작하므로 펼침 여부와 무관하게 버튼 위치는 고정된다.
+   추천 배지(.winner-tag)는 position: absolute라 그리드 흐름에서 빠지므로
+   행을 배정하지 않는다.
+   subgrid 미지원 브라우저(Chrome 117 미만 등)에서는 grid-template-rows: subgrid
+   선언이 무시되고 각 카드가 독립된 행으로 되돌아간다 — 정렬만 예전처럼
+   어긋날 뿐 레이아웃이 깨지지는 않는다. */
 .compare-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  grid-template-rows: repeat(6, auto);
+  column-gap: 10px;
+  row-gap: 0;
   align-items: stretch;
 }
 
 .compare-card {
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-row: span 6;
   position: relative;
   border: 1px solid var(--gs-line);
 }
@@ -502,23 +521,15 @@ button {
 }
 
 .compare-title {
+  grid-row: 1;
   margin: 0;
   font-size: 13px;
   color: var(--gs-text-sub);
 }
 
-/* 상품명(최대 2줄) + 계좌번호(1줄)를 한 덩어리로 묶어 min-height를 준다. 개별
-   요소에 min-height를 주면 내용이 짧을 때 그 요소 자체가 늘어나 상품명과
-   계좌번호 사이에 빈 줄이 생긴다 — 컨테이너에서 흡수해야 둘은 붙어있고
-   남는 공간만 아래로 몰려서, 계좌번호 유무·상품명 줄 수와 무관하게 두 카드의
-   금액 시작 위치가 항상 같아진다. */
-.compare-meta {
-  margin: 2px 0 0;
-  min-height: calc(11px * 1.35 * 3 + 2px); /* 상품명 2줄 + 계좌번호 여백 2px + 계좌번호 1줄 */
-}
-
 .compare-product {
-  margin: 0;
+  grid-row: 2;
+  margin: 2px 0 0;
   font-size: 11px;
   line-height: 1.35;
   color: var(--gs-text-sub);
@@ -529,6 +540,7 @@ button {
 }
 
 .compare-account {
+  grid-row: 3;
   margin: 2px 0 0;
   overflow: hidden;
   font-size: 11px;
@@ -543,6 +555,7 @@ button {
 }
 
 .compare-amount {
+  grid-row: 4;
   margin: 6px 0 0;
   font-size: 20px;
   font-weight: 700;
@@ -550,8 +563,13 @@ button {
 }
 
 .compare-divider {
+  grid-row: 5;
   margin: 12px 0;
   border-top: 1px solid var(--gs-line);
+}
+
+.compare-actions {
+  grid-row: 6;
 }
 
 .detail-toggle {
