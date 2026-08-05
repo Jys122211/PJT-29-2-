@@ -24,7 +24,7 @@ const CREDIT_ELIGIBILITY_QUESTIONS = [
     id: 4,
     type: 'COMPARISON_CONDITION',
     requestField: 'IS_LUMP_SUM',
-    text: '예금이 만기시에, 만기된 예금으로 대출을 갚으실 예정인가요?',
+    text: '예금 만기시에, 만기된 예금으로 대출을 갚으실 예정인가요?',
   },
 ];
 
@@ -39,7 +39,7 @@ const JEONSE_COMPARISON_CONDITIONS = [
     id: 'jeonse_comp_2',
     type: 'COMPARISON_CONDITION',
     requestField: 'IS_LUMP_SUM',
-    text: '예금이 만기시에, 만기된 예금으로 대출을 갚으실 예정인가요?',
+    text: '예금 만기시에, 만기된 예금으로 대출을 갚으실 예정인가요?',
   },
 ];
 
@@ -85,14 +85,14 @@ const CREDIT_PREFERENTIAL_GROUPS = [
     type: 'YES_NO',
     title: '우대금리 (3) 적립식예금(30만원 이상) 보유 우대',
     preferentialQuestionId: 5,
-    text: '현재 본인 명의의 KB국민은행 적금 계좌에 30만원 이상의 잔액이 있나요?',
+    text: '현재 내 이름으로 된(본인명의) KB국민은행 적금 계좌에 30만원 이상의 잔액이 있나요?',
   },
   {
     id: 'AUTO_TRANSFER',
     type: 'YES_NO',
     title: '우대금리 (4) 자동이체 실적 우대',
     preferentialQuestionId: 6,
-    text: 'KB국민은행 계좌에서 아파트 관리비, 지로요금의 자동이체가 3건 이상 출금된 실적이 있나요?',
+    text: 'KB국민은행 계좌에서 아파트 관리비나 지로요금의 자동이체가 3건 이상 출금된 실적이 있나요?',
     description:
       '지로요금은 전기·가스·수도·통신요금 등 고지서로 청구되는 요금을 말합니다.',
   },
