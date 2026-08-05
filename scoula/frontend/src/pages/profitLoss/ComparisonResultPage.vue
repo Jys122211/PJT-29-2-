@@ -21,9 +21,14 @@ const loanTypeLabel = computed(() =>
   comparison.value?.loan.type === 'CREDIT' ? '신용대출' : '전세자금대출'
 );
 
-// 배너·배지·계산 조건 카드가 같이 쓴다.
-const winnerName = computed(() =>
-  isLoanWinner.value ? comparison.value?.loan.name : '예금 중도해지'
+// 배너 둘째 줄(결론)용 — 대출 승이면 종류명, 예금 승이면 고정 문구.
+const winnerTypeLabel = computed(() =>
+  isLoanWinner.value ? loanTypeLabel.value : '예금 중도해지'
+);
+
+// 배너 첫 줄(무엇을 비교했는지)용 — 실제 상품명. 동점은 승자가 없어 표시하지 않는다.
+const winnerProductName = computed(() =>
+  isLoanWinner.value ? comparison.value?.loan.name : comparison.value?.deposit.name
 );
 
 const partialAllowedText = computed(() =>
@@ -49,19 +54,33 @@ const warningMessage = computed(() => {
 const loanDetailOpen = ref(false);
 const depositDetailOpen = ref(false);
 
-const maxFinalBalance = computed(() => {
+// 잔액은 예금 원금이라는 공통분모를 나눠 가져 막대 차이가 잘 안 보인다.
+// 손실액(만기까지 뒀을 때와의 차액) 기준으로 그려야 둘의 격차가 드러난다.
+// finalBalance - withdrawalProfit = 예금 원금(둘 다 aFinalBalance에서 역산되는 값이라 항상 같다).
+const depositMaturityAmount = computed(() => {
   if (!comparison.value) return 0;
-  return Math.max(comparison.value.loan.finalBalance, comparison.value.deposit.finalBalance);
+  const principal = comparison.value.deposit.finalBalance - comparison.value.deposit.withdrawalProfit;
+  return principal + comparison.value.deposit.maintainInterest;
 });
 
+const depositLoss = computed(() =>
+  comparison.value ? depositMaturityAmount.value - comparison.value.deposit.finalBalance : 0
+);
+
+const loanLoss = computed(() =>
+  comparison.value ? depositMaturityAmount.value - comparison.value.loan.finalBalance : 0
+);
+
+const maxLoss = computed(() => Math.max(depositLoss.value, loanLoss.value));
+
 const loanBarWidth = computed(() => {
-  if (!comparison.value || maxFinalBalance.value === 0) return 0;
-  return (comparison.value.loan.finalBalance / maxFinalBalance.value) * 100;
+  if (!comparison.value || maxLoss.value === 0) return 0;
+  return (loanLoss.value / maxLoss.value) * 100;
 });
 
 const depositBarWidth = computed(() => {
-  if (!comparison.value || maxFinalBalance.value === 0) return 0;
-  return (comparison.value.deposit.finalBalance / maxFinalBalance.value) * 100;
+  if (!comparison.value || maxLoss.value === 0) return 0;
+  return (depositLoss.value / maxLoss.value) * 100;
 });
 
 // 추천이 아닌 쪽을 누르면 손실경고 모달을 먼저 띄운다.
@@ -113,11 +132,11 @@ const cancelModal = () => {
 
       <!-- 2. 결론 배너 카드 -->
       <section class="card banner-card">
-        <p class="banner-lead">{{ won(comparison.urgentAmount) }}원이 필요할 때</p>
+        <p v-if="!isTie" class="banner-product-name">{{ winnerProductName }}</p>
         <p class="banner-main">
           <template v-if="isTie">두 방법의 결과가 같습니다</template>
           <template v-else>
-            {{ winnerName }}
+            {{ winnerTypeLabel }}
             <span class="gold">{{ won(comparison.savingAmount) }}원</span> 더 이득
           </template>
         </p>
@@ -221,14 +240,14 @@ const cancelModal = () => {
       <!-- 5. 바 차트 카드 -->
       <section class="card chart-card">
         <div class="chart-header">
-          <span>만기 시점 최종 잔액</span>
+          <span>얼마를 잃게 되나</span>
           <span class="gold">차이 {{ won(comparison.savingAmount) }}원</span>
         </div>
 
         <div class="chart-row">
           <div class="chart-row-label">
             <span>신용대출</span>
-            <strong>{{ won(comparison.loan.finalBalance) }}원</strong>
+            <strong>{{ won(loanLoss) }}원</strong>
           </div>
           <div class="chart-bar-track">
             <div
@@ -242,7 +261,7 @@ const cancelModal = () => {
         <div class="chart-row">
           <div class="chart-row-label">
             <span>중도해지</span>
-            <strong>{{ won(comparison.deposit.finalBalance) }}원</strong>
+            <strong>{{ won(depositLoss) }}원</strong>
           </div>
           <div class="chart-bar-track">
             <div
@@ -440,11 +459,12 @@ button {
   outline-offset: 2px;
 }
 
-/* 2. 결론 배너 */
-.banner-lead {
+/* 2. 결론 배너 — 상품명이 작게 받쳐주고 결론이 크게 온다. */
+.banner-product-name {
   margin: 0;
   font-size: 14px;
-  color: var(--gs-text-sub);
+  font-weight: 700;
+  color: var(--gs-text);
 }
 
 .banner-main {
