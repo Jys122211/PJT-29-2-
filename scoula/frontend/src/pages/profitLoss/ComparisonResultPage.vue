@@ -135,16 +135,18 @@ const cancelModal = () => {
         <div class="card compare-card" :class="{ winner: isDepositWinner }">
           <span v-if="isDepositWinner" class="winner-tag">추천</span>
           <p class="compare-title">① 중도 또는 부분해지 <span class="info-icon">ⓘ</span></p>
-          <p v-if="comparison.deposit.name" class="compare-product" :title="comparison.deposit.name">
-            {{ comparison.deposit.name }}
-          </p>
-          <p
-            v-if="comparison.deposit.accountNumber"
-            class="compare-account"
-            :title="comparison.deposit.accountNumber"
-          >
-            {{ comparison.deposit.accountNumber }}
-          </p>
+          <div class="compare-meta">
+            <p v-if="comparison.deposit.name" class="compare-product" :title="comparison.deposit.name">
+              {{ comparison.deposit.name }}
+            </p>
+            <p
+              v-if="comparison.deposit.accountNumber"
+              class="compare-account"
+              :title="comparison.deposit.accountNumber"
+            >
+              {{ comparison.deposit.accountNumber }}
+            </p>
+          </div>
           <p class="compare-amount">{{ won(comparison.deposit.finalBalance) }}원</p>
 
           <div class="compare-divider"></div>
@@ -172,9 +174,11 @@ const cancelModal = () => {
         <div class="card compare-card" :class="{ winner: isLoanWinner }">
           <span v-if="isLoanWinner" class="winner-tag">추천</span>
           <p class="compare-title">② {{ loanTypeLabel }} · 예금 유지</p>
-          <p v-if="comparison.loan.name" class="compare-product" :title="comparison.loan.name">
-            {{ comparison.loan.name }}
-          </p>
+          <div class="compare-meta">
+            <p v-if="comparison.loan.name" class="compare-product" :title="comparison.loan.name">
+              {{ comparison.loan.name }}
+            </p>
+          </div>
           <p class="compare-amount">{{ won(comparison.loan.finalBalance) }}원</p>
 
           <div class="compare-divider"></div>
@@ -503,8 +507,18 @@ button {
   color: var(--gs-text-sub);
 }
 
-.compare-product {
+/* 상품명(최대 2줄) + 계좌번호(1줄)를 한 덩어리로 묶어 min-height를 준다. 개별
+   요소에 min-height를 주면 내용이 짧을 때 그 요소 자체가 늘어나 상품명과
+   계좌번호 사이에 빈 줄이 생긴다 — 컨테이너에서 흡수해야 둘은 붙어있고
+   남는 공간만 아래로 몰려서, 계좌번호 유무·상품명 줄 수와 무관하게 두 카드의
+   금액 시작 위치가 항상 같아진다. */
+.compare-meta {
   margin: 2px 0 0;
+  min-height: calc(11px * 1.35 * 3 + 2px); /* 상품명 2줄 + 계좌번호 여백 2px + 계좌번호 1줄 */
+}
+
+.compare-product {
+  margin: 0;
   font-size: 11px;
   line-height: 1.35;
   color: var(--gs-text-sub);
@@ -518,6 +532,7 @@ button {
   margin: 2px 0 0;
   overflow: hidden;
   font-size: 11px;
+  line-height: 1.35;
   color: var(--gs-text-sub);
   text-overflow: ellipsis;
   white-space: nowrap;
