@@ -21,7 +21,7 @@ const loanTypeLabel = computed(() =>
   comparison.value?.loan.type === 'CREDIT' ? '신용대출' : '전세자금대출'
 );
 
-// 배너·배지·계산 조건 카드가 공유하는 문구. 승자가 대출이면 실제 상품명, 예금이면 고정 문구.
+// 배너·배지·계산 조건 카드가 같이 쓴다.
 const winnerName = computed(() =>
   isLoanWinner.value ? comparison.value?.loan.name : '예금 중도해지'
 );
@@ -30,7 +30,7 @@ const partialAllowedText = computed(() =>
   comparison.value?.badges.isPartialAllowed ? '부분해지 가능' : '부분해지 불가'
 );
 const lumpSumText = computed(() =>
-  comparison.value?.badges.isLumpSum ? '예금 만기에 상환' : '월 납입으로 상환'
+  comparison.value?.badges.isLumpSum ? '예금 만기에 일괄 상환' : '월 납입으로만 상환'
 );
 
 // 서버 메시지는 숫자 없이 고정 문구라 앞에 실제 차액/최저임금 금액을 붙여준다.
@@ -117,7 +117,7 @@ const cancelModal = () => {
         <p class="banner-main">
           <template v-if="isTie">두 방법의 결과가 같습니다</template>
           <template v-else>
-            <span class="banner-winner-name">{{ winnerName }}</span>
+            {{ winnerName }}
             <span class="gold">{{ won(comparison.savingAmount) }}원</span> 더 이득
           </template>
         </p>
@@ -450,11 +450,8 @@ button {
 .banner-main {
   margin: 8px 0 0;
   font-size: 22px;
-  line-height: 1.4;
-}
-
-.banner-winner-name {
   font-weight: 700;
+  line-height: 1.4;
 }
 
 .badge-row {
@@ -498,20 +495,13 @@ button {
   color: var(--gs-warn-text);
 }
 
-/* 4. 비교 카드 2장 — 두 카드가 같은 행 트랙을 공유하는 subgrid.
-   행: 1 제목 / 2 상품명 / 3 계좌번호 / 4 금액 / 5 구분선 / 6 상세 보기(버튼+펼침 내용).
-   각 요소가 grid-row로 행 번호를 직접 지정하기 때문에, 계좌번호가 없는 카드는
-   3행에 아무 요소도 놓이지 않아 자동으로 비워진다(그 행 높이는 계좌번호가
-   있는 카드 쪽 내용 기준으로 정해진다) — 그래도 4행(금액)은 항상 같은 위치에서
-   시작한다. 상세 보기 버튼과 펼침 내용(.detail-table)은 .compare-actions로
-   묶어서 같이 6행에 넣는다 — subgrid로 만든 행 트랙에 6개를 넘는 자식을
-   두면(예: 펼침 내용만 7행으로 따로 두기) Chrome이 그 초과분을 새 행으로
-   만들지 않고 마지막 subgrid 행 위에 겹쳐 그린다(구현 한계). 버튼은 항상
-   6행 맨 위에서 시작하므로 펼침 여부와 무관하게 버튼 위치는 고정된다.
-   추천 배지(.winner-tag)는 position: absolute라 그리드 흐름에서 빠지므로
-   행을 배정하지 않는다.
-   subgrid 미지원 브라우저(Chrome 117 미만 등)에서는 grid-template-rows: subgrid
-   선언이 무시되고 각 카드가 독립된 행으로 되돌아간다 — 정렬만 예전처럼
+/* 4. 비교 카드 2장 — 두 카드가 행 트랙을 공유하는 subgrid.
+   행 1 제목 / 2 상품명 / 3 계좌번호 / 4 금액 / 5 구분선 / 6 상세 보기.
+   계좌번호가 없는 카드는 3행이 비어서, 4행(금액) 위치는 항상 같다.
+   상세 보기 버튼+펼침 내용을 .compare-actions로 묶어 6행 하나에 둔다 —
+   펼침 내용을 7행으로 따로 두면 subgrid 범위 밖이라 Chrome이 6행 위에
+   겹쳐 그린다. 추천 배지는 position: absolute라 행을 배정하지 않는다.
+   subgrid 미지원 브라우저는 각 카드가 독립된 행으로 돌아가 정렬만
    어긋날 뿐 레이아웃이 깨지지는 않는다. */
 .compare-grid {
   display: grid;
@@ -556,6 +546,7 @@ button {
   grid-row: 2;
   margin: 2px 0 0;
   font-size: 11px;
+  font-weight: 700;
   line-height: 1.35;
   color: var(--gs-text-sub);
   display: -webkit-box;
@@ -611,6 +602,8 @@ button {
   margin-top: 12px;
 }
 
+/* keep-all: 짧은 라벨은 flex-shrink 없이도 안 찌그러지고, "670,558원"처럼
+   스페이스 없는 값은 한글 음절 사이 줄바꿈으로 숫자와 단위가 갈라지지 않는다. */
 .detail-row {
   display: flex;
   justify-content: space-between;
@@ -618,10 +611,7 @@ button {
   margin-bottom: 8px;
   font-size: 12px;
   color: var(--gs-text-sub);
-}
-
-.detail-row > span:first-child {
-  flex-shrink: 0;
+  word-break: keep-all;
 }
 
 .detail-value {
