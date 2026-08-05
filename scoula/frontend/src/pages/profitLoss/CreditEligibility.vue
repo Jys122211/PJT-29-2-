@@ -32,8 +32,13 @@ const visibleQualificationQuestions = computed(() => {
 });
 
 const isQualificationComplete = computed(() => {
-  return qualificationQuestions.value.length > 0 &&
-         qualificationQuestions.value.every(q => selectedAnswer(q.id) !== undefined && selectedAnswer(q.id) !== null);
+  return (
+    qualificationQuestions.value.length > 0 &&
+    qualificationQuestions.value.every(
+      (q) =>
+        selectedAnswer(q.id) !== undefined && selectedAnswer(q.id) !== null,
+    )
+  );
 });
 
 const comparisonConditionQuestions = computed(() =>
@@ -97,10 +102,9 @@ async function continueToNextStep() {
     const qualificationQuestionIds = [
       ...profitLossStore.qualificationQuestionIds,
     ];
-    const loanProductIds =
-      await profitLossApi.getQualifiedLoanProductIds(
-        qualificationQuestionIds,
-      );
+    const loanProductIds = await profitLossApi.getQualifiedLoanProductIds(
+      qualificationQuestionIds,
+    );
 
     profitLossStore.setLoanProducts(loanProductIds);
 
@@ -153,6 +157,9 @@ async function continueToNextStep() {
       <section class="question-section">
         <div class="group-container">
           <h2>자격조건 질문</h2>
+          <p class="question-guide">
+            잘 모르시겠다면 우선 <strong>‘예’</strong>를 선택해 주세요.
+          </p>
           <TransitionGroup name="question-fade" tag="div">
             <article
               v-for="item in visibleQualificationQuestions"
@@ -192,8 +199,14 @@ async function continueToNextStep() {
           </p>
         </div>
 
-        <div class="group-container" v-if="visibleComparisonConditionQuestions.length > 0">
+        <div
+          class="group-container"
+          v-if="visibleComparisonConditionQuestions.length > 0"
+        >
           <h2>득실 계산 조건</h2>
+          <p class="question-guide">
+            잘 모르시겠다면 우선 <strong>‘예’</strong>를 선택해 주세요.
+          </p>
           <TransitionGroup name="question-fade" tag="div">
             <article
               v-for="item in visibleComparisonConditionQuestions"
@@ -335,15 +348,27 @@ button {
 }
 
 .question-section h2 {
-  margin: 0 0 11px;
+  margin: 0 0 4px;
   font-size: var(--kb-font-sm);
+  font-weight: 700;
+  color: #716a62;
+}
+
+.question-guide {
+  margin: 0 0 10px;
+  font-size: 10px;
+  line-height: 1.5;
+  color: #a49b90;
+}
+
+.question-guide strong {
   font-weight: 700;
   color: #716a62;
 }
 
 .question-card {
   min-height: 102px;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
   padding: var(--kb-space-md);
 }
 
@@ -371,7 +396,9 @@ button {
   flex-shrink: 0;
   color: #746d65;
   background: #fff;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
 }
 .answer-options button:hover {
   transform: translateY(-2px);
@@ -395,7 +422,7 @@ button {
 
 .qualification-notice {
   margin: 0;
-  padding: 14px 12px;
+  padding: 10px 12px;
   border-radius: 11px;
   font-size: 10px;
   line-height: 1.6;

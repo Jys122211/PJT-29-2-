@@ -9,16 +9,16 @@
 
     <select id="getDepositsByUserId"
             resultType="org.scoula.profitLoss.domain.UserDepositVO">
-        SELECT
-            ud.user_deposit_id,
-            ud.user_id,
-            ud.bank_name,
-            ud.product_name,
-            ud.join_date,
-            ud.maturity_date,
-            ud.applied_rate,
-            ud.base_rate,
-            ud.principal_amount
+        SELECT ud.user_deposit_id,
+               ud.user_id,
+               ud.bank_name,
+               ud.product_name,
+               ud.join_date,
+               ud.maturity_date,
+               ud.applied_rate,
+               ud.base_rate,
+               ud.principal_amount,
+               ud.account_number
         FROM user_deposits ud
         WHERE ud.user_id = #{userId}
           AND ud.is_deleted = 'N'
@@ -29,7 +29,7 @@
             parameterType="map"
             resultType="long">
         SELECT
-            c.loan_product_id
+        c.loan_product_id
         FROM credit_loan_qualification_condition c
         WHERE
 
@@ -55,13 +55,13 @@
         GROUP BY c.loan_product_id
 
         HAVING COUNT(
-            DISTINCT c.credit_loan_qualification_condition_question_id
+        DISTINCT c.credit_loan_qualification_condition_question_id
         ) = (
-            SELECT COUNT(
-                DISTINCT c2.credit_loan_qualification_condition_question_id
-            )
-            FROM credit_loan_qualification_condition c2
-            WHERE c2.loan_product_id = c.loan_product_id
+        SELECT COUNT(
+        DISTINCT c2.credit_loan_qualification_condition_question_id
+        )
+        FROM credit_loan_qualification_condition c2
+        WHERE c2.loan_product_id = c.loan_product_id
         )
     </select>
 
@@ -70,40 +70,40 @@
             resultType="java.math.BigDecimal">
 
         SELECT
-            LEAST(
-                COALESCE(SUM(r.discount_rate), 0),
-                p.max_discount_rate
-            ) AS final_discount_rate
+        LEAST(
+        COALESCE(SUM(r.discount_rate), 0),
+        p.max_discount_rate
+        ) AS final_discount_rate
 
         FROM credit_loan_products p
 
         LEFT JOIN credit_loan_preferential_rate r
-            ON p.loan_product_id = r.loan_product_id
+        ON p.loan_product_id = r.loan_product_id
 
-            <choose>
-                <when test="preferentialQuestionIds != null
+        <choose>
+            <when test="preferentialQuestionIds != null
                             and preferentialQuestionIds.size() > 0">
-                    AND r.credit_loan_preferential_condition_question_id IN
+                AND r.credit_loan_preferential_condition_question_id IN
 
-                    <foreach collection="preferentialQuestionIds"
-                             item="questionId"
-                             open="("
-                             separator=","
-                             close=")">
-                        #{questionId}
-                    </foreach>
-                </when>
+                <foreach collection="preferentialQuestionIds"
+                         item="questionId"
+                         open="("
+                         separator=","
+                         close=")">
+                    #{questionId}
+                </foreach>
+            </when>
 
-                <otherwise>
-                    AND 1 = 0
-                </otherwise>
-            </choose>
+            <otherwise>
+                AND 1 = 0
+            </otherwise>
+        </choose>
 
         WHERE p.loan_product_id = #{loanProductId}
 
         GROUP BY
-            p.loan_product_id,
-            p.max_discount_rate
+        p.loan_product_id,
+        p.max_discount_rate
 
     </select>
 
@@ -112,17 +112,17 @@
     <!-- comparisons: database.sql에 실제로 존재하는 테이블. mapUnderscoreToCamelCase=true라 resultType만으로 매핑된다. -->
     <insert id="insertComparison" parameterType="org.scoula.profitLoss.vo.ComparisonVO"
             useGeneratedKeys="true" keyProperty="comparisonId" keyColumn="comparison_id">
-        INSERT INTO comparisons (
-            user_id, user_deposit_id, urgent_amount, monthly_payment,
-            is_partial_allowed, is_lump_sum, loan_name, loan_type, loan_interest_rate, rate_period_months,
-            loan_interest, loan_penalty, deposit_name, deposit_maintain_interest, deposit_cancel_interest_rate,
-            deposit_cancel_interest, a_final_balance, b_final_balance, winner, created_at
-        ) VALUES (
-            #{userId}, #{userDepositId}, #{urgentAmount}, #{monthlyPayment},
-            #{isPartialAllowed}, #{isLumpSum}, #{loanName}, #{loanType}, #{loanInterestRate}, #{ratePeriodMonths},
-            #{loanInterest}, #{loanPenalty}, #{depositName}, #{depositMaintainInterest}, #{depositCancelInterestRate},
-            #{depositCancelInterest}, #{aFinalBalance}, #{bFinalBalance}, #{winner}, #{createdAt}
-        )
+        INSERT INTO comparisons (user_id, user_deposit_id, urgent_amount, monthly_payment,
+                                 is_partial_allowed, is_lump_sum, loan_name, loan_type, loan_interest_rate,
+                                 rate_period_months,
+                                 loan_interest, loan_penalty, deposit_name, deposit_maintain_interest,
+                                 deposit_cancel_interest_rate,
+                                 deposit_cancel_interest, a_final_balance, b_final_balance, winner, created_at)
+        VALUES (#{userId}, #{userDepositId}, #{urgentAmount}, #{monthlyPayment},
+                #{isPartialAllowed}, #{isLumpSum}, #{loanName}, #{loanType}, #{loanInterestRate}, #{ratePeriodMonths},
+                #{loanInterest}, #{loanPenalty}, #{depositName}, #{depositMaintainInterest},
+                #{depositCancelInterestRate},
+                #{depositCancelInterest}, #{aFinalBalance}, #{bFinalBalance}, #{winner}, #{createdAt})
     </insert>
 
     <select id="selectComparisonById" resultType="org.scoula.profitLoss.vo.ComparisonVO">
@@ -133,35 +133,34 @@
     </select>
 
     <select id="selectUserDeposit" resultType="org.scoula.profitLoss.domain.UserDepositVO">
-        SELECT
-            user_deposit_id,
-            user_id,
-            bank_name,
-            product_name,
-            join_date,
-            maturity_date,
-            applied_rate,
-            base_rate,
-            principal_amount
+        SELECT user_deposit_id,
+               user_id,
+               bank_name,
+               product_name,
+               join_date,
+               maturity_date,
+               applied_rate,
+               base_rate,
+               principal_amount
         FROM user_deposits
         WHERE user_deposit_id = #{userDepositId}
-          AND user_id         = #{userId}
-          AND is_deleted      = 'N'
+          AND user_id = #{userId}
+          AND is_deleted = 'N'
     </select>
 
     <select id="selectLoanProducts" resultType="org.scoula.profitLoss.vo.LoanProductRateVO">
         SELECT
-            g.loan_product_id,
-            p.product_name,
-            g.rate_period_months,
-            g.base_rate,
-            g.spread_rate,
-            p.loan_limit
+        g.loan_product_id,
+        p.product_name,
+        g.rate_period_months,
+        g.base_rate,
+        g.spread_rate,
+        p.loan_limit
         FROM credit_loan_grade_rate g
         JOIN credit_loan_products p
-             ON p.loan_product_id = g.loan_product_id
+        ON p.loan_product_id = g.loan_product_id
         WHERE g.credit_grade = #{creditGrade}
-          AND g.loan_product_id IN
+        AND g.loan_product_id IN
         <foreach collection="productIds" item="productId" open="(" separator="," close=")">
             #{productId}
         </foreach>
@@ -175,15 +174,15 @@
 
     <select id="selectJeonseLoanProducts" resultType="org.scoula.profitLoss.vo.JeonseLoanProductVO">
         SELECT
-            p.product_id,
-            p.product_name,
-            r.rate_type,
-            r.base_rate,
-            r.spread_rate,
-            p.max_loan_limit
+        p.product_id,
+        p.product_name,
+        r.rate_type,
+        r.base_rate,
+        r.spread_rate,
+        p.max_loan_limit
         FROM jeonse_rate_option r
         JOIN jeonse_product p
-             ON p.product_id = r.product_id
+        ON p.product_id = r.product_id
         WHERE r.product_id IN
         <foreach collection="productIds" item="productId" open="(" separator="," close=")">
             #{productId}

@@ -24,7 +24,7 @@ const CREDIT_ELIGIBILITY_QUESTIONS = [
     id: 4,
     type: 'COMPARISON_CONDITION',
     requestField: 'IS_LUMP_SUM',
-    text: '예금이 만기되면, 만기에 예금으로 대출을 갚으실 예정인가요?',
+    text: '예금이 만기시에, 만기된 예금으로 대출을 갚으실 예정인가요?',
   },
 ];
 
@@ -39,7 +39,7 @@ const JEONSE_COMPARISON_CONDITIONS = [
     id: 'jeonse_comp_2',
     type: 'COMPARISON_CONDITION',
     requestField: 'IS_LUMP_SUM',
-    text: '예금이 만기되면, 만기에 예금으로 대출을 갚으실 예정인가요?',
+    text: '예금이 만기시에, 만기된 예금으로 대출을 갚으실 예정인가요?',
   },
 ];
 
@@ -85,21 +85,23 @@ const CREDIT_PREFERENTIAL_GROUPS = [
     type: 'YES_NO',
     title: '우대금리 (3) 적립식예금(30만원 이상) 보유 우대',
     preferentialQuestionId: 5,
-    text: 'KB국민은행 적립식예금 계좌에 30만원 이상의 잔액을 보유하고 계신가요?',
+    text: '현재 본인 명의의 KB국민은행 적금 계좌에 30만원 이상의 잔액이 있나요?',
   },
   {
     id: 'AUTO_TRANSFER',
     type: 'YES_NO',
     title: '우대금리 (4) 자동이체 실적 우대',
     preferentialQuestionId: 6,
-    text: 'KB국민은행 계좌에서 아파트 관리비, 공과금 또는 통신비·보험료 중 회사나 기관이 정기적으로 출금하는 자동이체가 3건 이상 있으신가요?',
+    text: 'KB국민은행 계좌에서 우대 대상으로 인정되는 자동이체가 3건 이상 출금된 실적이 있나요?',
+    description:
+      '아파트 관리비, 지로요금, 금융결제원 CMS, 펌뱅킹 자동이체가 해당합니다. 대출 실행 후 우대금리를 다시 산정할 때는 2건 이상을 기준으로 합니다.',
   },
   {
     id: 'STAR_BANKING',
     type: 'YES_NO',
     title: '우대금리 (5) KB 스타뱅킹 이용 우대',
     preferentialQuestionId: 7,
-    text: 'KB 스타뱅킹을 통해 월 1건 이상 이체한 실적이 있으신가요?',
+    text: '현재 KB스타뱅킹 앱을 이용하고 계신가요?',
   },
 ];
 
@@ -253,7 +255,11 @@ export const useProfitLossStore = defineStore('profitLoss', () => {
   // 전세대출 Computed
   const jeonseQualificationQuestionIds = computed(() =>
     state.jeonseEligibility.questions
-      .filter((question) => question.type === 'QUALIFICATION' && state.jeonseEligibility.answers[question.id] === true)
+      .filter(
+        (question) =>
+          question.type === 'QUALIFICATION' &&
+          state.jeonseEligibility.answers[question.id] === true,
+      )
       .map((question) => question.id),
   );
 
@@ -277,8 +283,9 @@ export const useProfitLossStore = defineStore('profitLoss', () => {
 
   const isJeonseEligibilityComplete = computed(() =>
     state.jeonseEligibility.questions.every(
-      (question) => typeof state.jeonseEligibility.answers[question.id] === 'boolean'
-    )
+      (question) =>
+        typeof state.jeonseEligibility.answers[question.id] === 'boolean',
+    ),
   );
 
   const isJeonsePreferentialComplete = computed(() =>
@@ -387,7 +394,10 @@ export const useProfitLossStore = defineStore('profitLoss', () => {
     const apiQuestions = Array.isArray(questions)
       ? questions.map((q) => ({ ...q, type: 'QUALIFICATION' }))
       : [];
-    state.jeonseEligibility.questions = [...apiQuestions, ...JEONSE_COMPARISON_CONDITIONS];
+    state.jeonseEligibility.questions = [
+      ...apiQuestions,
+      ...JEONSE_COMPARISON_CONDITIONS,
+    ];
   };
 
   const setJeonsePreferentialItems = (items) => {
@@ -396,8 +406,12 @@ export const useProfitLossStore = defineStore('profitLoss', () => {
       return;
     }
 
-    const cardItems = items.filter(item => item.conditionName === 'KB국민카드(신용) 이용실적 우대');
-    const otherItems = items.filter(item => item.conditionName !== 'KB국민카드(신용) 이용실적 우대');
+    const cardItems = items.filter(
+      (item) => item.conditionName === 'KB국민카드(신용) 이용실적 우대',
+    );
+    const otherItems = items.filter(
+      (item) => item.conditionName !== 'KB국민카드(신용) 이용실적 우대',
+    );
 
     const groups = [];
     if (cardItems.length > 0) {
@@ -405,32 +419,38 @@ export const useProfitLossStore = defineStore('profitLoss', () => {
         id: 'JEONSE_CARD_USAGE',
         type: 'SINGLE_SELECT',
         title: cardItems[0].conditionName,
-        description: '※ 결제계좌를 KB국민은행으로 지정하고, 최근 3개월 이용실적 기준',
+        description:
+          '※ 결제계좌를 KB국민은행으로 지정하고, 최근 3개월 이용실적 기준',
         options: [
-          ...cardItems.sort((a, b) => b.id - a.id).map(item => {
-            let formattedText = item.conditionDetail;
-            if (formattedText.includes('90')) formattedText = '최근 3개월 KB국민은행 계좌 결제 90만원 이상';
-            else if (formattedText.includes('60')) formattedText = '최근 3개월 KB국민은행 계좌 결제 60만원 이상';
-            else if (formattedText.includes('30')) formattedText = '최근 3개월 KB국민은행 계좌 결제 30만원 이상';
+          ...cardItems
+            .sort((a, b) => b.id - a.id)
+            .map((item) => {
+              let formattedText = item.conditionDetail;
+              if (formattedText.includes('90'))
+                formattedText = '최근 3개월 KB국민은행 계좌 결제 90만원 이상';
+              else if (formattedText.includes('60'))
+                formattedText = '최근 3개월 KB국민은행 계좌 결제 60만원 이상';
+              else if (formattedText.includes('30'))
+                formattedText = '최근 3개월 KB국민은행 계좌 결제 30만원 이상';
 
-            return {
-              value: item.id.toString(),
-              preferentialQuestionId: item.id,
-              text: formattedText
-            };
-          }),
-          { value: 'NONE', preferentialQuestionId: null, text: '해당 없음' }
-        ]
+              return {
+                value: item.id.toString(),
+                preferentialQuestionId: item.id,
+                text: formattedText,
+              };
+            }),
+          { value: 'NONE', preferentialQuestionId: null, text: '해당 없음' },
+        ],
       });
     }
 
-    otherItems.forEach(item => {
+    otherItems.forEach((item) => {
       groups.push({
         id: item.id.toString(),
         type: 'YES_NO',
         title: item.conditionName,
         preferentialQuestionId: item.id,
-        text: item.conditionDetail
+        text: item.conditionDetail,
       });
     });
 
@@ -438,9 +458,11 @@ export const useProfitLossStore = defineStore('profitLoss', () => {
   };
 
   const setJeonseEligibilityAnswer = (questionId, answer) => {
-    const question = state.jeonseEligibility.questions.find((q) => q.id === questionId);
+    const question = state.jeonseEligibility.questions.find(
+      (q) => q.id === questionId,
+    );
     if (!question || typeof answer !== 'boolean') return;
-    
+
     state.jeonseEligibility.answers[questionId] = answer;
 
     if (question.requestField === 'IS_PARTIAL_ALLOWED') {
@@ -462,7 +484,7 @@ export const useProfitLossStore = defineStore('profitLoss', () => {
     } else if (typeof answer !== 'boolean') {
       return;
     }
-    
+
     state.jeonsePreferential.answers[groupId] = answer;
     state.loan.totalDiscountRate = null;
   };

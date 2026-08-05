@@ -100,10 +100,7 @@ function handleRequiredAmountInput(event) {
 }
 
 function handleRequiredAmountFocus(event) {
-  requiredAmountDraft.value = String(event.target.value).replace(
-    /[^0-9]/g,
-    '',
-  );
+  requiredAmountDraft.value = String(event.target.value).replace(/[^0-9]/g, '');
 }
 
 function handleRequiredAmountBlur(event) {
@@ -395,7 +392,13 @@ onMounted(() => {
           <strong>비교할 보유 예금이 없어요</strong>
           <p>자산 등록에서 예금을 먼저 등록해주세요</p>
 
-          <button class="kb-btn kb-btn-primary" type="button" @click="registerAsset">자산 등록하기</button>
+          <button
+            class="kb-btn kb-btn-primary"
+            type="button"
+            @click="registerAsset"
+          >
+            자산 등록하기
+          </button>
         </div>
 
         <!-- 두 번째 그림 -->
@@ -421,14 +424,18 @@ onMounted(() => {
                 {{ deposit.balance.toLocaleString('ko-KR') }}원 · 연
                 {{ deposit.interestRate }}% · {{ deposit.maturityText }}
               </small>
+
+              <small class="account-number">
+                계좌번호: {{ deposit.accountNumber || '-' }}
+              </small>
             </span>
 
-            <span
+            <div
               v-if="profitLossStore.state.deposit.userDepositId === deposit.id"
               class="check-icon"
             >
               ✓
-            </span>
+            </div>
           </button>
         </div>
       </section>
@@ -655,7 +662,9 @@ button {
   color: #615b54;
   background: #fff;
   font-size: clamp(12px, 3.5vw, 14px);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 .amount-actions button:hover {
   transform: translateY(-2px);
@@ -717,7 +726,7 @@ button {
 .deposit-card {
   display: flex;
   width: 100%;
-  min-height: clamp(60px, 18vw, 70px);
+  min-height: clamp(76px, 21vw, 86px);
   padding: clamp(10px, 3.5vw, 14px) clamp(12px, 4vw, 16px);
   align-items: center;
   justify-content: space-between;
@@ -732,6 +741,7 @@ button {
 .deposit-info {
   display: flex;
   min-width: 0;
+  flex: 1;
   flex-direction: column;
 }
 
@@ -745,6 +755,10 @@ button {
   color: var(--kb-muted);
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.deposit-info .account-number {
+  margin-top: 3px;
 }
 
 .check-icon {
@@ -844,7 +858,9 @@ button {
   border: 1px solid var(--kb-border);
   border-radius: 22px;
   background: #fff;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
 }
 .loan-options button:hover {
   transform: translateY(-2px);
@@ -863,5 +879,4 @@ button {
   margin-top: auto;
   flex-shrink: 0;
 }
-
 </style>

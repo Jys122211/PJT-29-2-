@@ -18,6 +18,7 @@ public class UserDepositDTO {
     private Long id;
     private String bankName;
     private String productName;
+    private String accountNumber;
     private LocalDate joinDate;
     private LocalDate maturityDate;
     private BigDecimal interestRate;
@@ -36,6 +37,7 @@ public class UserDepositDTO {
                 .baseRate(vo.getBaseRate())
                 .balance(vo.getPrincipalAmount())
                 .maturityText(makeMaturityText(vo.getJoinDate()))
+                .accountNumber(vo.getAccountNumber())
                 .build();
     }
 
