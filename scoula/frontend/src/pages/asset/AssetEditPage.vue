@@ -165,9 +165,9 @@ const canSubmit = computed(
 
 const submitLabel = computed(() => {
   if (submitting.value) return '수정 중...';
-  if (!isComplete.value) return '필수 항목을 입력해주세요';
-  if (isDateReversed.value) return '날짜를 확인해주세요';
-  if (!hasChanges.value) return '변경된 내용이 없어요';
+  if (!isComplete.value) return '필수 항목 입력';
+  if (isDateReversed.value) return '날짜 확인 필요';
+  if (!hasChanges.value) return '변경 없음';
   return '수정하기';
 });
 
@@ -303,7 +303,7 @@ onMounted(load);
 
       <form class="form-card" @submit.prevent="submit">
         <div class="row">
-          <input class="fld locked" value="예금" disabled aria-label="상품 유형" />
+          <input class="fld locked" value="정기예금" disabled aria-label="상품 유형" />
           <input
             class="fld"
             :class="fieldClass('bankName')"
@@ -630,12 +630,14 @@ onMounted(load);
 
 /* ---------- 버튼 ---------- */
 .btn {
-  padding: 15px;
+  padding: 15px 12px;
   border: 0;
   border-radius: 11px;
   font: inherit;
   font-size: 14.5px;
   font-weight: 700;
+  line-height: 1.35;
+  word-break: keep-all;
   cursor: pointer;
 }
 
@@ -676,7 +678,7 @@ onMounted(load);
 }
 
 .grow2 {
-  flex: 1.5;
+  flex: 2;
 }
 
 .grow1 {

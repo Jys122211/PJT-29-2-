@@ -424,7 +424,7 @@ onMounted(async () => {
 
     <form class="form-card" @submit.prevent="submit">
       <div class="row">
-        <input class="fld" value="예금" disabled aria-label="상품 유형" />
+        <input class="fld" value="정기예금" disabled aria-label="상품 유형" />
         <input
           class="fld"
           :class="fieldClass('bankName')"

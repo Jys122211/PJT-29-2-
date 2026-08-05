@@ -304,6 +304,28 @@ onMounted(load);
   text-align: left;
   background: #fff;
   cursor: pointer;
+  transition:
+    transform 0.12s ease,
+    background 0.12s ease,
+    border-color 0.12s ease;
+}
+
+.deposit-card:active {
+  transform: scale(0.975);
+  border-color: var(--kb-yellow);
+  background: #fffdf4;
+}
+
+@media (hover: hover) {
+  .deposit-card:hover {
+    border-color: var(--kb-yellow);
+    background: #fffdf8;
+  }
+}
+
+.deposit-card:focus-visible {
+  outline: 2px solid var(--kb-yellow);
+  outline-offset: 2px;
 }
 
 .left {
@@ -400,5 +422,16 @@ onMounted(load);
   flex: none;
   font-size: 12px;
   color: #8a8f94;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .deposit-card,
+  .add-card {
+    transition: none;
+  }
+  .deposit-card:active,
+  .add-card:active {
+    transform: none;
+  }
 }
 </style>
