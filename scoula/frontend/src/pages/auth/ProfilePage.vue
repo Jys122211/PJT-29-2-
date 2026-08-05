@@ -148,11 +148,16 @@ const formatKoreanAmount = (amount, emptyMessage = '금액을 입력해주세요
 };
 
 const getCreditGrade = (score) => {
-  if (!score) return '등급 없음';
+  if (score === null || score === undefined) return '등급 없음';
   if (score > 900) return '1등급';
   if (score > 800) return '2등급';
   if (score > 700) return '3등급';
   if (score > 600) return '4등급';
+  if (score > 500) return '5등급';
+  if (score > 400) return '6등급';
+  if (score > 300) return '7등급';
+  if (score > 200) return '8등급';
+  if (score > 100) return '9등급';
   return '10등급';
 };
 
