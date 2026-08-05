@@ -29,6 +29,7 @@ public class DepositDTO {
     private Long userDepositId;
     private String bankName;
     private String productName;
+    private String accountNumber;
     private String joinDate;
     private String maturityDate;
     private Long principalAmount;
@@ -50,6 +51,7 @@ public class DepositDTO {
                 .userDepositId(vo.getUserDepositId())
                 .bankName(vo.getBankName())
                 .productName(vo.getProductName())
+                .accountNumber(vo.getAccountNumber())
                 .joinDate(vo.getJoinDate() == null ? null : vo.getJoinDate().format(FMT))
                 .maturityDate(vo.getMaturityDate() == null ? null : vo.getMaturityDate().format(FMT))
                 .principalAmount(vo.getPrincipalAmount())

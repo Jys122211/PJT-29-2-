@@ -9,6 +9,7 @@ import { useAuthStore } from '@/stores/auth';
 
 // ===================================
 import assetRoutes from './asset.js';
+// import introRoutes from './intro.js';
 // ===================================
 
 const router = createRouter({
@@ -37,6 +38,7 @@ const router = createRouter({
     ...profitLossRoutes,
     // ===============
     ...assetRoutes,
+    // ...introRoutes,
     // ===============
     {
       path: '/:pathMatch(.*)*',
@@ -59,8 +61,7 @@ router.beforeEach((to) => {
     };
   }
 
-  // 로그인하지 않은 사용자는 쿼리 문자열 없이 로그인 화면으로 이동한다.
-  if (to.meta.requiresAuth && !auth.hasValidSession()) {
+ if (to.meta.requiresAuth && !auth.hasValidSession()) {
     return {
       name: 'login',
       replace: true,
