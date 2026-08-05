@@ -15,7 +15,9 @@ import {
   isValidCompactDate,
   parseNumber,
   sanitizeRate,
+  toCompactAccount,
   toCompactDate,
+  toDisplayAccount,
   toDisplayDate,
 } from '@/util/depositFormat';
 
@@ -34,6 +36,7 @@ const deleting = ref(false);
 const form = reactive({
   bankName: '',
   productName: '',
+  accountNumber: '',
   joinDate: '',
   maturityDate: '',
   principalAmount: '',
@@ -47,6 +50,7 @@ const original = reactive({});
 const errors = reactive({
   bankName: '',
   productName: '',
+  accountNumber: '',
   joinDate: '',
   maturityDate: '',
   principalAmount: '',
@@ -100,6 +104,13 @@ function onAmountInput(event) {
   errors.principalAmount = '';
 }
 
+function onAccountInput(event) {
+  const digits = toCompactAccount(event.target.value).slice(0, 16);
+  form.accountNumber = digits;
+  event.target.value = toDisplayAccount(digits);
+  errors.accountNumber = '';
+}
+
 function onRateInput(field, event) {
   const cleaned = sanitizeRate(event.target.value);
   form[field] = cleaned;
@@ -124,6 +135,7 @@ const isComplete = computed(
   () =>
     form.bankName.trim() !== '' &&
     form.productName.trim() !== '' &&
+    form.accountNumber.length >= 10 &&
     form.joinDate.length === 8 &&
     form.maturityDate.length === 8 &&
     form.principalAmount !== '' &&
@@ -172,6 +184,7 @@ function validate() {
 
   require('bankName', '은행명을 입력해주세요');
   require('productName', '상품명을 입력해주세요');
+  require('accountNumber', '계좌번호를 입력해주세요');
   require('joinDate', '가입일을 입력해주세요');
   require('maturityDate', '만기일을 입력해주세요');
   require('baseRate', '기본금리를 입력해주세요');
@@ -218,6 +231,7 @@ async function submit() {
     await depositApi.update(userDepositId, {
       bankName: form.bankName.trim(),
       productName: form.productName.trim(),
+      accountNumber: form.accountNumber,
       joinDate: form.joinDate,
       maturityDate: form.maturityDate,
       principalAmount: Number(form.principalAmount),
@@ -312,6 +326,21 @@ onMounted(load);
           />
         </div>
         <p v-if="errors.productName" class="err-msg">! {{ errors.productName }}</p>
+
+<div class="row">
+          <input
+            class="fld"
+            :class="fieldClass('accountNumber')"
+            :value="toDisplayAccount(form.accountNumber)"
+            placeholder="계좌번호 (숫자만 입력)"
+            inputmode="numeric"
+            maxlength="20"
+            aria-label="계좌번호"
+            @input="onAccountInput"
+          />
+        </div>
+        <p v-if="errors.accountNumber" class="err-msg">! {{ errors.accountNumber }}</p>
+
 
         <div class="row">
           <input
