@@ -328,6 +328,7 @@ public class ProfitLossServiceImpl implements ProfitLossService {
                         .savingAmount(Math.abs(vo.getAFinalBalance() - vo.getBFinalBalance()))
                         .depositName(vo.getDepositName())          // 추가
                         .loanTypeLabel(loanTypeLabel(vo))          // 추가
+                        .accountNumber(vo.getDepositAccountNumber())
                         .build())
                 .collect(Collectors.toList());
     }
