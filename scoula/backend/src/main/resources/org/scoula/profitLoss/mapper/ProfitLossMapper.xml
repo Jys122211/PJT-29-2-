@@ -18,7 +18,8 @@
             ud.maturity_date,
             ud.applied_rate,
             ud.base_rate,
-            ud.principal_amount
+            ud.principal_amount,
+            ud.account_number
         FROM user_deposits ud
         WHERE ud.user_id = #{userId}
           AND ud.is_deleted = 'N'
@@ -142,8 +143,9 @@
             maturity_date,
             applied_rate,
             base_rate,
-            principal_amount
-        FROM user_deposits
+            principal_amount,
+            account_number
+            FROM user_deposits
         WHERE user_deposit_id = #{userDepositId}
           AND user_id         = #{userId}
           AND is_deleted      = 'N'
