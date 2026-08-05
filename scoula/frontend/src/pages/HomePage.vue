@@ -4,27 +4,16 @@ import api from '@/api';
 import { useAuthStore } from '@/stores/auth';
 import { useRouter } from 'vue-router';
 import BottomNav from '@/components/mobile/BottomNav.vue';
+import { toDisplayAccount } from '@/util/depositFormat';
 
 const auth = useAuthStore();
 const isMenuOpen = ref(false);
 const deposits = ref([]);
 const router = useRouter();
 
-const toastMessage = ref('');
-const showToast = ref(false);
-
-const navigateWithToast = (name, message) => {
-  toastMessage.value = message;
-  showToast.value = true;
-  router.push({ name });
-};
-
-const goToAssetRegister = () =>
-  navigateWithToast('assetRegister', '자산 등록 입력으로 이동합니다...');
-const goToComparisonInput = () =>
-  navigateWithToast('comparisonInput', '득실 계산기로 이동합니다...');
-const goToComparisonHistory = () =>
-  navigateWithToast('comparisonHistory', '나의 득실 기록으로 이동합니다...');
+const goToAssetRegister = () => router.push({ name: 'assetRegister' });
+const goToComparisonInput = () => router.push({ name: 'comparisonInput' });
+const goToComparisonHistory = () => router.push({ name: 'comparisonHistory' });
 
 onMounted(async () => {
   const { data } = await api.get('/api/deposits/list');
@@ -154,24 +143,25 @@ const formatDate = (isoDate) => isoDate.replaceAll('-', '.');
     <div class="section-header">
       <h2>내 예금</h2>
       <router-link :to="{ name: 'assetList' }" class="view-all">
-        수정하기 ›
+        전체보기 ›
       </router-link>
     </div>
 
     <div class="deposit-list" v-if="deposits.length">
       <div class="kb-card deposit-card" v-for="d in deposits" :key="d.id">
         <div class="deposit-info">
-          <p class="deposit-bank">{{ d.bankName }}</p>
           <p class="deposit-product">{{ d.productName }}</p>
           <p class="deposit-detail">
-            {{ d.balance.toLocaleString() }}원 · 연 {{ d.interestRate }}%
+            {{ d.bankName }} · {{ d.balance.toLocaleString() }}원 · 연
+            {{ d.interestRate }}%
+          </p>
+          <p class="deposit-account">
+            계좌번호 : {{ toDisplayAccount(d.accountNumber) }}
           </p>
         </div>
         <div class="deposit-meta">
           <span class="d-day-badge">D-{{ calcDDay(d.maturityDate) }}</span>
-          <span class="deposit-maturity"
-            >만기 {{ formatDate(d.maturityDate) }}</span
-          >
+          <span class="deposit-maturity">{{ formatDate(d.maturityDate) }}</span>
         </div>
       </div>
     </div>
@@ -341,14 +331,15 @@ const formatDate = (isoDate) => isoDate.replaceAll('-', '.');
         </div>
       </nav>
     </Transition>
-    <Transition name="fade">
-      <div v-if="showToast" class="register-toast">
-        {{ toastMessage }}
-      </div>
-    </Transition>
   </div>
 </template>
 <style scoped>
+.deposit-account {
+  margin-top: 2px;
+  font-size: 11px;
+  color: #b3aa99;
+  letter-spacing: 0.3px;
+}
 .empty-deposit {
   width: calc(100% - 40px);
   margin: 12px auto 0;
@@ -403,19 +394,6 @@ const formatDate = (isoDate) => isoDate.replaceAll('-', '.');
   box-shadow: 0 6px 16px rgba(255, 188, 0, 0.25);
 }
 
-.register-toast {
-  position: fixed;
-  bottom: 100px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #26221c;
-  color: #fff;
-  padding: 10px 18px;
-  border-radius: 999px;
-  font-size: 12px;
-  z-index: 20;
-  white-space: nowrap;
-}
 .empty-deposit {
   width: calc(100% - 40px);
   margin: 12px auto 0;
@@ -653,16 +631,16 @@ const formatDate = (isoDate) => isoDate.replaceAll('-', '.');
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 20px;
   padding: 17px 19px;
+  background: #fff;
+  border: 1.5px solid #f2d89a;
+  border-radius: 16px;
 }
-.deposit-bank {
-  font-size: 12px;
-  color: #8c8371;
-}
+
 .deposit-product {
-  margin-top: 4px;
   font-weight: 700;
-  font-size: 14px;
+  font-size: 16px;
   color: #26221c;
 }
 .deposit-detail {
@@ -670,6 +648,7 @@ const formatDate = (isoDate) => isoDate.replaceAll('-', '.');
   font-size: 12px;
   color: #a49a86;
 }
+
 .deposit-meta {
   display: flex;
   flex-direction: column;

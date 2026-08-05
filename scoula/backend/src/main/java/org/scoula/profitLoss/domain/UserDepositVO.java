@@ -23,4 +23,5 @@ public class UserDepositVO {
     private BigDecimal appliedRate;
     private BigDecimal baseRate;
     private Long principalAmount;
+    private String accountNumber; //추가
 }

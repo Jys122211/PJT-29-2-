@@ -25,6 +25,7 @@ public class UserDepositDTO {
     private BigDecimal baseRate;
     private Long balance;
     private String maturityText;
+    private String accountNumber; //추가
 
     public static UserDepositDTO of(UserDepositVO vo) {
         return UserDepositDTO.builder()
@@ -37,7 +38,11 @@ public class UserDepositDTO {
                 .baseRate(vo.getBaseRate())
                 .balance(vo.getPrincipalAmount())
                 .maturityText(makeMaturityText(vo.getJoinDate()))
+<<<<<<< HEAD
                 .accountNumber(vo.getAccountNumber())
+=======
+                .accountNumber(vo.getAccountNumber())   // 추가
+>>>>>>> origin/main
                 .build();
     }
 

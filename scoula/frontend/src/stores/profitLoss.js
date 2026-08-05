@@ -18,7 +18,7 @@ const CREDIT_ELIGIBILITY_QUESTIONS = [
     id: 3,
     type: 'COMPARISON_CONDITION',
     requestField: 'IS_PARTIAL_ALLOWED',
-    text: '분할 인출이 가능한가요? (계좌별 3회(해지 포함)이내 가능)',
+    text: '분할 인출이 가능하신가요? (계좌별 3회(해지 포함)이내 가능)',
   },
   {
     id: 4,
@@ -33,7 +33,7 @@ const JEONSE_COMPARISON_CONDITIONS = [
     id: 'jeonse_comp_1',
     type: 'COMPARISON_CONDITION',
     requestField: 'IS_PARTIAL_ALLOWED',
-    text: '분할 인출이 가능한가요? (계좌별 3회(해지 포함)이내 가능)',
+    text: '분할 인출이 가능하신가요? (계좌별 3회(해지 포함)이내 가능)',
   },
   {
     id: 'jeonse_comp_2',
