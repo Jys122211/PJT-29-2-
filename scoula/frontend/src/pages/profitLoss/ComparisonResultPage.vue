@@ -21,11 +21,16 @@ const loanTypeLabel = computed(() =>
   comparison.value?.loan.type === 'CREDIT' ? '신용대출' : '전세자금대출'
 );
 
-const partialAllowedText = computed(
-  () => `부분해지 ${comparison.value?.badges.isPartialAllowed ? 'O' : 'X'}`
+// 배너·배지·계산 조건 카드가 공유하는 문구. 승자가 대출이면 실제 상품명, 예금이면 고정 문구.
+const winnerName = computed(() =>
+  isLoanWinner.value ? comparison.value?.loan.name : '예금 중도해지'
 );
-const lumpSumText = computed(
-  () => `만기시 예금상환 ${comparison.value?.badges.isLumpSum ? 'O' : 'X'}`
+
+const partialAllowedText = computed(() =>
+  comparison.value?.badges.isPartialAllowed ? '부분해지 가능' : '부분해지 불가'
+);
+const lumpSumText = computed(() =>
+  comparison.value?.badges.isLumpSum ? '예금 만기에 상환' : '월 납입으로 상환'
 );
 
 // 서버 메시지는 숫자 없이 고정 문구라 앞에 실제 차액/최저임금 금액을 붙여준다.
@@ -108,17 +113,16 @@ const cancelModal = () => {
 
       <!-- 2. 결론 배너 카드 -->
       <section class="card banner-card">
-        <p class="banner-lead">{{ won(comparison.urgentAmount) }}원이 필요할 때, 가장 남는 선택은</p>
+        <p class="banner-lead">{{ won(comparison.urgentAmount) }}원이 필요할 때</p>
         <p class="banner-main">
           <template v-if="isTie">두 방법의 결과가 같습니다</template>
           <template v-else>
-            {{ comparison.badges.recommended }}
+            <span class="banner-winner-name">{{ winnerName }}</span>
             <span class="gold">{{ won(comparison.savingAmount) }}원</span> 더 이득
           </template>
         </p>
 
         <div v-if="!isTie" class="badge-row">
-          <span class="badge badge-recommended">추천 · {{ comparison.badges.recommended }}</span>
           <span class="badge badge-soft">{{ partialAllowedText }}</span>
           <span class="badge badge-soft">{{ lumpSumText }}</span>
         </div>
@@ -250,10 +254,33 @@ const cancelModal = () => {
         </div>
       </section>
 
-      <!-- 6. 월 예상 상환액 -->
-      <section class="card monthly-card">
-        <span>월 예상 상환액</span>
-        <strong>{{ won(comparison.monthlyPayment) }}원</strong>
+      <!-- 6. 계산 조건 -->
+      <section class="card condition-card">
+        <p class="condition-title">계산 조건</p>
+        <div class="detail-table">
+          <div class="detail-row">
+            <span>필요 금액</span>
+            <span class="detail-value">{{ won(comparison.urgentAmount) }}원</span>
+          </div>
+          <div class="detail-row">
+            <span>선택한 예금</span>
+            <span class="detail-value condition-truncate" :title="comparison.deposit.name">
+              {{ comparison.deposit.name }}
+            </span>
+          </div>
+          <div class="detail-row">
+            <span>월 상환 가능</span>
+            <span class="detail-value">{{ won(comparison.monthlyPayment) }}원</span>
+          </div>
+          <div class="detail-row">
+            <span>부분해지</span>
+            <span class="detail-value">{{ partialAllowedText }}</span>
+          </div>
+          <div class="detail-row">
+            <span>상환 방식</span>
+            <span class="detail-value">{{ lumpSumText }}</span>
+          </div>
+        </div>
       </section>
 
       <!-- 7. 하단 안내 문구 -->
@@ -423,8 +450,11 @@ button {
 .banner-main {
   margin: 8px 0 0;
   font-size: 22px;
-  font-weight: 700;
   line-height: 1.4;
+}
+
+.banner-winner-name {
+  font-weight: 700;
 }
 
 .badge-row {
@@ -438,11 +468,6 @@ button {
   padding: 6px 12px;
   border-radius: 999px;
   font-size: 13px;
-}
-
-.badge-recommended {
-  color: var(--gs-text);
-  background: var(--gs-gold-deep);
 }
 
 .badge-soft {
@@ -595,6 +620,10 @@ button {
   color: var(--gs-text-sub);
 }
 
+.detail-row > span:first-child {
+  flex-shrink: 0;
+}
+
 .detail-value {
   color: var(--gs-text);
   text-align: right;
@@ -660,21 +689,22 @@ button {
   background: var(--gs-gold-deep);
 }
 
-/* 6. 월 예상 상환액 */
-.monthly-card {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.monthly-card span {
-  font-size: 14px;
-  color: var(--gs-text-sub);
-}
-
-.monthly-card strong {
-  font-size: 17px;
+/* 6. 계산 조건 */
+.condition-title {
+  margin: 0 0 12px;
+  font-size: 15px;
   font-weight: 700;
+}
+
+.condition-card .detail-table {
+  margin-top: 0;
+}
+
+.condition-truncate {
+  overflow: hidden;
+  min-width: 0;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 /* 7. 하단 안내 문구 */
