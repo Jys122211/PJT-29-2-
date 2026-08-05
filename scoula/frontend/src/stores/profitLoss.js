@@ -24,7 +24,7 @@ const CREDIT_ELIGIBILITY_QUESTIONS = [
     id: 4,
     type: 'COMPARISON_CONDITION',
     requestField: 'IS_LUMP_SUM',
-    text: '예금이 만기되면, 예금 만기 금액으로 대출을 갚으실 예정인가요?',
+    text: '예금이 만기시에, 만기된 예금으로 대출을 갚으실 예정인가요?',
   },
 ];
 
@@ -92,9 +92,9 @@ const CREDIT_PREFERENTIAL_GROUPS = [
     type: 'YES_NO',
     title: '우대금리 (4) 자동이체 실적 우대',
     preferentialQuestionId: 6,
-    text: 'KB국민은행 계좌에서 우대 대상으로 인정되는 자동이체가 3건 이상 출금된 실적이 있나요?',
+    text: 'KB국민은행 계좌에서 아파트 관리비, 지로요금의 자동이체가 3건 이상 출금된 실적이 있나요?',
     description:
-      '아파트 관리비, 지로요금, 금융결제원 CMS, 펌뱅킹 자동이체가 해당합니다. 대출 실행 후 우대금리를 다시 산정할 때는 2건 이상을 기준으로 합니다.',
+      '지로요금은 전기·가스·수도·통신요금 등 고지서로 청구되는 요금을 말합니다.',
   },
   {
     id: 'STAR_BANKING',
