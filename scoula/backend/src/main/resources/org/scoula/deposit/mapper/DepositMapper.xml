@@ -6,7 +6,7 @@
 <mapper namespace="org.scoula.deposit.mapper.DepositMapper">
 
     <sql id="baseColumns">
-        user_deposit_id, global_id, user_id, bank_name, product_name,
+        user_deposit_id, global_id, user_id, bank_name, product_name,account_number,
         join_date, maturity_date, applied_rate, base_rate, principal_amount,
         is_deleted, created_at, created_by, updated_at, updated_by
     </sql>
@@ -42,11 +42,11 @@
     <!-- 4. 등록 (화면 07-01, 07-04, 07-07) -->
     <insert id="create">
         INSERT INTO user_deposits
-            (global_id, user_id, bank_name, product_name,
+            (global_id, user_id, bank_name, product_name,account_number,
              join_date, maturity_date, applied_rate, base_rate,
              principal_amount, created_by)
         VALUES
-            (#{globalId}, #{userId}, #{bankName}, #{productName},
+            (#{globalId}, #{userId}, #{bankName}, #{productName}, #{accountNumber},
              #{joinDate}, #{maturityDate}, #{appliedRate}, #{baseRate},
              #{principalAmount}, #{createdBy})
 
@@ -61,6 +61,7 @@
         UPDATE user_deposits
         SET bank_name        = #{bankName},
             product_name     = #{productName},
+            account_number   = #{accountNumber},
             join_date        = #{joinDate},
             maturity_date    = #{maturityDate},
             applied_rate     = #{appliedRate},

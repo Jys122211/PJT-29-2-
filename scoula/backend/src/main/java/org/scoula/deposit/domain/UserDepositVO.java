@@ -29,6 +29,7 @@ public class UserDepositVO {
     private Long userId;
     private String bankName;
     private String productName;
+    private String accountNumber;
     private LocalDate joinDate;
     private LocalDate maturityDate;
 

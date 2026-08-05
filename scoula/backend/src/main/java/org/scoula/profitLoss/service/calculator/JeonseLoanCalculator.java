@@ -188,13 +188,24 @@ public final class JeonseLoanCalculator {
         return new LoanCostBreakdown(monthlyInterest, interest, fee, interest + fee);
     }
 
-    // isLumpSum=O: 실제기간 = 예금잔여기간(예금 만기 목돈 + 적립금으로 상환). 실행 가능성은
-    // 이자 지불 → 만기 상환 재원(적립금 + 예금만기수령액) 순으로 확인한다.
-    // 실제기간이 예금 조건으로 고정돼 있어, 실행 가능 여부와 무관하게 대출비용은 항상 계산할 수 있다.
+    // isLumpSum=O: 실제기간 = min(예금잔여기간, 적립금만으로 완납되는 시점). 월납입이 크면 예금 만기
+    // 전에 적립금만으로 다 갚을 수 있어 그만큼 실제기간이 짧아진다(신용대출 방식2가 예금 만기 전
+    // 완납 시 목돈상환을 건너뛰는 것과 같은 논리). 월적립이 0 이하이면 완납 시점을 정의할 수 없어
+    // 기존대로 예금잔여기간을 그대로 쓴다(이후 이자부족으로 실행 불가 처리된다).
+    // 실행 가능성은 이자 지불 → 만기 상환 재원(적립금 + 예금만기수령액) 순으로 확인한다.
     private static MainLoanEvaluation evaluateLumpSumMainLoan(long urgentAmount, BigDecimal finalRate, long monthlyPayment,
                                                                 int depositRemainingMonths, long depositMaturityAmount) {
-        int actualMonths = depositRemainingMonths;
-        int commitmentMonths = Math.max(MIN_COMMITMENT_MONTHS, depositRemainingMonths);
+        long monthlyInterest = computeMonthlyInterest(urgentAmount, finalRate);
+        long monthlyAccumulation = monthlyPayment - monthlyInterest;
+
+        int actualMonths;
+        if (monthlyAccumulation <= 0) {
+            actualMonths = depositRemainingMonths;
+        } else {
+            int payoffMonths = (int) ceilDiv(urgentAmount, monthlyAccumulation);
+            actualMonths = Math.min(depositRemainingMonths, payoffMonths);
+        }
+        int commitmentMonths = Math.max(MIN_COMMITMENT_MONTHS, actualMonths);
         LoanCostBreakdown breakdown = computeLoanCost(urgentAmount, finalRate, actualMonths, commitmentMonths);
 
         LoanFeasibility feasibility;
