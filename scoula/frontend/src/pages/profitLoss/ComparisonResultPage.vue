@@ -474,6 +474,7 @@ button {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
+  align-items: stretch;
 }
 
 .compare-card {
@@ -504,7 +505,6 @@ button {
 
 .compare-product {
   margin: 2px 0 0;
-  min-height: calc(11px * 1.35 * 2);
   font-size: 11px;
   line-height: 1.35;
   color: var(--gs-text-sub);
