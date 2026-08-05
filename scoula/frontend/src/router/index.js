@@ -9,7 +9,7 @@ import { useAuthStore } from '@/stores/auth';
 
 // ===================================
 import assetRoutes from './asset.js';
-import introRoutes from './intro.js';
+// import introRoutes from './intro.js';
 // ===================================
 
 const router = createRouter({
@@ -38,7 +38,7 @@ const router = createRouter({
     ...profitLossRoutes,
     // ===============
     ...assetRoutes,
-    ...introRoutes,
+    // ...introRoutes,
     // ===============
     {
       path: '/:pathMatch(.*)*',
@@ -60,10 +60,10 @@ router.beforeEach((to) => {
       replace: true,
     };
   }
-  
-  if (to.meta.requiresAuth && !auth.hasValidSession()) {
+
+ if (to.meta.requiresAuth && !auth.hasValidSession()) {
     return {
-      name: 'intro',
+      name: 'login',
       replace: true,
     };
   }
