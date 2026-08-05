@@ -98,3 +98,16 @@ export function extractApiError(error) {
         : (data.message ?? '요청을 처리하지 못했어요. 다시 시도해주세요.'),
   };
 }
+/** 숫자만 남긴다. '123-456-789012' → '123456789012' */
+export function toCompactAccount(value) {
+  return String(value ?? '').replace(/\D/g, '');
+}
+
+/** 화면 표시용 하이픈을 넣는다. '123456789012' → '123-456-789012' */
+export function toDisplayAccount(value) {
+  const d = toCompactAccount(value);
+  if (d.length <= 3) return d;
+  if (d.length <= 6) return `${d.slice(0, 3)}-${d.slice(3)}`;
+  return `${d.slice(0, 3)}-${d.slice(3, 6)}-${d.slice(6)}`;
+}
+

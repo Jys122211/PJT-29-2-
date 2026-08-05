@@ -26,6 +26,7 @@ public class DepositRequestDTO {
 
     private String bankName;
     private String productName;
+    private String accountNumber;
     private String joinDate;
     private String maturityDate;
     private Long principalAmount;
@@ -40,8 +41,14 @@ public class DepositRequestDTO {
     public void validate() {
         requireText(bankName, "bankName", "은행명을 입력해주세요");
         requireText(productName, "productName", "상품명을 입력해주세요");
+        requireText(accountNumber, "accountNumber", "계좌번호를 입력해주세요");
         requireText(joinDate, "joinDate", "가입일을 입력해주세요");
         requireText(maturityDate, "maturityDate", "만기일을 입력해주세요");
+
+        if (!accountNumber.trim().matches("\\d{10,16}")) {
+            throw new ValidationException("INVALID_ACCOUNT", "accountNumber",
+                    "계좌번호는 숫자 10~16자리로 입력해주세요");
+        }
 
         if (principalAmount == null || principalAmount <= 0) {
             throw new ValidationException("REQUIRED_FIELD", "principalAmount",
@@ -75,6 +82,7 @@ public class DepositRequestDTO {
         return UserDepositVO.builder()
                 .bankName(bankName.trim())
                 .productName(productName.trim())
+                .accountNumber(accountNumber.replaceAll("\\D", ""))
                 .joinDate(LocalDate.parse(joinDate, FMT))
                 .maturityDate(LocalDate.parse(maturityDate, FMT))
                 .principalAmount(principalAmount)
