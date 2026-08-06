@@ -21,9 +21,9 @@ import {
   formatNumber,
   isValidCompactDate,
   sanitizeRate,
-   toCompactAccount,
+  toCompactAccount,
   toCompactDate,
-   toDisplayAccount,
+  toDisplayKbAccount,
   toDisplayDate,
 } from '@/util/depositFormat';
 
@@ -68,13 +68,12 @@ const errors = reactive({
   appliedRate: '',
 });
 
-
 // ------------------------------------------------------------ 입력 핸들러
 function onAccountInput(event) {
   const previousValue = form.accountNumber;
-  const digits = toCompactAccount(event.target.value).slice(0, 16);
+  const digits = toCompactAccount(event.target.value).slice(0, 14);
   form.accountNumber = digits;
-  event.target.value = toDisplayAccount(digits);
+  event.target.value = toDisplayKbAccount(digits);
   if (digits !== previousValue) {
     markEdited('accountNumber');
     errors.accountNumber = '';
@@ -228,7 +227,7 @@ const isComplete = computed(
   () =>
     form.bankName.trim() !== '' &&
     form.productName.trim() !== '' &&
-    form.accountNumber.length >= 10 &&
+    form.accountNumber.length === 14 &&
     form.joinDate.length === 8 &&
     form.maturityDate.length === 8 &&
     form.principalAmount !== '' &&
@@ -274,8 +273,8 @@ function validate() {
   require('baseRate', '기본금리를 입력해주세요');
   require('appliedRate', '적용금리를 입력해주세요');
 
-  if (form.accountNumber !== '' && form.accountNumber.length < 10) {
-    errors.accountNumber = '계좌번호는 10자리 이상 입력해주세요';
+  if (form.accountNumber !== '' && form.accountNumber.length !== 14) {
+    errors.accountNumber = 'KB 계좌번호 숫자 14자리를 입력해주세요';
     firstInvalid = firstInvalid ?? 'accountNumber';
   }
 
@@ -376,11 +375,17 @@ function applyExtracted(extracted = {}) {
 
   assign('bankName', extracted.bankName);
   assign('productName', extracted.productName);
-    assign('accountNumber', toCompactAccount(extracted.accountNumber));
+  assign(
+    'accountNumber',
+    toCompactAccount(extracted.accountNumber).slice(0, 14),
+  );
   assign('joinDate', extracted.joinDate);
   assign('maturityDate', extracted.maturityDate);
   assign('principalAmount', extracted.principalAmount);
-  assign('baseRate', extracted.baseRate == null ? '' : String(extracted.baseRate));
+  assign(
+    'baseRate',
+    extracted.baseRate == null ? '' : String(extracted.baseRate),
+  );
   assign(
     'appliedRate',
     extracted.appliedRate == null ? '' : String(extracted.appliedRate),
@@ -477,7 +482,12 @@ onMounted(async () => {
     </section>
 
     <!-- 기본 상태 : OCR 진입 배너 -->
-    <button v-else type="button" class="ocr-banner clickable" @click="openFilePicker">
+    <button
+      v-else
+      type="button"
+      class="ocr-banner clickable"
+      @click="openFilePicker"
+    >
       <span class="ico play"><i class="fa-solid fa-play"></i></span>
       <div class="tx">
         <strong>앱 화면 캡쳐로 자동 등록</strong>
@@ -546,21 +556,25 @@ onMounted(async () => {
           @input="onTextInput('productName', $event)"
         />
       </div>
-      <p v-if="errors.productName" class="err-msg">! {{ errors.productName }}</p>
+      <p v-if="errors.productName" class="err-msg">
+        ! {{ errors.productName }}
+      </p>
 
       <div class="form-row">
         <input
           class="fld"
           :class="fieldClass('accountNumber')"
-          :value="toDisplayAccount(form.accountNumber)"
-          placeholder="계좌번호 (숫자만 입력)"
+          :value="toDisplayKbAccount(form.accountNumber)"
+          placeholder="계좌번호"
           inputmode="numeric"
-          maxlength="20"
+          maxlength="16"
           aria-label="계좌번호"
           @input="onAccountInput"
         />
       </div>
-      <p v-if="errors.accountNumber" class="err-msg">! {{ errors.accountNumber }}</p>
+      <p v-if="errors.accountNumber" class="err-msg">
+        ! {{ errors.accountNumber }}
+      </p>
 
       <div class="form-row two-column-row">
         <input
@@ -583,7 +597,9 @@ onMounted(async () => {
         />
       </div>
       <p v-if="errors.joinDate" class="err-msg">! {{ errors.joinDate }}</p>
-      <p v-if="errors.maturityDate" class="err-msg">! {{ errors.maturityDate }}</p>
+      <p v-if="errors.maturityDate" class="err-msg">
+        ! {{ errors.maturityDate }}
+      </p>
 
       <div class="form-row two-column-row amount-rate-row">
         <div class="field-with-guide">
@@ -626,7 +642,9 @@ onMounted(async () => {
           @input="onRateInput('appliedRate', $event)"
         />
       </div>
-      <p v-if="errors.appliedRate" class="err-msg">! {{ errors.appliedRate }}</p>
+      <p v-if="errors.appliedRate" class="err-msg">
+        ! {{ errors.appliedRate }}
+      </p>
 
       <p v-if="submitError" class="err-msg center">{{ submitError }}</p>
 
