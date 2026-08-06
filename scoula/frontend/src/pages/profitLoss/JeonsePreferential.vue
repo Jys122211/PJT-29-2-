@@ -571,51 +571,6 @@ button {
   color: #8c857a;
   background: #ddd5c3;
 }
-<<<<<<< HEAD
-
-.question-guide {
-  display: flex;
-  margin: 0 0 12px;
-  padding: 7px 9px;
-  border-left: 3px solid var(--kb-yellow);
-  border-radius: 6px;
-  align-items: flex-start;
-  gap: 6px;
-  font-size: 11px;
-  line-height: 1.45;
-  color: #746d65;
-  background: #fff8df;
-}
-
-.guide-icon {
-  display: grid;
-  width: 15px;
-  height: 15px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  place-items: center;
-  font-size: 9px;
-  font-weight: 700;
-  color: #292725;
-  background: var(--kb-yellow);
-}
-
-.question-guide strong {
-  font-weight: 700;
-  color: #292725;
-}
-
-.back-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 38px;
-  height: 38px;
-  flex: none;
-  border: 1.5px solid var(--kb-border);
-  border-radius: 12px;
-  background: #fff;
-=======
 .description {
   display: block;
   margin: -3px 0 12px;
@@ -626,6 +581,5 @@ button {
   line-height: 1.45;
   color: #8d857b;
   background: #f7f3ec;
->>>>>>> origin/main
 }
 </style>
