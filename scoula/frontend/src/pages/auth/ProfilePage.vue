@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import api from '@/api';
@@ -16,29 +16,52 @@ onMounted(() => {
 const isEditingCreditScore = ref(false); // 신용점수 수정 모드 여부
 const isEditingMaxPayment = ref(false);  // 월 상환 금액 수정 모드 여부
 
-const tempCreditScore = ref(0); // 수정 중인 신용점수 임시 저장
-const tempMaxPayment = ref(0);  // 수정 중인 월 상환 금액 임시 저장
+const tempCreditScore = ref(''); // 편집 중에는 앞자리 삭제 상태를 보존
+const tempMaxPayment = ref('');  // 편집 중에는 앞자리 삭제 상태를 보존
 const creditScoreError = ref('');
 const maxPaymentError = ref('');
 
 const MAX_CREDIT_SCORE = 1000;
 const MAX_MONTHLY_AVAILABLE_AMOUNT = 100_000_000_000;
 
+const formatDigitString = (digits) =>
+  String(digits ?? '').replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
+const restoreNumericCursor = (input, formattedValue, digitsBeforeCursor) => {
+  input.value = formattedValue;
+
+  nextTick(() => {
+    let cursorPosition = 0;
+    let digitCount = 0;
+
+    while (
+      cursorPosition < formattedValue.length &&
+      digitCount < digitsBeforeCursor
+    ) {
+      if (/\d/.test(formattedValue[cursorPosition])) digitCount += 1;
+      cursorPosition += 1;
+    }
+
+    input.setSelectionRange(cursorPosition, cursorPosition);
+  });
+};
+
 const handleCreditScoreInput = (event) => {
   const digits = String(event.target.value).replace(/[^0-9]/g, '');
 
   if (digits === '') {
     event.target.value = '';
-    tempCreditScore.value = 0;
+    tempCreditScore.value = '';
     creditScoreError.value = '';
     return;
   }
 
   const inputScore = Number(digits);
-  const limitedScore = Math.min(inputScore, MAX_CREDIT_SCORE);
+  const acceptedDigits =
+    inputScore > MAX_CREDIT_SCORE ? String(MAX_CREDIT_SCORE) : digits;
 
-  event.target.value = String(limitedScore);
-  tempCreditScore.value = limitedScore;
+  event.target.value = acceptedDigits;
+  tempCreditScore.value = acceptedDigits;
   creditScoreError.value =
     inputScore > MAX_CREDIT_SCORE
       ? `신용점수는 최대 ${MAX_CREDIT_SCORE.toLocaleString('ko-KR')}점까지 입력할 수 있어요`
@@ -46,23 +69,32 @@ const handleCreditScoreInput = (event) => {
 };
 
 const handleMaxPaymentInput = (event) => {
+  const input = event.target;
+  const cursorPosition = input.selectionStart ?? input.value.length;
+  const digitsBeforeCursor = input.value
+    .slice(0, cursorPosition)
+    .replace(/[^0-9]/g, '').length;
   const digits = String(event.target.value).replace(/[^0-9]/g, '');
 
   if (digits === '') {
     event.target.value = '';
-    tempMaxPayment.value = 0;
+    tempMaxPayment.value = '';
     maxPaymentError.value = '';
     return;
   }
 
   const inputAmount = Number(digits);
-  const limitedAmount = Math.min(
-    inputAmount,
-    MAX_MONTHLY_AVAILABLE_AMOUNT,
-  );
+  const acceptedDigits =
+    inputAmount > MAX_MONTHLY_AVAILABLE_AMOUNT
+      ? String(MAX_MONTHLY_AVAILABLE_AMOUNT)
+      : digits;
 
-  event.target.value = String(limitedAmount);
-  tempMaxPayment.value = limitedAmount;
+  tempMaxPayment.value = acceptedDigits;
+  restoreNumericCursor(
+    input,
+    formatDigitString(acceptedDigits),
+    digitsBeforeCursor,
+  );
   maxPaymentError.value =
     inputAmount > MAX_MONTHLY_AVAILABLE_AMOUNT
       ? `최대 ${formatKoreanAmount(
@@ -73,9 +105,8 @@ const handleMaxPaymentInput = (event) => {
 
 // --- 신용점수 수정 관련 ---
 const editCreditScore = () => {
-  tempCreditScore.value = Math.min(
-    auth.creditScore || 0,
-    MAX_CREDIT_SCORE,
+  tempCreditScore.value = String(
+    Math.min(auth.creditScore || 0, MAX_CREDIT_SCORE),
   );
   creditScoreError.value = '';
   isEditingCreditScore.value = true;
@@ -88,8 +119,9 @@ const cancelCreditScore = () => {
 
 const saveCreditScore = async () => {
   try {
-    await api.patch('/api/users/me/credit-score', { creditScore: tempCreditScore.value });
-    auth.state.user.creditScore = tempCreditScore.value;
+    const creditScore = Number(tempCreditScore.value || 0);
+    await api.patch('/api/users/me/credit-score', { creditScore });
+    auth.state.user.creditScore = creditScore;
     isEditingCreditScore.value = false;
   } catch (error) {
     console.error('Failed to update credit score', error);
@@ -99,7 +131,7 @@ const saveCreditScore = async () => {
 
 // --- 월 상환 가능 금액 수정 관련 ---
 const editMaxPayment = () => {
-  tempMaxPayment.value = auth.maxMonthlyPayment || 0;
+  tempMaxPayment.value = String(auth.maxMonthlyPayment || 0);
   maxPaymentError.value = '';
   isEditingMaxPayment.value = true;
 };
@@ -111,7 +143,7 @@ const cancelMaxPayment = () => {
 
 const saveMaxPayment = async () => {
   try {
-    const actualAmount = tempMaxPayment.value;
+    const actualAmount = Number(tempMaxPayment.value || 0);
     await api.patch('/api/users/me/max-monthly-payment', { maxMonthlyPayment: actualAmount });
     auth.state.user.maxMonthlyPayment = actualAmount;
     isEditingMaxPayment.value = false;
@@ -131,12 +163,13 @@ const handleLogout = () => {
 };
 
 const formatKoreanAmount = (amount, emptyMessage = '금액을 입력해주세요') => {
-  if (!amount) return emptyMessage;
+  const numericAmount = Number(amount);
+  if (!numericAmount) return emptyMessage;
 
-  const jo = Math.floor(amount / 1_000_000_000_000);
-  const eok = Math.floor((amount % 1_000_000_000_000) / 100_000_000);
-  const man = Math.floor((amount % 100_000_000) / 10_000);
-  const won = amount % 10_000;
+  const jo = Math.floor(numericAmount / 1_000_000_000_000);
+  const eok = Math.floor((numericAmount % 1_000_000_000_000) / 100_000_000);
+  const man = Math.floor((numericAmount % 100_000_000) / 10_000);
+  const won = numericAmount % 10_000;
   const result = [];
 
   if (jo > 0) result.push(`${jo.toLocaleString('ko-KR')}조`);
@@ -262,7 +295,7 @@ const initialChar = computed(() => {
                   inputmode="numeric"
                   pattern="[0-9]*"
                   class="form-control text-end border-0 bg-transparent fw-bold fs-5 p-0 me-1 edit-input amount-edit-input"
-                  :value="tempMaxPayment"
+                  :value="formatDigitString(tempMaxPayment)"
                   @input="handleMaxPaymentInput"
                 />
                 <span class="fw-bold fs-5">원</span>

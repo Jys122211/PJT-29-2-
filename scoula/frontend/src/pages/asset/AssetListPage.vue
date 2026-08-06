@@ -109,7 +109,9 @@ onMounted(load);
       <div class="plus"><i class="fa-solid fa-plus"></i></div>
       <strong>등록된 자산이 없어요</strong>
       <p>예금과 대출을 등록하면<br />득실 비교를 시작할 수 있어요</p>
-      <button type="button" class="pill" @click="goRegister">자산 등록하기</button>
+      <button type="button" class="pill" @click="goRegister">
+        자산 등록하기
+      </button>
     </section>
 
     <!-- 07-09 목록 -->
@@ -137,7 +139,9 @@ onMounted(load);
                 {{ formatNumber(deposit.principalAmount) }}원 · 연
                 {{ deposit.appliedRate }}%
               </small>
-              <small class="acct">{{ toDisplayAccount(deposit.accountNumber) }}</small>
+              <small class="acct">
+                계좌번호 : {{ toDisplayAccount(deposit.accountNumber) }}</small
+              >
             </div>
 
             <div class="right">
@@ -384,7 +388,7 @@ onMounted(load);
 /* ---------- 추가 버튼 ---------- */
 .add-card {
   display: flex;
-  flex:none;
+  flex: none;
   width: 100%;
   align-items: center;
   gap: 12px;
