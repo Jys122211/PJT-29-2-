@@ -17,7 +17,7 @@ import {
   sanitizeRate,
   toCompactAccount,
   toCompactDate,
-  toDisplayAccount,
+  toDisplayKbAccount,
   toDisplayDate,
 } from '@/util/depositFormat';
 
@@ -105,9 +105,9 @@ function onAmountInput(event) {
 }
 
 function onAccountInput(event) {
-  const digits = toCompactAccount(event.target.value).slice(0, 16);
+  const digits = toCompactAccount(event.target.value).slice(0, 14);
   form.accountNumber = digits;
-  event.target.value = toDisplayAccount(digits);
+  event.target.value = toDisplayKbAccount(digits);
   errors.accountNumber = '';
 }
 
@@ -331,7 +331,7 @@ onMounted(load);
           <input
             class="fld"
             :class="fieldClass('accountNumber')"
-            :value="toDisplayAccount(form.accountNumber)"
+            :value="toDisplayKbAccount(form.accountNumber)"
             placeholder="계좌번호 (숫자만 입력)"
             inputmode="numeric"
             maxlength="20"
