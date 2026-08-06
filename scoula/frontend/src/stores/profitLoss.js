@@ -392,7 +392,18 @@ export const useProfitLossStore = defineStore('profitLoss', () => {
   // 전세대출 Actions
   const setJeonseEligibilityQuestions = (questions) => {
     const apiQuestions = Array.isArray(questions)
-      ? questions.map((q) => ({ ...q, type: 'QUALIFICATION' }))
+      ? questions.map((q) => {
+          let description = undefined;
+          if (
+            q.id === 4 ||
+            (q.text && q.text.includes('한국주택금융공사')) ||
+            (q.questionText && q.questionText.includes('한국주택금융공사'))
+          ) {
+            description =
+              '※ 한국주택금융공사(HF) 사이트에서 보증서 발급 가능 여부를 시뮬레이션해 볼 수 있어요.';
+          }
+          return { ...q, type: 'QUALIFICATION', description };
+        })
       : [];
     state.jeonseEligibility.questions = [
       ...apiQuestions,
@@ -427,11 +438,11 @@ export const useProfitLossStore = defineStore('profitLoss', () => {
             .map((item) => {
               let formattedText = item.conditionDetail;
               if (formattedText.includes('90'))
-                formattedText = '최근 3개월 90만원 이상';
+                formattedText = '최근 3개월 KB국민은행 계좌 결제 90만원 이상';
               else if (formattedText.includes('60'))
-                formattedText = '최근 3개월 60만원 이상';
+                formattedText = '최근 3개월 KB국민은행 계좌 결제 60만원 이상';
               else if (formattedText.includes('30'))
-                formattedText = '최근 3개월 30만원 이상';
+                formattedText = '최근 3개월 KB국민은행 계좌 결제 30만원 이상';
 
               return {
                 value: item.id.toString(),
@@ -445,12 +456,19 @@ export const useProfitLossStore = defineStore('profitLoss', () => {
     }
 
     otherItems.forEach((item) => {
+      let description = undefined;
+      if (item.conditionName.includes('자동이체')) {
+        description =
+          '※ 지로요금은 전기요금, 가스요금, 수도요금, 통신요금처럼 고지서를 받고 내는 요금입니다.';
+      }
+
       groups.push({
         id: item.id.toString(),
         type: 'YES_NO',
         title: item.conditionName,
         preferentialQuestionId: item.id,
         text: item.conditionDetail,
+        description,
       });
     });
 

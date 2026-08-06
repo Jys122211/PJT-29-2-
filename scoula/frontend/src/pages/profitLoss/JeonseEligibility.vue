@@ -178,6 +178,10 @@ async function continueToNextStep() {
             >
               <h3>{{ question.text }}</h3>
 
+              <div class="description" v-if="question.description">
+                {{ question.description }}
+              </div>
+
               <div class="answer-options">
                 <button
                   type="button"
@@ -209,6 +213,10 @@ async function continueToNextStep() {
               class="kb-card question-card"
             >
               <h3>{{ question.text }}</h3>
+
+              <div class="description" v-if="question.description">
+                {{ question.description }}
+              </div>
 
               <div class="answer-options">
                 <button
@@ -443,5 +451,16 @@ button {
 .eligibility-modal button {
   width: 100%;
   height: clamp(40px, 11vw, 44px);
+}
+.description {
+  display: block;
+  margin: -3px 0 12px;
+  padding: 7px 9px;
+  border-radius: 7px;
+  font-size: 9px;
+  font-weight: 400;
+  line-height: 1.45;
+  color: #8d857b;
+  background: #f7f3ec;
 }
 </style>
