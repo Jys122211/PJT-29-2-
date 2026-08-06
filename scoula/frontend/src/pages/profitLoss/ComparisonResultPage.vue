@@ -308,7 +308,7 @@ const cancelModal = () => {
             </span>
           </div>
           <div class="detail-row">
-            <span>월 상환 가능</span>
+            <span>월 상환 가능 금액</span>
             <span class="detail-value">{{ won(comparison.monthlyPayment) }}원</span>
           </div>
           <div class="detail-row">
