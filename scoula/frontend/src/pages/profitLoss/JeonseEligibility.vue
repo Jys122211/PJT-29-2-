@@ -229,7 +229,6 @@ async function continueToNextStep() {
               잘 모르시겠다면 우선 <strong>‘예’</strong>를 선택해 주세요.
             </span>
           </p>
-
           <TransitionGroup name="question-fade" tag="div">
             <article
               v-for="question in visibleComparisonConditionQuestions"
@@ -388,6 +387,35 @@ button {
   font-size: 12px;
   font-weight: 700;
   color: #716a62;
+}
+.question-guide {
+  display: flex;
+  margin: 0 0 12px;
+  padding: 7px 9px;
+  border-left: 3px solid var(--kb-yellow);
+  border-radius: 6px;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 11px;
+  line-height: 1.45;
+  color: #746d65;
+  background: #fff8df;
+}
+.question-guide strong {
+  font-weight: 700;
+  color: #292725;
+}
+.guide-icon {
+  display: grid;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  place-items: center;
+  font-size: 9px;
+  font-weight: 700;
+  color: #292725;
+  background: var(--kb-yellow);
 }
 .question-card {
   min-height: 102px;

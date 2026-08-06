@@ -406,6 +406,35 @@ button {
   font-weight: 700;
   color: #716a62;
 }
+.question-guide {
+  display: flex;
+  margin: 0 0 12px;
+  padding: 7px 9px;
+  border-left: 3px solid var(--kb-yellow);
+  border-radius: 6px;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 11px;
+  line-height: 1.45;
+  color: #746d65;
+  background: #fff8df;
+}
+.question-guide strong {
+  font-weight: 700;
+  color: #292725;
+}
+.guide-icon {
+  display: grid;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  place-items: center;
+  font-size: 9px;
+  font-weight: 700;
+  color: #292725;
+  background: var(--kb-yellow);
+}
 .preferential-group {
   margin-bottom: 18px;
 }
@@ -421,41 +450,54 @@ button {
   color: var(--kb-muted);
 }
 .card-usage-options {
-  display: flex;
-  gap: 8px;
-  flex-direction: column;
+  border: 1px solid var(--kb-border);
+  border-radius: 14px;
+  background: #fff;
   padding: 2px;
 }
 .card-usage-option {
   display: flex;
   width: 100%;
-  padding: 16px;
-  border: 1px solid var(--kb-border);
-  border-radius: 12px;
+  min-height: 48px;
+  padding: 10px 14px;
+  border: 0;
+  border-bottom: 1px solid #eee8de;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   font-size: 11px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--kb-text);
-  background: #fff;
   text-align: left;
+  background: #fff;
+  transition:
+    transform 0.15s ease,
+    background 0.15s ease;
 }
-.card-usage-option.selected {
-  border-color: var(--kb-yellow);
-  font-weight: 700;
-  background: #fff8df;
-  box-shadow: inset 0 0 0 1px var(--kb-yellow);
+.card-usage-option:hover {
+  background: #fffdf6;
+}
+.card-usage-option:first-child {
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+}
+.card-usage-option:last-child {
+  border-bottom: 0;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
 }
 .radio-icon {
-  width: 18px;
-  height: 18px;
-  border: 1px solid #d4cbb8;
+  width: 19px;
+  height: 19px;
+  border: 2px solid #d9d0c2;
   border-radius: 50%;
   flex-shrink: 0;
   background: #fff;
 }
+.card-usage-option.selected {
+  background: #fffaf0;
+}
 .card-usage-option.selected .radio-icon {
-  border: 5px solid var(--kb-yellow);
+  border: 6px solid var(--kb-yellow);
 }
 .question-card {
   min-height: 102px;
