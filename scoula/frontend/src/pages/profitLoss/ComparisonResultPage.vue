@@ -13,6 +13,17 @@ onMounted(load);
 
 const won = (value) => (value ?? 0).toLocaleString('ko-KR');
 
+// 억 단위가 있으면 "억 + 만"으로, 없으면 "만"만 남긴다. 딱 떨어지는 억은 "만원"을 생략한다.
+const formatManwon = (value) => {
+  const man = Math.round((value ?? 0) / 10000);
+  const eok = Math.floor(man / 10000);
+  const remainder = man % 10000;
+  if (eok > 0) {
+    return remainder > 0 ? `${eok}억 ${remainder.toLocaleString('ko-KR')}만원` : `${eok}억원`;
+  }
+  return `${man.toLocaleString('ko-KR')}만원`;
+};
+
 const isLoanWinner = computed(() => comparison.value?.winner === 'LOAN');
 const isDepositWinner = computed(() => comparison.value?.winner === 'WITHDRAWAL');
 const isTie = computed(() => comparison.value?.winner === 'TIE');
@@ -23,7 +34,7 @@ const loanTypeLabel = computed(() =>
 
 // 배너 둘째 줄(결론)용 — 대출 승이면 종류명, 예금 승이면 고정 문구.
 const winnerTypeLabel = computed(() =>
-  isLoanWinner.value ? loanTypeLabel.value : '예금 중도해지'
+  isLoanWinner.value ? loanTypeLabel.value : '중도해지'
 );
 
 // 배너 첫 줄(무엇을 비교했는지)용 — 실제 상품명. 동점은 승자가 없어 표시하지 않는다.
@@ -37,6 +48,9 @@ const partialAllowedText = computed(() =>
 const lumpSumText = computed(() =>
   comparison.value?.badges.isLumpSum ? '예금 만기에 일괄 상환' : '월 납입으로만 상환'
 );
+
+// 부분해지·상환방식은 사용자가 고른 조건, 이 배지는 계산의 전제라 줄을 나눈다.
+const urgentAmountBadgeText = computed(() => `${formatManwon(comparison.value?.urgentAmount)} 기준`);
 
 // 서버 메시지는 숫자 없이 고정 문구라 앞에 실제 차액/최저임금 금액을 붙여준다.
 const warningMessage = computed(() => {
@@ -145,6 +159,9 @@ const cancelModal = () => {
         <div v-if="!isTie" class="badge-row">
           <span class="badge badge-soft">{{ partialAllowedText }}</span>
           <span class="badge badge-soft">{{ lumpSumText }}</span>
+        </div>
+        <div v-if="!isTie" class="badge-row badge-row-premise">
+          <span class="badge badge-soft">{{ urgentAmountBadgeText }}</span>
         </div>
       </section>
 
@@ -504,6 +521,12 @@ button {
   flex-wrap: wrap;
   gap: 8px;
   margin-top: 16px;
+}
+
+/* 조건 배지(부분해지·상환방식)와 전제 배지(필요 금액) 사이는 배지 한 줄 안의
+   gap(8px)과 같은 간격을 준다 — 위 두 줄과의 16px보다 좁혀 성격 차이를 보여준다. */
+.badge-row-premise {
+  margin-top: 8px;
 }
 
 .badge {
