@@ -4,7 +4,7 @@ import api from '@/api';
 import { useAuthStore } from '@/stores/auth';
 import { useRouter } from 'vue-router';
 import BottomNav from '@/components/mobile/BottomNav.vue';
-import { toDisplayAccount } from '@/util/depositFormat';
+import { toDisplayKbAccount } from '@/util/depositFormat';
 
 const auth = useAuthStore();
 const isMenuOpen = ref(false);
@@ -156,7 +156,7 @@ const formatDate = (isoDate) => isoDate.replaceAll('-', '.');
             {{ d.interestRate }}%
           </p>
           <p class="deposit-account">
-            계좌번호 : {{ toDisplayAccount(d.accountNumber) }}
+            계좌번호 : {{ toDisplayKbAccount(d.accountNumber) }}
           </p>
         </div>
         <div class="deposit-meta">

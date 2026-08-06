@@ -25,7 +25,9 @@ const NEXT_STEP_GUIDE = {
 
 function openErrorModal(message, returnToInput = false) {
   errorModalMessage.value = message;
-  errorModalConfirmText.value = returnToInput ? '입력 화면으로 돌아가기' : '확인';
+  errorModalConfirmText.value = returnToInput
+    ? '입력 화면으로 돌아가기'
+    : '확인';
   shouldReturnToInput.value = returnToInput;
   isErrorModalOpen.value = true;
 }
@@ -42,7 +44,7 @@ function confirmErrorModal() {
 }
 
 const preferentialGroups = computed(
-  () => profitLossStore.state.jeonsePreferential.groups
+  () => profitLossStore.state.jeonsePreferential.groups,
 );
 
 const visiblePreferentialGroups = computed(() => {
@@ -97,7 +99,9 @@ async function continueToNextStep() {
   if (!isComplete.value || isSubmitting.value) return;
 
   const loanProductId = profitLossStore.state.loan.loanProductId[0];
-  const preferentialQuestionIds = [...profitLossStore.jeonsePreferentialQuestionIds];
+  const preferentialQuestionIds = [
+    ...profitLossStore.jeonsePreferentialQuestionIds,
+  ];
 
   if (loanProductId == null) {
     calculationError.value = '우대금리를 계산할 대출 상품이 없습니다.';
@@ -168,11 +172,12 @@ async function continueToNextStep() {
           aria-label="이전 화면으로 이동"
           @click="goBack"
         >
-          ‹
+          <i class="fa-solid fa-chevron-left"></i>
         </button>
 
         <div>
           <h1>전세대출 우대금리 확인</h1>
+
           <p>우대금리 조건을 입력해 주세요</p>
         </div>
       </header>
@@ -184,11 +189,23 @@ async function continueToNextStep() {
       <section v-else class="preferential-section">
         <div class="group-container">
           <h2>대출 우대금리</h2>
+          <p class="question-guide">
+            <span class="guide-icon" aria-hidden="true">!</span>
+            <span>
+              잘 모르시겠다면 우선 <strong>‘해당없음 또는 아니요’</strong>를
+              선택해 주세요.
+            </span>
+          </p>
 
           <TransitionGroup name="question-fade" tag="div">
-            <template v-for="group in visiblePreferentialGroups" :key="group.id">
-              
-              <article v-if="group.type === 'SINGLE_SELECT'" class="preferential-group">
+            <template
+              v-for="group in visiblePreferentialGroups"
+              :key="group.id"
+            >
+              <article
+                v-if="group.type === 'SINGLE_SELECT'"
+                class="preferential-group"
+              >
                 <h3>{{ group.title }}</h3>
                 <p class="group-description">
                   {{ group.description }}
@@ -203,9 +220,7 @@ async function continueToNextStep() {
                     :class="{
                       selected: selectedAnswer(group.id) === option.value,
                     }"
-                    :aria-pressed="
-                      selectedAnswer(group.id) === option.value
-                    "
+                    :aria-pressed="selectedAnswer(group.id) === option.value"
                     @click="answerItem(group.id, option.value)"
                   >
                     <span class="radio-icon" aria-hidden="true"></span>
@@ -222,6 +237,10 @@ async function continueToNextStep() {
 
                 <div class="kb-card question-card">
                   <p>{{ group.text }}</p>
+
+                  <div class="description" v-if="group.description">
+                    {{ group.description }}
+                  </div>
 
                   <div class="answer-options">
                     <button
@@ -247,7 +266,6 @@ async function continueToNextStep() {
                   </div>
                 </div>
               </article>
-
             </template>
           </TransitionGroup>
         </div>
@@ -388,6 +406,35 @@ button {
   font-weight: 700;
   color: #716a62;
 }
+.question-guide {
+  display: flex;
+  margin: 0 0 12px;
+  padding: 7px 9px;
+  border-left: 3px solid var(--kb-yellow);
+  border-radius: 6px;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 11px;
+  line-height: 1.45;
+  color: #746d65;
+  background: #fff8df;
+}
+.question-guide strong {
+  font-weight: 700;
+  color: #292725;
+}
+.guide-icon {
+  display: grid;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  place-items: center;
+  font-size: 9px;
+  font-weight: 700;
+  color: #292725;
+  background: var(--kb-yellow);
+}
 .preferential-group {
   margin-bottom: 18px;
 }
@@ -403,41 +450,54 @@ button {
   color: var(--kb-muted);
 }
 .card-usage-options {
-  display: flex;
-  gap: 8px;
-  flex-direction: column;
+  border: 1px solid var(--kb-border);
+  border-radius: 14px;
+  background: #fff;
   padding: 2px;
 }
 .card-usage-option {
   display: flex;
   width: 100%;
-  padding: 16px;
-  border: 1px solid var(--kb-border);
-  border-radius: 12px;
+  min-height: 48px;
+  padding: 10px 14px;
+  border: 0;
+  border-bottom: 1px solid #eee8de;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   font-size: 11px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--kb-text);
-  background: #fff;
   text-align: left;
+  background: #fff;
+  transition:
+    transform 0.15s ease,
+    background 0.15s ease;
 }
-.card-usage-option.selected {
-  border-color: var(--kb-yellow);
-  font-weight: 700;
-  background: #fff8df;
-  box-shadow: inset 0 0 0 1px var(--kb-yellow);
+.card-usage-option:hover {
+  background: #fffdf6;
+}
+.card-usage-option:first-child {
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+}
+.card-usage-option:last-child {
+  border-bottom: 0;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
 }
 .radio-icon {
-  width: 18px;
-  height: 18px;
-  border: 1px solid #d4cbb8;
+  width: 19px;
+  height: 19px;
+  border: 2px solid #d9d0c2;
   border-radius: 50%;
   flex-shrink: 0;
   background: #fff;
 }
+.card-usage-option.selected {
+  background: #fffaf0;
+}
 .card-usage-option.selected .radio-icon {
-  border: 5px solid var(--kb-yellow);
+  border: 6px solid var(--kb-yellow);
 }
 .question-card {
   min-height: 102px;
@@ -468,7 +528,9 @@ button {
   color: #746d65;
   background: #fff;
   font-size: var(--kb-font-sm);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
 }
 .answer-options button:hover {
   transform: translateY(-2px);
@@ -550,5 +612,16 @@ button {
 .next-button:disabled {
   color: #8c857a;
   background: #ddd5c3;
+}
+.description {
+  display: block;
+  margin: -3px 0 12px;
+  padding: 7px 9px;
+  border-radius: 7px;
+  font-size: 9px;
+  font-weight: 400;
+  line-height: 1.45;
+  color: #8d857b;
+  background: #f7f3ec;
 }
 </style>
