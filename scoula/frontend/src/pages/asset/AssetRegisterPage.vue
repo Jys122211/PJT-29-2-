@@ -11,7 +11,7 @@
  *  07-07 OCR 결과 수정 후 저장
  *  07-08 OCR 응답 지연 / 실패
  */
-import { computed, onMounted, reactive, ref } from 'vue';
+import { computed, nextTick, onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import depositApi from '@/api/depositApi';
 import BottomNav from '@/components/mobile/BottomNav.vue';
@@ -20,7 +20,6 @@ import {
   extractApiError,
   formatNumber,
   isValidCompactDate,
-  parseNumber,
   sanitizeRate,
    toCompactAccount,
   toCompactDate,
@@ -42,6 +41,7 @@ const submitError = ref('');
 const toast = ref('');
 
 const fileInput = ref(null);
+const principalAmountDraft = ref(null);
 
 /** 목 모드에서 OCR 결과를 강제하기 위한 값. 실제 연동 시 제거 */
 // const mockScenario = ref('success');
@@ -71,36 +71,136 @@ const errors = reactive({
 
 // ------------------------------------------------------------ 입력 핸들러
 function onAccountInput(event) {
+  const previousValue = form.accountNumber;
   const digits = toCompactAccount(event.target.value).slice(0, 16);
   form.accountNumber = digits;
   event.target.value = toDisplayAccount(digits);
-  markEdited('accountNumber');
-  errors.accountNumber = '';
+  if (digits !== previousValue) {
+    markEdited('accountNumber');
+    errors.accountNumber = '';
+  }
+}
+
+function formatDigitString(digits) {
+  return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+const principalAmountModel = computed(() => {
+  if (principalAmountDraft.value !== null) {
+    return formatDigitString(principalAmountDraft.value);
+  }
+
+  return formatNumber(form.principalAmount);
+});
+
+function applyFormattedAmount(input, formattedValue, digitsBeforeCursor) {
+  input.value = formattedValue;
+
+  nextTick(() => {
+    let cursorPosition = 0;
+    let digitCount = 0;
+
+    while (
+      cursorPosition < formattedValue.length &&
+      digitCount < digitsBeforeCursor
+    ) {
+      if (/[0-9]/.test(formattedValue[cursorPosition])) {
+        digitCount += 1;
+      }
+      cursorPosition += 1;
+    }
+
+    input.setSelectionRange(cursorPosition, cursorPosition);
+  });
 }
 
 function onAmountInput(event) {
-  const parsed = parseNumber(event.target.value);
-  form.principalAmount = parsed === null ? '' : parsed;
-  event.target.value = formatNumber(parsed);
-  markEdited('principalAmount');
-  errors.principalAmount = '';
+  const input = event.target;
+  const previousDigits =
+    form.principalAmount === '' ? '' : String(form.principalAmount);
+  const cursorPosition = input.selectionStart ?? input.value.length;
+  const digitsBeforeCursor = input.value
+    .slice(0, cursorPosition)
+    .replace(/[^0-9]/g, '').length;
+  const digits = String(input.value).replace(/[^0-9]/g, '');
+
+  if (digits === '') {
+    principalAmountDraft.value = '';
+    form.principalAmount = '';
+    input.value = '';
+    if (previousDigits !== '') {
+      markEdited('principalAmount');
+      errors.principalAmount = '';
+    }
+    return;
+  }
+
+  principalAmountDraft.value = digits;
+  form.principalAmount = Number(digits);
+  applyFormattedAmount(input, formatDigitString(digits), digitsBeforeCursor);
+  if (digits !== previousDigits) {
+    markEdited('principalAmount');
+    errors.principalAmount = '';
+  }
 }
 
+function onAmountFocus(event) {
+  principalAmountDraft.value = String(event.target.value).replace(
+    /[^0-9]/g,
+    '',
+  );
+}
+
+function onAmountBlur(event) {
+  principalAmountDraft.value = null;
+  event.target.value = formatNumber(form.principalAmount);
+}
+
+function formatKoreanAmount(amount, emptyMessage = '가입금액을 입력해주세요') {
+  if (amount === null || amount === '' || Number(amount) === 0) {
+    return emptyMessage;
+  }
+
+  const value = Number(amount);
+  const jo = Math.floor(value / 1_000_000_000_000);
+  const eok = Math.floor((value % 1_000_000_000_000) / 100_000_000);
+  const man = Math.floor((value % 100_000_000) / 10_000);
+  const won = value % 10_000;
+  const result = [];
+
+  if (jo > 0) result.push(`${jo.toLocaleString('ko-KR')}조`);
+  if (eok > 0) result.push(`${eok.toLocaleString('ko-KR')}억`);
+  if (man > 0) result.push(`${man.toLocaleString('ko-KR')}만원`);
+  if (won > 0) result.push(`${won.toLocaleString('ko-KR')}원`);
+
+  return result.join(' ');
+}
+
+const principalAmountText = computed(() =>
+  formatKoreanAmount(form.principalAmount),
+);
+
 function onRateInput(field, event) {
+  const previousValue = String(form[field]);
   const cleaned = sanitizeRate(event.target.value);
   form[field] = cleaned;
   event.target.value = cleaned;
-  markEdited(field);
-  errors[field] = '';
+  if (cleaned !== previousValue) {
+    markEdited(field);
+    errors[field] = '';
+  }
 }
 
 function onDateInput(field, event) {
+  const previousValue = form[field];
   const digits = toCompactDate(event.target.value).slice(0, 8);
   form[field] = digits;
   event.target.value = toDisplayDate(digits);
-  markEdited(field);
-  errors[field] = '';
-  errors.maturityDate = '';
+  if (digits !== previousValue) {
+    markEdited(field);
+    errors[field] = '';
+    errors.maturityDate = '';
+  }
 }
 
 function onTextInput(field, event) {
@@ -423,7 +523,7 @@ onMounted(async () => {
     <h2 class="sec-label">직접 입력</h2>
 
     <form class="form-card" @submit.prevent="submit">
-      <div class="row">
+      <div class="form-row">
         <input class="fld" value="정기예금" disabled aria-label="상품 유형" />
         <input
           class="fld"
@@ -436,7 +536,7 @@ onMounted(async () => {
       </div>
       <p v-if="errors.bankName" class="err-msg">! {{ errors.bankName }}</p>
 
-      <div class="row">
+      <div class="form-row">
         <input
           class="fld"
           :class="fieldClass('productName')"
@@ -448,7 +548,7 @@ onMounted(async () => {
       </div>
       <p v-if="errors.productName" class="err-msg">! {{ errors.productName }}</p>
 
-      <div class="row">
+      <div class="form-row">
         <input
           class="fld"
           :class="fieldClass('accountNumber')"
@@ -462,7 +562,7 @@ onMounted(async () => {
       </div>
       <p v-if="errors.accountNumber" class="err-msg">! {{ errors.accountNumber }}</p>
 
-      <div class="row">
+      <div class="form-row two-column-row">
         <input
           class="fld"
           :class="fieldClass('joinDate')"
@@ -485,16 +585,21 @@ onMounted(async () => {
       <p v-if="errors.joinDate" class="err-msg">! {{ errors.joinDate }}</p>
       <p v-if="errors.maturityDate" class="err-msg">! {{ errors.maturityDate }}</p>
 
-      <div class="row">
-        <input
-          class="fld"
-          :class="fieldClass('principalAmount')"
-          :value="formatNumber(form.principalAmount)"
-          placeholder="가입 금액 (원)"
-          inputmode="numeric"
-          aria-label="가입 금액"
-          @input="onAmountInput"
-        />
+      <div class="form-row two-column-row amount-rate-row">
+        <div class="field-with-guide">
+          <input
+            class="fld"
+            :class="fieldClass('principalAmount')"
+            :value="principalAmountModel"
+            placeholder="가입 금액 (원)"
+            inputmode="numeric"
+            aria-label="가입 금액"
+            @focus="onAmountFocus"
+            @input="onAmountInput"
+            @blur="onAmountBlur"
+          />
+          <small class="amount-summary">{{ principalAmountText }}</small>
+        </div>
         <input
           class="fld"
           :class="fieldClass('baseRate')"
@@ -510,7 +615,7 @@ onMounted(async () => {
       </p>
       <p v-if="errors.baseRate" class="err-msg">! {{ errors.baseRate }}</p>
 
-      <div class="row">
+      <div class="form-row">
         <input
           class="fld"
           :class="fieldClass('appliedRate')"
@@ -733,15 +838,60 @@ onMounted(async () => {
   background: #fff;
 }
 
-.row {
+.form-row {
   display: flex;
   gap: 10px;
   margin-bottom: 10px;
 }
 
-.row > * {
+.form-row > * {
   flex: 1;
   min-width: 0;
+}
+
+.two-column-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.two-column-row > * {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.field-with-guide {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.amount-rate-row {
+  align-items: flex-start;
+}
+
+.amount-rate-row > .field-with-guide,
+.amount-rate-row > .fld {
+  width: 100%;
+  min-width: 0;
+}
+
+.field-with-guide > .fld {
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  margin: 0;
+  align-self: stretch;
+  box-sizing: border-box;
+}
+
+.amount-summary {
+  min-height: 14px;
+  padding-left: 2px;
+  font-size: 10px;
+  line-height: 1.4;
+  color: var(--kb-muted);
 }
 
 .fld {
@@ -775,7 +925,7 @@ onMounted(async () => {
 }
 
 .fld.edited {
-  border: 1.6px solid var(--kb-red);
+  border: 1.6px solid #f4a70b;
   background: #fffdf6;
 }
 
