@@ -13,7 +13,7 @@ import {
   extractApiError,
   formatNumber,
   toDotDate,
-  toDisplayAccount,
+  toDisplayKbAccount,
 } from '@/util/depositFormat';
 
 const router = useRouter();
@@ -140,7 +140,7 @@ onMounted(load);
                 {{ deposit.appliedRate }}%
               </small>
               <small class="acct">
-                계좌번호 : {{ toDisplayAccount(deposit.accountNumber) }}</small
+                계좌번호 : {{ toDisplayKbAccount(deposit.accountNumber) }}</small
               >
             </div>
 
