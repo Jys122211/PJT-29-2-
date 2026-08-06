@@ -213,9 +213,9 @@ async function continueToNextStep() {
                 <div class="kb-card question-card">
                   <p>{{ group.text }}</p>
 
-                  <h3 class="description" v-if="group.description">
+                  <div class="description" v-if="group.description">
                     {{ group.description }}
-                  </h3>
+                  </div>
 
                   <div class="answer-options">
                     <button
