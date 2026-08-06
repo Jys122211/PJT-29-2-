@@ -38,6 +38,7 @@ public class UserDepositDTO {
                 .baseRate(vo.getBaseRate())
                 .balance(vo.getPrincipalAmount())
                 .maturityText(makeMaturityText(vo.getJoinDate()))
+                .accountNumber(vo.getAccountNumber())   // 추가
                 .build();
     }
 

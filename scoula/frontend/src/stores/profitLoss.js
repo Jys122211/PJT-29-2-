@@ -18,13 +18,13 @@ const CREDIT_ELIGIBILITY_QUESTIONS = [
     id: 3,
     type: 'COMPARISON_CONDITION',
     requestField: 'IS_PARTIAL_ALLOWED',
-    text: '분할 인출이 가능한가요? (계좌별 3회(해지 포함)이내 가능)',
+    text: '분할 인출이 가능하신가요? (계좌별 3회(해지 포함)이내 가능)',
   },
   {
     id: 4,
     type: 'COMPARISON_CONDITION',
     requestField: 'IS_LUMP_SUM',
-    text: '예금이 만기되면, 만기에 예금으로 대출을 갚으실 예정인가요?',
+    text: '예금 만기 시에, 만기된 예금으로 대출을 상환하실 예정이신가요?',
   },
 ];
 
@@ -33,13 +33,13 @@ const JEONSE_COMPARISON_CONDITIONS = [
     id: 'jeonse_comp_1',
     type: 'COMPARISON_CONDITION',
     requestField: 'IS_PARTIAL_ALLOWED',
-    text: '분할 인출이 가능한가요? (계좌별 3회(해지 포함)이내 가능)',
+    text: '분할 인출이 가능하신가요? (계좌별 3회(해지 포함)이내 가능)',
   },
   {
     id: 'jeonse_comp_2',
     type: 'COMPARISON_CONDITION',
     requestField: 'IS_LUMP_SUM',
-    text: '예금이 만기되면, 만기에 예금으로 대출을 갚으실 예정인가요?',
+    text: '예금 만기 시에, 만기된 예금으로 대출을 상환하실 예정이신가요?',
   },
 ];
 
@@ -78,28 +78,30 @@ const CREDIT_PREFERENTIAL_GROUPS = [
     type: 'YES_NO',
     title: '우대금리 (2) 급여(연금)이체 관련 실적 우대',
     preferentialQuestionId: 4,
-    text: '최근 3개월 동안 본인 명의의 KB국민은행 계좌로 건별 50만원 이상의 급여 또는 연금을 2회 이상 받으셨나요?',
+    text: '지난 3개월 동안 내 KB국민은행 계좌로 월급이나 연금을 한 번에 50만 원 이상씩, 두 번 이상 받으셨나요?',
   },
   {
     id: 'SAVINGS_ACCOUNT',
     type: 'YES_NO',
     title: '우대금리 (3) 적립식예금(30만원 이상) 보유 우대',
     preferentialQuestionId: 5,
-    text: 'KB국민은행 적립식예금 계좌에 30만원 이상의 잔액을 보유하고 계신가요?',
+    text: '현재 내 이름으로 된(본인명의) KB국민은행 적금 계좌에 30만원 이상의 잔액이 있으신가요?',
   },
   {
     id: 'AUTO_TRANSFER',
     type: 'YES_NO',
     title: '우대금리 (4) 자동이체 실적 우대',
     preferentialQuestionId: 6,
-    text: 'KB국민은행 계좌에서 아파트 관리비, 공과금 또는 통신비·보험료 중 회사나 기관이 정기적으로 출금하는 자동이체가 3건 이상 있으신가요?',
+    text: 'KB국민은행 계좌에서 아파트 관리비나 지로요금의 자동이체가 3건 이상 출금된 실적이 있으신가요?',
+    description:
+      '※ 지로요금은 전기요금, 가스요금, 수도요금, 통신요금처럼 고지서를 받고 내는 요금입니다.',
   },
   {
     id: 'STAR_BANKING',
     type: 'YES_NO',
     title: '우대금리 (5) KB 스타뱅킹 이용 우대',
     preferentialQuestionId: 7,
-    text: 'KB 스타뱅킹을 통해 월 1건 이상 이체한 실적이 있으신가요?',
+    text: '현재 KB스타뱅킹 앱을 이용하고 계신가요?',
   },
 ];
 
@@ -253,7 +255,11 @@ export const useProfitLossStore = defineStore('profitLoss', () => {
   // 전세대출 Computed
   const jeonseQualificationQuestionIds = computed(() =>
     state.jeonseEligibility.questions
-      .filter((question) => question.type === 'QUALIFICATION' && state.jeonseEligibility.answers[question.id] === true)
+      .filter(
+        (question) =>
+          question.type === 'QUALIFICATION' &&
+          state.jeonseEligibility.answers[question.id] === true,
+      )
       .map((question) => question.id),
   );
 
@@ -277,8 +283,9 @@ export const useProfitLossStore = defineStore('profitLoss', () => {
 
   const isJeonseEligibilityComplete = computed(() =>
     state.jeonseEligibility.questions.every(
-      (question) => typeof state.jeonseEligibility.answers[question.id] === 'boolean'
-    )
+      (question) =>
+        typeof state.jeonseEligibility.answers[question.id] === 'boolean',
+    ),
   );
 
   const isJeonsePreferentialComplete = computed(() =>
@@ -387,7 +394,10 @@ export const useProfitLossStore = defineStore('profitLoss', () => {
     const apiQuestions = Array.isArray(questions)
       ? questions.map((q) => ({ ...q, type: 'QUALIFICATION' }))
       : [];
-    state.jeonseEligibility.questions = [...apiQuestions, ...JEONSE_COMPARISON_CONDITIONS];
+    state.jeonseEligibility.questions = [
+      ...apiQuestions,
+      ...JEONSE_COMPARISON_CONDITIONS,
+    ];
   };
 
   const setJeonsePreferentialItems = (items) => {
@@ -396,8 +406,12 @@ export const useProfitLossStore = defineStore('profitLoss', () => {
       return;
     }
 
-    const cardItems = items.filter(item => item.conditionName.includes('KB국민카드 이용실적'));
-    const otherItems = items.filter(item => !item.conditionName.includes('KB국민카드 이용실적'));
+    const cardItems = items.filter((item) =>
+      item.conditionName.includes('KB국민카드 이용실적'),
+    );
+    const otherItems = items.filter(
+      (item) => !item.conditionName.includes('KB국민카드 이용실적'),
+    );
 
     const groups = [];
     if (cardItems.length > 0) {
@@ -405,32 +419,38 @@ export const useProfitLossStore = defineStore('profitLoss', () => {
         id: 'JEONSE_CARD_USAGE',
         type: 'SINGLE_SELECT',
         title: 'KB국민카드 이용실적 우대',
-        description: '※ 결제계좌를 KB국민은행으로 지정하고, 최근 3개월 이용실적 기준',
+        description:
+          '※ 결제계좌를 KB국민은행으로 지정하고, 최근 3개월 이용실적 기준',
         options: [
-          ...cardItems.sort((a, b) => b.id - a.id).map(item => {
-            let formattedText = item.conditionDetail;
-            if (formattedText.includes('90')) formattedText = '최근 3개월 90만원 이상';
-            else if (formattedText.includes('60')) formattedText = '최근 3개월 60만원 이상';
-            else if (formattedText.includes('30')) formattedText = '최근 3개월 30만원 이상';
+          ...cardItems
+            .sort((a, b) => b.id - a.id)
+            .map((item) => {
+              let formattedText = item.conditionDetail;
+              if (formattedText.includes('90'))
+                formattedText = '최근 3개월 90만원 이상';
+              else if (formattedText.includes('60'))
+                formattedText = '최근 3개월 60만원 이상';
+              else if (formattedText.includes('30'))
+                formattedText = '최근 3개월 30만원 이상';
 
-            return {
-              value: item.id.toString(),
-              preferentialQuestionId: item.id,
-              text: formattedText
-            };
-          }),
-          { value: 'NONE', preferentialQuestionId: null, text: '해당 없음' }
-        ]
+              return {
+                value: item.id.toString(),
+                preferentialQuestionId: item.id,
+                text: formattedText,
+              };
+            }),
+          { value: 'NONE', preferentialQuestionId: null, text: '해당 없음' },
+        ],
       });
     }
 
-    otherItems.forEach(item => {
+    otherItems.forEach((item) => {
       groups.push({
         id: item.id.toString(),
         type: 'YES_NO',
         title: item.conditionName,
         preferentialQuestionId: item.id,
-        text: item.conditionDetail
+        text: item.conditionDetail,
       });
     });
 
@@ -438,9 +458,11 @@ export const useProfitLossStore = defineStore('profitLoss', () => {
   };
 
   const setJeonseEligibilityAnswer = (questionId, answer) => {
-    const question = state.jeonseEligibility.questions.find((q) => q.id === questionId);
+    const question = state.jeonseEligibility.questions.find(
+      (q) => q.id === questionId,
+    );
     if (!question || typeof answer !== 'boolean') return;
-    
+
     state.jeonseEligibility.answers[questionId] = answer;
 
     if (question.requestField === 'IS_PARTIAL_ALLOWED') {
@@ -462,7 +484,7 @@ export const useProfitLossStore = defineStore('profitLoss', () => {
     } else if (typeof answer !== 'boolean') {
       return;
     }
-    
+
     state.jeonsePreferential.answers[groupId] = answer;
     state.loan.totalDiscountRate = null;
   };

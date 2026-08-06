@@ -46,11 +46,11 @@ const partialAllowedText = computed(() =>
   comparison.value?.badges.isPartialAllowed ? '부분해지 가능' : '부분해지 불가'
 );
 const lumpSumText = computed(() =>
-  comparison.value?.badges.isLumpSum ? '예금 만기에 일괄 상환' : '월 납입으로만 상환'
+  comparison.value?.badges.isLumpSum ? '예금 만기에 일시 상환' : '월 납입으로만 상환'
 );
 
 // 부분해지·상환방식은 사용자가 고른 조건, 이 배지는 계산의 전제라 줄을 나눈다.
-const urgentAmountBadgeText = computed(() => `${formatManwon(comparison.value?.urgentAmount)} 기준`);
+const urgentAmountBadgeText = computed(() => `${formatManwon(comparison.value?.urgentAmount)} 필요할때`);
 
 // 서버 메시지는 숫자 없이 고정 문구라 앞에 실제 차액/최저임금 금액을 붙여준다.
 const warningMessage = computed(() => {

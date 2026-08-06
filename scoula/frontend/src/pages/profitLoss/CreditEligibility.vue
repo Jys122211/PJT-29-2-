@@ -32,8 +32,13 @@ const visibleQualificationQuestions = computed(() => {
 });
 
 const isQualificationComplete = computed(() => {
-  return qualificationQuestions.value.length > 0 &&
-         qualificationQuestions.value.every(q => selectedAnswer(q.id) !== undefined && selectedAnswer(q.id) !== null);
+  return (
+    qualificationQuestions.value.length > 0 &&
+    qualificationQuestions.value.every(
+      (q) =>
+        selectedAnswer(q.id) !== undefined && selectedAnswer(q.id) !== null,
+    )
+  );
 });
 
 const comparisonConditionQuestions = computed(() =>
@@ -97,10 +102,9 @@ async function continueToNextStep() {
     const qualificationQuestionIds = [
       ...profitLossStore.qualificationQuestionIds,
     ];
-    const loanProductIds =
-      await profitLossApi.getQualifiedLoanProductIds(
-        qualificationQuestionIds,
-      );
+    const loanProductIds = await profitLossApi.getQualifiedLoanProductIds(
+      qualificationQuestionIds,
+    );
 
     profitLossStore.setLoanProducts(loanProductIds);
 
@@ -141,7 +145,7 @@ async function continueToNextStep() {
           aria-label="이전 화면으로 이동"
           @click="goBack"
         >
-          ‹
+          <i class="fa-solid fa-chevron-left"></i>
         </button>
 
         <div>
@@ -153,6 +157,12 @@ async function continueToNextStep() {
       <section class="question-section">
         <div class="group-container">
           <h2>자격조건 질문</h2>
+          <p class="question-guide">
+            <span class="guide-icon" aria-hidden="true">!</span>
+            <span>
+              잘 모르시겠다면 우선 <strong>‘예’</strong>를 선택해 주세요.
+            </span>
+          </p>
           <TransitionGroup name="question-fade" tag="div">
             <article
               v-for="item in visibleQualificationQuestions"
@@ -187,13 +197,22 @@ async function continueToNextStep() {
           </TransitionGroup>
 
           <p class="qualification-notice">
-            ※ 위 두 질문은 건강보험관리공단 사이트에서 건강보험자격득실확인서로
+            ※ 위 질문들은 건강보험관리공단 사이트에서 건강보험자격득실확인서로
             확인 가능합니다.
           </p>
         </div>
 
-        <div class="group-container" v-if="visibleComparisonConditionQuestions.length > 0">
+        <div
+          class="group-container"
+          v-if="visibleComparisonConditionQuestions.length > 0"
+        >
           <h2>득실 계산 조건</h2>
+          <p class="question-guide">
+            <span class="guide-icon" aria-hidden="true">!</span>
+            <span>
+              잘 모르시겠다면 우선 <strong>‘예’</strong>를 선택해 주세요.
+            </span>
+          </p>
           <TransitionGroup name="question-fade" tag="div">
             <article
               v-for="item in visibleComparisonConditionQuestions"
@@ -295,18 +314,15 @@ button {
 }
 
 .back-button {
-  display: grid;
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  border: 1px solid var(--kb-border);
-  border-radius: 9px;
-  flex-shrink: 0;
-  font-size: 23px;
-  line-height: 1;
-  color: #716a62;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  flex: none;
+  border: 1.5px solid var(--kb-border);
+  border-radius: 12px;
   background: #fff;
-  place-items: center;
 }
 
 .page-header h1 {
@@ -334,17 +350,58 @@ button {
   display: none;
 }
 
+.question-section .group-container {
+  padding-bottom: 10px;
+  margin-bottom: 14px;
+}
+
 .question-section h2 {
-  margin: 0 0 11px;
+  margin: 0 0 4px;
   font-size: var(--kb-font-sm);
   font-weight: 700;
   color: #716a62;
 }
 
+.question-guide {
+  display: flex;
+  margin: 0 0 12px;
+  padding: 7px 9px;
+  border-left: 3px solid var(--kb-yellow);
+  border-radius: 6px;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 11px;
+  line-height: 1.45;
+  color: #746d65;
+  background: #fff8df;
+}
+
+.question-guide strong {
+  font-weight: 700;
+  color: #292725;
+}
+
+.guide-icon {
+  display: grid;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  place-items: center;
+  font-size: 9px;
+  font-weight: 700;
+  color: #292725;
+  background: var(--kb-yellow);
+}
+
 .question-card {
   min-height: 102px;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
   padding: var(--kb-space-md);
+}
+
+.group-container > div > .question-card:last-child {
+  margin-bottom: 6px;
 }
 
 .question-card h3 {
@@ -371,7 +428,9 @@ button {
   flex-shrink: 0;
   color: #746d65;
   background: #fff;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
 }
 .answer-options button:hover {
   transform: translateY(-2px);
@@ -395,10 +454,10 @@ button {
 
 .qualification-notice {
   margin: 0;
-  padding: 14px 12px;
+  padding: 7px 9px;
   border-radius: 11px;
-  font-size: 10px;
-  line-height: 1.6;
+  font-size: 12px;
+  line-height: 1.4;
   color: #b0a89c;
   background: #f3ede2;
 }

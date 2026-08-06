@@ -54,6 +54,8 @@ public class OcrService {
         String mimeType = file.getContentType();
 
         String prompt = "은행 앱의 예금 상세 화면입니다. 화면에 실제로 표시된 값만 추출하세요. " +
+                "계좌번호는 예금 상품에 연결된 계좌번호만 추출하고, 하이픈과 공백을 제거한 숫자 문자열로 반환하세요. " +
+                "고객번호, 거래번호, 상품번호를 계좌번호로 잘못 추출하지 마세요. " +
                 "금액은 쉼표와 원 단위를 제거한 정수, 날짜는 YYYYMMDD, 금리는 퍼센트 기호를 제거한 숫자로 반환하세요. " +
                 "추측하지 말고 읽을 수 없는 값은 null로 반환하세요.";
 
@@ -104,6 +106,10 @@ public class OcrService {
         Map<String, Object> properties = new HashMap<>();
         properties.put("bankName", nullableType("string", "은행명"));
         properties.put("productName", nullableType("string", "예금 상품명"));
+        properties.put("accountNumber", nullableType(
+                "string",
+                "예금 상품 계좌번호. 하이픈과 공백을 제거한 숫자 문자열. 화면에서 확인할 수 없으면 null"
+        ));
         properties.put("principalAmount", nullableType("integer", "가입 원금. 원 단위 정수"));
         properties.put("joinDate", nullableType("string", "가입일. YYYYMMDD 형식"));
         properties.put("maturityDate", nullableType("string", "만기일. YYYYMMDD 형식"));
@@ -116,6 +122,7 @@ public class OcrService {
         schema.put("required", List.of(
                 "bankName",
                 "productName",
+                "accountNumber",
                 "principalAmount",
                 "joinDate",
                 "maturityDate",
