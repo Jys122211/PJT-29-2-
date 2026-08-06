@@ -71,11 +71,14 @@ const errors = reactive({
 
 // ------------------------------------------------------------ 입력 핸들러
 function onAccountInput(event) {
+  const previousValue = form.accountNumber;
   const digits = toCompactAccount(event.target.value).slice(0, 16);
   form.accountNumber = digits;
   event.target.value = toDisplayAccount(digits);
-  markEdited('accountNumber');
-  errors.accountNumber = '';
+  if (digits !== previousValue) {
+    markEdited('accountNumber');
+    errors.accountNumber = '';
+  }
 }
 
 function formatDigitString(digits) {
@@ -113,6 +116,8 @@ function applyFormattedAmount(input, formattedValue, digitsBeforeCursor) {
 
 function onAmountInput(event) {
   const input = event.target;
+  const previousDigits =
+    form.principalAmount === '' ? '' : String(form.principalAmount);
   const cursorPosition = input.selectionStart ?? input.value.length;
   const digitsBeforeCursor = input.value
     .slice(0, cursorPosition)
@@ -123,16 +128,20 @@ function onAmountInput(event) {
     principalAmountDraft.value = '';
     form.principalAmount = '';
     input.value = '';
-    markEdited('principalAmount');
-    errors.principalAmount = '';
+    if (previousDigits !== '') {
+      markEdited('principalAmount');
+      errors.principalAmount = '';
+    }
     return;
   }
 
   principalAmountDraft.value = digits;
   form.principalAmount = Number(digits);
   applyFormattedAmount(input, formatDigitString(digits), digitsBeforeCursor);
-  markEdited('principalAmount');
-  errors.principalAmount = '';
+  if (digits !== previousDigits) {
+    markEdited('principalAmount');
+    errors.principalAmount = '';
+  }
 }
 
 function onAmountFocus(event) {
@@ -172,20 +181,26 @@ const principalAmountText = computed(() =>
 );
 
 function onRateInput(field, event) {
+  const previousValue = String(form[field]);
   const cleaned = sanitizeRate(event.target.value);
   form[field] = cleaned;
   event.target.value = cleaned;
-  markEdited(field);
-  errors[field] = '';
+  if (cleaned !== previousValue) {
+    markEdited(field);
+    errors[field] = '';
+  }
 }
 
 function onDateInput(field, event) {
+  const previousValue = form[field];
   const digits = toCompactDate(event.target.value).slice(0, 8);
   form[field] = digits;
   event.target.value = toDisplayDate(digits);
-  markEdited(field);
-  errors[field] = '';
-  errors.maturityDate = '';
+  if (digits !== previousValue) {
+    markEdited(field);
+    errors[field] = '';
+    errors.maturityDate = '';
+  }
 }
 
 function onTextInput(field, event) {
@@ -910,7 +925,7 @@ onMounted(async () => {
 }
 
 .fld.edited {
-  border: 1.6px solid var(--kb-red);
+  border: 1.6px solid #f4a70b;
   background: #fffdf6;
 }
 
