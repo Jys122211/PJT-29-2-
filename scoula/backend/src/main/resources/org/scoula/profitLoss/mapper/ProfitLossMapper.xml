@@ -133,7 +133,6 @@
     </select>
 
     <select id="selectUserDeposit" resultType="org.scoula.profitLoss.domain.UserDepositVO">
-<<<<<<< HEAD
         SELECT user_deposit_id,
                user_id,
                bank_name,
@@ -144,20 +143,6 @@
                base_rate,
                principal_amount
         FROM user_deposits
-=======
-        SELECT
-            user_deposit_id,
-            user_id,
-            bank_name,
-            product_name,
-            join_date,
-            maturity_date,
-            applied_rate,
-            base_rate,
-            principal_amount,
-            account_number
-            FROM user_deposits
->>>>>>> origin/main
         WHERE user_deposit_id = #{userDepositId}
           AND user_id = #{userId}
           AND is_deleted = 'N'
