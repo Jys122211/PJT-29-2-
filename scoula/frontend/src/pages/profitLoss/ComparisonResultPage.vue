@@ -13,6 +13,17 @@ onMounted(load);
 
 const won = (value) => (value ?? 0).toLocaleString('ko-KR');
 
+// 억 단위가 있으면 "억 + 만"으로, 없으면 "만"만 남긴다. 딱 떨어지는 억은 "만원"을 생략한다.
+const formatManwon = (value) => {
+  const man = Math.round((value ?? 0) / 10000);
+  const eok = Math.floor(man / 10000);
+  const remainder = man % 10000;
+  if (eok > 0) {
+    return remainder > 0 ? `${eok}억 ${remainder.toLocaleString('ko-KR')}만원` : `${eok}억원`;
+  }
+  return `${man.toLocaleString('ko-KR')}만원`;
+};
+
 const isLoanWinner = computed(() => comparison.value?.winner === 'LOAN');
 const isDepositWinner = computed(() => comparison.value?.winner === 'WITHDRAWAL');
 const isTie = computed(() => comparison.value?.winner === 'TIE');
@@ -21,12 +32,25 @@ const loanTypeLabel = computed(() =>
   comparison.value?.loan.type === 'CREDIT' ? '신용대출' : '전세자금대출'
 );
 
-const partialAllowedText = computed(
-  () => `부분해지 ${comparison.value?.badges.isPartialAllowed ? 'O' : 'X'}`
+// 배너 둘째 줄(결론)용 — 대출 승이면 종류명, 예금 승이면 고정 문구.
+const winnerTypeLabel = computed(() =>
+  isLoanWinner.value ? loanTypeLabel.value : '중도해지'
 );
-const lumpSumText = computed(
-  () => `만기시 예금상환 ${comparison.value?.badges.isLumpSum ? 'O' : 'X'}`
+
+// 배너 첫 줄(무엇을 비교했는지)용 — 실제 상품명. 동점은 승자가 없어 표시하지 않는다.
+const winnerProductName = computed(() =>
+  isLoanWinner.value ? comparison.value?.loan.name : comparison.value?.deposit.name
 );
+
+const partialAllowedText = computed(() =>
+  comparison.value?.badges.isPartialAllowed ? '부분해지 가능' : '부분해지 불가'
+);
+const lumpSumText = computed(() =>
+  comparison.value?.badges.isLumpSum ? '예금 만기에 일시 상환' : '월 납입으로만 상환'
+);
+
+// 부분해지·상환방식은 사용자가 고른 조건, 이 배지는 계산의 전제라 줄을 나눈다.
+const urgentAmountBadgeText = computed(() => `${formatManwon(comparison.value?.urgentAmount)} 필요할때`);
 
 // 서버 메시지는 숫자 없이 고정 문구라 앞에 실제 차액/최저임금 금액을 붙여준다.
 const warningMessage = computed(() => {
@@ -44,19 +68,33 @@ const warningMessage = computed(() => {
 const loanDetailOpen = ref(false);
 const depositDetailOpen = ref(false);
 
-const maxFinalBalance = computed(() => {
+// 잔액은 예금 원금이라는 공통분모를 나눠 가져 막대 차이가 잘 안 보인다.
+// 손실액(만기까지 뒀을 때와의 차액) 기준으로 그려야 둘의 격차가 드러난다.
+// finalBalance - withdrawalProfit = 예금 원금(둘 다 aFinalBalance에서 역산되는 값이라 항상 같다).
+const depositMaturityAmount = computed(() => {
   if (!comparison.value) return 0;
-  return Math.max(comparison.value.loan.finalBalance, comparison.value.deposit.finalBalance);
+  const principal = comparison.value.deposit.finalBalance - comparison.value.deposit.withdrawalProfit;
+  return principal + comparison.value.deposit.maintainInterest;
 });
 
+const depositLoss = computed(() =>
+  comparison.value ? depositMaturityAmount.value - comparison.value.deposit.finalBalance : 0
+);
+
+const loanLoss = computed(() =>
+  comparison.value ? depositMaturityAmount.value - comparison.value.loan.finalBalance : 0
+);
+
+const maxLoss = computed(() => Math.max(depositLoss.value, loanLoss.value));
+
 const loanBarWidth = computed(() => {
-  if (!comparison.value || maxFinalBalance.value === 0) return 0;
-  return (comparison.value.loan.finalBalance / maxFinalBalance.value) * 100;
+  if (!comparison.value || maxLoss.value === 0) return 0;
+  return (loanLoss.value / maxLoss.value) * 100;
 });
 
 const depositBarWidth = computed(() => {
-  if (!comparison.value || maxFinalBalance.value === 0) return 0;
-  return (comparison.value.deposit.finalBalance / maxFinalBalance.value) * 100;
+  if (!comparison.value || maxLoss.value === 0) return 0;
+  return (depositLoss.value / maxLoss.value) * 100;
 });
 
 // 추천이 아닌 쪽을 누르면 손실경고 모달을 먼저 띄운다.
@@ -108,19 +146,24 @@ const cancelModal = () => {
 
       <!-- 2. 결론 배너 카드 -->
       <section class="card banner-card">
-        <p class="banner-lead">{{ won(comparison.urgentAmount) }}원이 필요할 때, 가장 남는 선택은</p>
-        <p class="banner-main">
-          <template v-if="isTie">두 방법의 결과가 같습니다</template>
-          <template v-else>
-            {{ comparison.badges.recommended }}
-            <span class="gold">{{ won(comparison.savingAmount) }}원</span> 더 이득
-          </template>
-        </p>
+        <template v-if="isTie">
+          <p class="banner-main">두 방법의 결과가 같습니다</p>
+        </template>
+        <template v-else>
+          <p class="banner-product-name">{{ winnerProductName }}</p>
+          <p class="banner-main">
+            {{ winnerTypeLabel }}
+            <span class="gold">{{ won(comparison.savingAmount) }}원</span>
+            <span class="banner-nowrap">더 이득</span>
+          </p>
+        </template>
 
         <div v-if="!isTie" class="badge-row">
-          <span class="badge badge-recommended">추천 · {{ comparison.badges.recommended }}</span>
           <span class="badge badge-soft">{{ partialAllowedText }}</span>
           <span class="badge badge-soft">{{ lumpSumText }}</span>
+        </div>
+        <div v-if="!isTie" class="badge-row badge-row-premise">
+          <span class="badge badge-soft">{{ urgentAmountBadgeText }}</span>
         </div>
       </section>
 
@@ -138,26 +181,35 @@ const cancelModal = () => {
           <p v-if="comparison.deposit.name" class="compare-product" :title="comparison.deposit.name">
             {{ comparison.deposit.name }}
           </p>
+          <p
+            v-if="comparison.deposit.accountNumber"
+            class="compare-account"
+            :title="comparison.deposit.accountNumber"
+          >
+            {{ comparison.deposit.accountNumber }}
+          </p>
           <p class="compare-amount">{{ won(comparison.deposit.finalBalance) }}원</p>
 
           <div class="compare-divider"></div>
 
-          <button
-            type="button"
-            class="detail-toggle"
-            @click="depositDetailOpen = !depositDetailOpen"
-          >
-            상세 보기 {{ depositDetailOpen ? '▲' : '▼' }}
-          </button>
+          <div class="compare-actions">
+            <button
+              type="button"
+              class="detail-toggle"
+              @click="depositDetailOpen = !depositDetailOpen"
+            >
+              상세 보기 {{ depositDetailOpen ? '▲' : '▼' }}
+            </button>
 
-          <div v-show="depositDetailOpen" class="detail-table">
-            <div class="detail-row">
-              <span>중도해지이율</span>
-              <span class="detail-value">연 {{ comparison.deposit.cancelInterestRate }}%</span>
-            </div>
-            <div class="detail-row">
-              <span>해지수익</span>
-              <span class="detail-value strong">{{ won(comparison.deposit.withdrawalProfit) }}원</span>
+            <div v-show="depositDetailOpen" class="detail-table">
+              <div class="detail-row">
+                <span>중도해지이율</span>
+                <span class="detail-value">연 {{ comparison.deposit.cancelInterestRate }}%</span>
+              </div>
+              <div class="detail-row">
+                <span>해지수익</span>
+                <span class="detail-value strong">{{ won(comparison.deposit.withdrawalProfit) }}원</span>
+              </div>
             </div>
           </div>
         </div>
@@ -172,33 +224,35 @@ const cancelModal = () => {
 
           <div class="compare-divider"></div>
 
-          <button
-            type="button"
-            class="detail-toggle"
-            @click="loanDetailOpen = !loanDetailOpen"
-          >
-            상세 보기 {{ loanDetailOpen ? '▲' : '▼' }}
-          </button>
+          <div class="compare-actions">
+            <button
+              type="button"
+              class="detail-toggle"
+              @click="loanDetailOpen = !loanDetailOpen"
+            >
+              상세 보기 {{ loanDetailOpen ? '▲' : '▼' }}
+            </button>
 
-          <div v-show="loanDetailOpen" class="detail-table">
-            <div class="detail-row">
-              <span>비용 (이자+수수료)</span>
-              <span class="detail-value">
-                {{ won(comparison.loan.cost) }}원
-                <small>(이자 {{ won(comparison.loan.interest) }} + 수수료 {{ won(comparison.loan.penalty) }})</small>
-              </span>
+            <div v-show="loanDetailOpen" class="detail-table">
+              <div class="detail-row">
+                <span>비용 (이자+수수료)</span>
+                <span class="detail-value">
+                  {{ won(comparison.loan.cost) }}원
+                  <small>(이자 {{ won(comparison.loan.interest) }} + 수수료 {{ won(comparison.loan.penalty) }})</small>
+                </span>
+              </div>
+              <div class="detail-row">
+                <span>만기이자</span>
+                <span class="detail-value">{{ won(comparison.deposit.maintainInterest) }}원</span>
+              </div>
+              <div class="detail-row">
+                <span>총 이득</span>
+                <span class="detail-value strong">{{ won(comparison.loan.netProfit) }}원</span>
+              </div>
+              <p v-if="comparison.loan.isRateEstimated" class="detail-note">
+                ※ 추정치이며 실제 심사금리와 다를 수 있습니다
+              </p>
             </div>
-            <div class="detail-row">
-              <span>만기이자</span>
-              <span class="detail-value">{{ won(comparison.deposit.maintainInterest) }}원</span>
-            </div>
-            <div class="detail-row">
-              <span>총 이득</span>
-              <span class="detail-value strong">{{ won(comparison.loan.netProfit) }}원</span>
-            </div>
-            <p v-if="comparison.loan.isRateEstimated" class="detail-note">
-              ※ 추정치이며 실제 심사금리와 다를 수 있습니다
-            </p>
           </div>
         </div>
       </section>
@@ -206,14 +260,14 @@ const cancelModal = () => {
       <!-- 5. 바 차트 카드 -->
       <section class="card chart-card">
         <div class="chart-header">
-          <span>만기 시점 최종 잔액</span>
+          <span>손실 비교</span>
           <span class="gold">차이 {{ won(comparison.savingAmount) }}원</span>
         </div>
 
         <div class="chart-row">
           <div class="chart-row-label">
             <span>신용대출</span>
-            <strong>{{ won(comparison.loan.finalBalance) }}원</strong>
+            <strong>{{ won(loanLoss) }}원</strong>
           </div>
           <div class="chart-bar-track">
             <div
@@ -227,7 +281,7 @@ const cancelModal = () => {
         <div class="chart-row">
           <div class="chart-row-label">
             <span>중도해지</span>
-            <strong>{{ won(comparison.deposit.finalBalance) }}원</strong>
+            <strong>{{ won(depositLoss) }}원</strong>
           </div>
           <div class="chart-bar-track">
             <div
@@ -239,10 +293,33 @@ const cancelModal = () => {
         </div>
       </section>
 
-      <!-- 6. 월 예상 상환액 -->
-      <section class="card monthly-card">
-        <span>월 예상 상환액</span>
-        <strong>{{ won(comparison.monthlyPayment) }}원</strong>
+      <!-- 6. 계산 조건 -->
+      <section class="card condition-card">
+        <p class="condition-title">계산 조건</p>
+        <div class="detail-table">
+          <div class="detail-row">
+            <span>필요 금액</span>
+            <span class="detail-value">{{ won(comparison.urgentAmount) }}원</span>
+          </div>
+          <div class="detail-row">
+            <span>선택한 예금</span>
+            <span class="detail-value condition-truncate" :title="comparison.deposit.name">
+              {{ comparison.deposit.name }}
+            </span>
+          </div>
+          <div class="detail-row">
+            <span>월 상환 가능</span>
+            <span class="detail-value">{{ won(comparison.monthlyPayment) }}원</span>
+          </div>
+          <div class="detail-row">
+            <span>부분해지</span>
+            <span class="detail-value">{{ partialAllowedText }}</span>
+          </div>
+          <div class="detail-row">
+            <span>상환 방식</span>
+            <span class="detail-value">{{ lumpSumText }}</span>
+          </div>
+        </div>
       </section>
 
       <!-- 7. 하단 안내 문구 -->
@@ -319,13 +396,15 @@ button {
   --gs-warn-bg: #fdecef;
   --gs-warn-line: #ffb8d6;
   --gs-warn-text: #99295a;
+  --gs-warn-icon: #e0316f;
+  --gs-warn-strong: #e54848;
   --gs-line: #e9e0d2;
 
   width: 100%;
   max-width: 390px;
   min-height: 100vh;
   margin: 0 auto;
-  padding: 18px 16px 28px;
+  padding: 16px 16px 28px;
   color: var(--gs-text);
   background: var(--gs-bg);
   border-right: 1px solid var(--gs-line);
@@ -344,7 +423,7 @@ button {
 }
 
 .result-content > * + * {
-  margin-top: 14px;
+  margin-top: 16px;
 }
 
 /* 1. 헤더 */
@@ -402,11 +481,17 @@ button {
   outline-offset: 2px;
 }
 
-/* 2. 결론 배너 */
-.banner-lead {
+/* 2. 결론 배너 — 은행 앱이라 어떤 상품인지가 먼저 보여야 한다. 상품명이
+   가장 진한 색·17px로 위에 오고, 종류명+금액 결론 줄은 22px로 더 크게
+   눌러 위계를 유지한다. keep-all은 상품명·종류명이 길어져도 단어 중간이
+   아니라 스페이스에서만 줄바꿈되게 한다. "더 이득"은 통째로 nowrap해서
+   "더"와 "이득" 사이가 아니라 금액과 "더 이득" 사이에서만 줄바꿈된다. */
+.banner-product-name {
   margin: 0;
-  font-size: 14px;
-  color: var(--gs-text-sub);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--gs-text);
+  word-break: keep-all;
 }
 
 .banner-main {
@@ -414,24 +499,30 @@ button {
   font-size: 22px;
   font-weight: 700;
   line-height: 1.4;
+  word-break: keep-all;
+}
+
+.banner-nowrap {
+  white-space: nowrap;
 }
 
 .badge-row {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: 14px;
+  margin-top: 16px;
+}
+
+/* 조건 배지(부분해지·상환방식)와 전제 배지(필요 금액) 사이는 배지 한 줄 안의
+   gap(8px)과 같은 간격을 준다 — 위 두 줄과의 16px보다 좁혀 성격 차이를 보여준다. */
+.badge-row-premise {
+  margin-top: 8px;
 }
 
 .badge {
-  padding: 6px 12px;
+  padding: 8px 12px;
   border-radius: 999px;
   font-size: 13px;
-}
-
-.badge-recommended {
-  color: var(--gs-text);
-  background: var(--gs-gold-deep);
 }
 
 .badge-soft {
@@ -442,7 +533,7 @@ button {
 /* 3. 최저임금 경고 */
 .warning-box {
   display: flex;
-  padding: 14px;
+  padding: 16px;
   border: 1px solid var(--gs-warn-line);
   border-radius: 12px;
   align-items: flex-start;
@@ -451,8 +542,8 @@ button {
 }
 
 .warning-icon {
-  margin-top: 1px;
-  color: #e0316f;
+  margin-top: 1px; /* 아이콘을 텍스트 첫 줄 높이에 맞추는 미세 보정, 4px 격자와 무관 */
+  color: var(--gs-warn-icon);
 }
 
 .warning-box p {
@@ -462,14 +553,27 @@ button {
   color: var(--gs-warn-text);
 }
 
-/* 4. 비교 카드 2장 */
+/* 4. 비교 카드 2장 — 두 카드가 행 트랙을 공유하는 subgrid.
+   행 1 제목 / 2 상품명 / 3 계좌번호 / 4 금액 / 5 구분선 / 6 상세 보기.
+   계좌번호가 없는 카드는 3행이 비어서, 4행(금액) 위치는 항상 같다.
+   상세 보기 버튼+펼침 내용을 .compare-actions로 묶어 6행 하나에 둔다 —
+   펼침 내용을 7행으로 따로 두면 subgrid 범위 밖이라 Chrome이 6행 위에
+   겹쳐 그린다. 추천 배지는 position: absolute라 행을 배정하지 않는다.
+   subgrid 미지원 브라우저는 각 카드가 독립된 행으로 돌아가 정렬만
+   어긋날 뿐 레이아웃이 깨지지는 않는다. */
 .compare-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  grid-template-rows: repeat(6, auto);
+  column-gap: 12px;
+  row-gap: 0; /* subgrid 행은 margin으로만 간격을 두므로 0 고정 — 바꾸면 정렬이 깨진다 */
+  align-items: stretch;
 }
 
 .compare-card {
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-row: span 6;
   position: relative;
   border: 1px solid var(--gs-line);
 }
@@ -482,23 +586,25 @@ button {
   position: absolute;
   top: -10px;
   left: 12px;
-  padding: 3px 10px;
+  padding: 4px 8px;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--gs-text);
   background: var(--gs-gold);
 }
 
 .compare-title {
+  grid-row: 1;
   margin: 0;
   font-size: 13px;
   color: var(--gs-text-sub);
 }
 
 .compare-product {
-  margin: 2px 0 0;
-  min-height: calc(11px * 1.35 * 2);
+  grid-row: 2;
+  margin: 4px 0 0;
   font-size: 11px;
+  font-weight: 700;
   line-height: 1.35;
   color: var(--gs-text-sub);
   display: -webkit-box;
@@ -507,20 +613,37 @@ button {
   overflow: hidden;
 }
 
+.compare-account {
+  grid-row: 3;
+  margin: 4px 0 0;
+  overflow: hidden;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--gs-text-sub);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .info-icon {
   font-size: 11px;
 }
 
 .compare-amount {
-  margin: 6px 0 0;
+  grid-row: 4;
+  margin: 8px 0 0;
   font-size: 20px;
   font-weight: 700;
   word-break: break-all;
 }
 
 .compare-divider {
+  grid-row: 5;
   margin: 12px 0;
   border-top: 1px solid var(--gs-line);
+}
+
+.compare-actions {
+  grid-row: 6;
 }
 
 .detail-toggle {
@@ -537,13 +660,16 @@ button {
   margin-top: 12px;
 }
 
+/* keep-all: 짧은 라벨은 flex-shrink 없이도 안 찌그러지고, "670,558원"처럼
+   스페이스 없는 값은 한글 음절 사이 줄바꿈으로 숫자와 단위가 갈라지지 않는다. */
 .detail-row {
   display: flex;
   justify-content: space-between;
-  gap: 6px;
+  gap: 8px;
   margin-bottom: 8px;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--gs-text-sub);
+  word-break: keep-all;
 }
 
 .detail-value {
@@ -557,37 +683,37 @@ button {
 
 .detail-value small {
   display: block;
-  font-size: 10px;
+  font-size: 11px;
   color: var(--gs-text-sub);
 }
 
 .detail-note {
   margin: 8px 0 0;
-  font-size: 10px;
-  color: #e54848;
+  font-size: 11px;
+  color: var(--gs-warn-strong);
 }
 
 /* 5. 바 차트 */
 .chart-header {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
   font-size: 15px;
   font-weight: 700;
 }
 
 .chart-header .gold {
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .chart-row + .chart-row {
-  margin-top: 14px;
+  margin-top: 16px;
 }
 
 .chart-row-label {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
   font-size: 13px;
 }
 
@@ -611,28 +737,29 @@ button {
   background: var(--gs-gold-deep);
 }
 
-/* 6. 월 예상 상환액 */
-.monthly-card {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.monthly-card span {
-  font-size: 14px;
-  color: var(--gs-text-sub);
-}
-
-.monthly-card strong {
+/* 6. 계산 조건 */
+.condition-title {
+  margin: 0 0 12px;
   font-size: 17px;
   font-weight: 700;
+}
+
+.condition-card .detail-table {
+  margin-top: 0;
+}
+
+.condition-truncate {
+  overflow: hidden;
+  min-width: 0;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 /* 7. 하단 안내 문구 */
 .footnote {
   margin: 0;
   padding: 16px;
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1.7;
   color: var(--gs-text-sub);
 }
@@ -640,7 +767,7 @@ button {
 /* 8. 진행 버튼 */
 .proceed-row {
   display: flex;
-  gap: 10px;
+  gap: 12px;
 }
 
 .proceed-button {
@@ -676,7 +803,7 @@ button {
 .modal-card {
   width: 100%;
   max-width: 320px;
-  padding: 22px 20px 18px;
+  padding: 24px 20px 16px;
   border-radius: 16px;
   background: #fff;
   box-shadow: 0 16px 40px rgb(0 0 0 / 18%);
@@ -687,9 +814,9 @@ button {
   align-items: center;
   gap: 8px;
   margin: 0;
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 700;
-  color: #e54848;
+  color: var(--gs-warn-strong);
 }
 
 .modal-card p {
@@ -721,7 +848,7 @@ button {
 .modal-confirm {
   border: 0;
   color: #fff;
-  background: #e54848;
+  background: var(--gs-warn-strong);
 }
 
 /* 로딩 / 에러 */
@@ -761,7 +888,7 @@ button {
 }
 
 .retry-button {
-  padding: 10px 20px;
+  padding: 12px 20px;
   border: 0;
   border-radius: 12px;
   color: var(--gs-text);

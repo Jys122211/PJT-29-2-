@@ -31,6 +31,7 @@ public class UserDepositDTO {
                 .id(vo.getUserDepositId())
                 .bankName(vo.getBankName())
                 .productName(vo.getProductName())
+                .accountNumber(vo.getAccountNumber())
                 .joinDate(vo.getJoinDate())
                 .maturityDate(vo.getMaturityDate())
                 .interestRate(vo.getAppliedRate())

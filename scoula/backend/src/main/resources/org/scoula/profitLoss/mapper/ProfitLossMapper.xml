@@ -9,6 +9,19 @@
 
     <select id="getDepositsByUserId"
             resultType="org.scoula.profitLoss.domain.UserDepositVO">
+<<<<<<< HEAD
+        SELECT
+            ud.user_deposit_id,
+            ud.user_id,
+            ud.bank_name,
+            ud.product_name,
+            ud.account_number,
+            ud.join_date,
+            ud.maturity_date,
+            ud.applied_rate,
+            ud.base_rate,
+            ud.principal_amount
+=======
         SELECT ud.user_deposit_id,
                ud.user_id,
                ud.bank_name,
@@ -19,6 +32,7 @@
                ud.base_rate,
                ud.principal_amount,
                ud.account_number
+>>>>>>> 626adaed000367ed345d4cb69398cc1b6d8d879a
         FROM user_deposits ud
         WHERE ud.user_id = #{userId}
           AND ud.is_deleted = 'N'
@@ -125,14 +139,32 @@
                 #{depositCancelInterest}, #{aFinalBalance}, #{bFinalBalance}, #{winner}, #{createdAt})
     </insert>
 
+    <!-- deposit_account_number: comparisons에는 없는 계좌번호를 user_deposits와 LEFT JOIN해서 붙인다.
+         예금이 삭제(is_deleted='Y')돼도 이력 조회는 그대로 되어야 하므로 INNER JOIN을 쓰지 않는다 —
+         이 경우 계좌번호만 null이 된다. -->
     <select id="selectComparisonById" resultType="org.scoula.profitLoss.vo.ComparisonVO">
-        SELECT *
-        FROM comparisons
-        WHERE comparison_id = #{comparisonId}
-          AND user_id = #{userId}
+        SELECT c.*,
+               d.account_number AS deposit_account_number
+          FROM comparisons c
+          LEFT JOIN user_deposits d ON d.user_deposit_id = c.user_deposit_id
+         WHERE c.comparison_id = #{comparisonId}
+           AND c.user_id = #{userId}
     </select>
 
     <select id="selectUserDeposit" resultType="org.scoula.profitLoss.domain.UserDepositVO">
+<<<<<<< HEAD
+        SELECT
+            user_deposit_id,
+            user_id,
+            bank_name,
+            product_name,
+            account_number,
+            join_date,
+            maturity_date,
+            applied_rate,
+            base_rate,
+            principal_amount
+=======
         SELECT user_deposit_id,
                user_id,
                bank_name,
@@ -142,6 +174,7 @@
                applied_rate,
                base_rate,
                principal_amount
+>>>>>>> 626adaed000367ed345d4cb69398cc1b6d8d879a
         FROM user_deposits
         WHERE user_deposit_id = #{userDepositId}
           AND user_id = #{userId}
@@ -166,7 +199,7 @@
         </foreach>
     </select>
     <select id="selectComparisonsByUserId" resultType="org.scoula.profitLoss.vo.ComparisonVO">
-        SELECT c.*, ud.account_number
+        SELECT c.*, ud.account_number AS deposit_account_number
         FROM comparisons c
         LEFT JOIN user_deposits ud ON c.user_deposit_id = ud.user_deposit_id
         WHERE c.user_id = #{userId}
