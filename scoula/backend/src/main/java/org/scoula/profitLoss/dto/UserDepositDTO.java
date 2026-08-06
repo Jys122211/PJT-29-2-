@@ -18,13 +18,13 @@ public class UserDepositDTO {
     private Long id;
     private String bankName;
     private String productName;
+    private String accountNumber;
     private LocalDate joinDate;
     private LocalDate maturityDate;
     private BigDecimal interestRate;
     private BigDecimal baseRate;
     private Long balance;
     private String maturityText;
-    private String accountNumber; //추가
 
     public static UserDepositDTO of(UserDepositVO vo) {
         return UserDepositDTO.builder()

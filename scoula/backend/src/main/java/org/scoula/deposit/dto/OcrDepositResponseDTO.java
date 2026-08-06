@@ -16,6 +16,7 @@ import java.math.BigDecimal;
 public class OcrDepositResponseDTO {
     private String bankName;
     private String productName;
+    private String accountNumber;
     private Long principalAmount;
     private String joinDate;
     private String maturityDate;
