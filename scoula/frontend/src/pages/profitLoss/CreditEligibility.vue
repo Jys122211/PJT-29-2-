@@ -197,7 +197,7 @@ async function continueToNextStep() {
           </TransitionGroup>
 
           <p class="qualification-notice">
-            ※ 위 두 질문은 건강보험관리공단 사이트에서 건강보험자격득실확인서로
+            ※ 위 질문들은 건강보험관리공단 사이트에서 건강보험자격득실확인서로
             확인 가능합니다.
           </p>
         </div>

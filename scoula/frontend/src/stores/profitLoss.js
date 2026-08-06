@@ -94,7 +94,7 @@ const CREDIT_PREFERENTIAL_GROUPS = [
     preferentialQuestionId: 6,
     text: 'KB국민은행 계좌에서 아파트 관리비나 지로요금의 자동이체가 3건 이상 출금된 실적이 있으신가요?',
     description:
-      '지로요금은 전기·가스·수도·통신요금 등 고지서로 청구되는 요금을 말합니다.',
+      '※ 지로요금은 전기요금, 가스요금, 수도요금, 통신요금처럼 고지서를 받고 내는 요금입니다.',
   },
   {
     id: 'STAR_BANKING',
