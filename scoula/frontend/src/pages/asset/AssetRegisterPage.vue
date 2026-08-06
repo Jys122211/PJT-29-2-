@@ -80,6 +80,16 @@ function onAccountInput(event) {
   }
 }
 
+function validateAccountNumber() {
+  if (form.accountNumber !== '' && form.accountNumber.length !== 14) {
+    errors.accountNumber = 'KB 계좌번호 숫자 14자리를 입력해주세요';
+  }
+}
+
+function onAccountBlur() {
+  validateAccountNumber();
+}
+
 function formatDigitString(digits) {
   return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
@@ -215,9 +225,10 @@ function markEdited(field) {
 }
 
 function fieldClass(field) {
+  const hasValue = String(form[field] ?? '').trim() !== '';
   return {
     err: !!errors[field],
-    ocr: ocrFilledFields.value.has(field) && !editedFields.value.has(field),
+    ocr: hasValue && !editedFields.value.has(field),
     edited: editedFields.value.has(field),
   };
 }
@@ -394,6 +405,7 @@ function applyExtracted(extracted = {}) {
   ocrFilledFields.value = filled;
   editedFields.value = new Set();
   Object.keys(errors).forEach((key) => (errors[key] = ''));
+  validateAccountNumber();
 }
 
 /** 07-05, 07-08 -> 직접 입력으로 전환 */
@@ -570,6 +582,7 @@ onMounted(async () => {
           maxlength="16"
           aria-label="계좌번호"
           @input="onAccountInput"
+          @blur="onAccountBlur"
         />
       </div>
       <p v-if="errors.accountNumber" class="err-msg">

@@ -76,6 +76,7 @@ async function load() {
     form.appliedRate = data.appliedRate == null ? '' : String(data.appliedRate);
 
     Object.assign(original, { ...form });
+    validateAccountNumber();
   } catch (error) {
     loadError.value = extractApiError(error).message;
   } finally {
@@ -111,6 +112,40 @@ function onAccountInput(event) {
   errors.accountNumber = '';
 }
 
+function validateAccountNumber() {
+  if (form.accountNumber !== '' && form.accountNumber.length !== 14) {
+    errors.accountNumber = 'KB 계좌번호 숫자 14자리를 입력해주세요';
+  }
+}
+
+function onAccountBlur() {
+  validateAccountNumber();
+}
+
+function formatKoreanAmount(amount, emptyMessage = '가입금액을 입력해주세요') {
+  if (amount === null || amount === '' || Number(amount) === 0) {
+    return emptyMessage;
+  }
+
+  const value = Number(amount);
+  const jo = Math.floor(value / 1_000_000_000_000);
+  const eok = Math.floor((value % 1_000_000_000_000) / 100_000_000);
+  const man = Math.floor((value % 100_000_000) / 10_000);
+  const won = value % 10_000;
+  const result = [];
+
+  if (jo > 0) result.push(`${jo.toLocaleString('ko-KR')}조`);
+  if (eok > 0) result.push(`${eok.toLocaleString('ko-KR')}억`);
+  if (man > 0) result.push(`${man.toLocaleString('ko-KR')}만원`);
+  if (won > 0) result.push(`${won.toLocaleString('ko-KR')}원`);
+
+  return result.join(' ');
+}
+
+const principalAmountText = computed(() =>
+  formatKoreanAmount(form.principalAmount),
+);
+
 function onRateInput(field, event) {
   const cleaned = sanitizeRate(event.target.value);
   form[field] = cleaned;
@@ -135,7 +170,7 @@ const isComplete = computed(
   () =>
     form.bankName.trim() !== '' &&
     form.productName.trim() !== '' &&
-    form.accountNumber.length >= 10 &&
+    form.accountNumber.length === 14 &&
     form.joinDate.length === 8 &&
     form.maturityDate.length === 8 &&
     form.principalAmount !== '' &&
@@ -189,6 +224,11 @@ function validate() {
   require('maturityDate', '만기일을 입력해주세요');
   require('baseRate', '기본금리를 입력해주세요');
   require('appliedRate', '적용금리를 입력해주세요');
+
+  if (form.accountNumber !== '' && form.accountNumber.length !== 14) {
+    errors.accountNumber = 'KB 계좌번호 숫자 14자리를 입력해주세요';
+    ok = false;
+  }
 
   if (form.principalAmount === '' || Number(form.principalAmount) <= 0) {
     errors.principalAmount = '가입금액을 입력해주세요';
@@ -302,8 +342,8 @@ onMounted(load);
       <h2 class="sec-label">직접 입력</h2>
 
       <form class="form-card" @submit.prevent="submit">
-        <div class="row">
-          <input class="fld locked" value="정기예금" disabled aria-label="상품 유형" />
+        <div class="form-row">
+          <input class="fld" value="정기예금" disabled aria-label="상품 유형" />
           <input
             class="fld"
             :class="fieldClass('bankName')"
@@ -315,7 +355,7 @@ onMounted(load);
         </div>
         <p v-if="errors.bankName" class="err-msg">! {{ errors.bankName }}</p>
 
-        <div class="row">
+        <div class="form-row">
           <input
             class="fld"
             :class="fieldClass('productName')"
@@ -327,22 +367,23 @@ onMounted(load);
         </div>
         <p v-if="errors.productName" class="err-msg">! {{ errors.productName }}</p>
 
-<div class="row">
+        <div class="form-row">
           <input
             class="fld"
             :class="fieldClass('accountNumber')"
             :value="toDisplayKbAccount(form.accountNumber)"
-            placeholder="계좌번호 (숫자만 입력)"
+            placeholder="계좌번호"
             inputmode="numeric"
-            maxlength="20"
+            maxlength="16"
             aria-label="계좌번호"
             @input="onAccountInput"
+            @blur="onAccountBlur"
           />
         </div>
         <p v-if="errors.accountNumber" class="err-msg">! {{ errors.accountNumber }}</p>
 
 
-        <div class="row">
+        <div class="form-row two-column-row">
           <input
             class="fld"
             :class="fieldClass('joinDate')"
@@ -365,16 +406,19 @@ onMounted(load);
         <p v-if="errors.joinDate" class="err-msg">! {{ errors.joinDate }}</p>
         <p v-if="errors.maturityDate" class="err-msg">! {{ errors.maturityDate }}</p>
 
-        <div class="row">
-          <input
-            class="fld"
-            :class="fieldClass('principalAmount')"
-            :value="formatNumber(form.principalAmount)"
-            placeholder="가입 금액 (원)"
-            inputmode="numeric"
-            aria-label="가입 금액"
-            @input="onAmountInput"
-          />
+        <div class="form-row two-column-row amount-rate-row">
+          <div class="field-with-guide">
+            <input
+              class="fld"
+              :class="fieldClass('principalAmount')"
+              :value="formatNumber(form.principalAmount)"
+              placeholder="가입 금액 (원)"
+              inputmode="numeric"
+              aria-label="가입 금액"
+              @input="onAmountInput"
+            />
+            <small class="amount-summary">{{ principalAmountText }}</small>
+          </div>
           <input
             class="fld"
             :class="fieldClass('baseRate')"
@@ -390,7 +434,7 @@ onMounted(load);
         </p>
         <p v-if="errors.baseRate" class="err-msg">! {{ errors.baseRate }}</p>
 
-        <div class="row">
+        <div class="form-row">
           <input
             class="fld"
             :class="fieldClass('appliedRate')"
@@ -544,58 +588,102 @@ onMounted(load);
 }
 
 .sec-label {
-  margin: 0 2px var(--kb-space-sm);
-  font-size: var(--kb-font-md);
+  margin: 20px 2px 10px;
+  font-size: 14px;
   font-weight: 700;
 }
 
 .form-card {
-  padding: var(--kb-space-lg) var(--kb-space-md);
+  padding: 16px 15px;
   border: 1px solid var(--kb-border);
   border-radius: 14px;
   background: #fff;
 }
 
-.row {
+.form-row {
   display: flex;
-  gap: var(--kb-space-sm);
-  margin-bottom: var(--kb-space-sm);
+  gap: 10px;
+  margin-bottom: 10px;
 }
 
-.row > * {
+.form-row > * {
   flex: 1;
   min-width: 0;
-  width: auto;
+}
+
+.two-column-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.two-column-row > * {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.field-with-guide {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.amount-rate-row {
+  align-items: flex-start;
+}
+
+.amount-rate-row > .field-with-guide,
+.amount-rate-row > .fld {
+  width: 100%;
+  min-width: 0;
+}
+
+.field-with-guide > .fld {
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  margin: 0;
+  align-self: stretch;
+  box-sizing: border-box;
+}
+
+.amount-summary {
+  min-height: 14px;
+  padding-left: 2px;
+  font-size: 10px;
+  line-height: 1.4;
+  color: var(--kb-muted);
 }
 
 .fld {
   width: 100%;
-  height: var(--kb-input-height);
-  padding: 0 var(--kb-space-md);
-  border: 1px solid #e1dbce;
-  border-radius: 8px;
+  padding: 13px;
+  border: 1px solid var(--kb-border);
+  border-radius: 10px;
   font: inherit;
-  font-size: var(--kb-font-md);
+  font-size: 13px;
   color: var(--kb-text);
-  background: #faf9f7;
+  background: #fff;
   box-sizing: border-box;
-  transition: all 0.2s ease;
 }
 
 .fld::placeholder {
-  color: #aaa39a;
+  color: #b8b1a8;
 }
 
 .fld:focus {
-  border-color: var(--kb-yellow);
-  background: #fff;
-  box-shadow: 0 0 0 3px rgba(255, 188, 0, 0.15);
+  border-color: #f4a70b;
   outline: 0;
 }
 
-/* 기존값 */
-.fld.locked,
 .fld:disabled {
+  color: var(--kb-text);
+  background: #f6f3ee;
+}
+
+/* 기존값 */
+.fld.locked {
   border-color: var(--kb-line);
   color: var(--kb-text);
   background: var(--kb-soft);
@@ -603,7 +691,7 @@ onMounted(load);
 
 /* 수정한 값 */
 .fld.edited {
-  border: 1.6px solid #d98324;
+  border: 1.6px solid #f4a70b;
   background: #fffdf6;
 }
 
