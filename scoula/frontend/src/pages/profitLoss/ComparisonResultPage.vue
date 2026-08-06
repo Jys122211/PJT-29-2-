@@ -293,32 +293,11 @@ const cancelModal = () => {
         </div>
       </section>
 
-      <!-- 6. 계산 조건 -->
-      <section class="card condition-card">
-        <p class="condition-title">계산 조건</p>
-        <div class="detail-table">
-          <div class="detail-row">
-            <span>필요 금액</span>
-            <span class="detail-value">{{ won(comparison.urgentAmount) }}원</span>
-          </div>
-          <div class="detail-row">
-            <span>선택한 예금</span>
-            <span class="detail-value condition-truncate" :title="comparison.deposit.name">
-              {{ comparison.deposit.name }}
-            </span>
-          </div>
-          <div class="detail-row">
-            <span>월 상환 가능 금액</span>
-            <span class="detail-value">{{ won(comparison.monthlyPayment) }}원</span>
-          </div>
-          <div class="detail-row">
-            <span>부분해지</span>
-            <span class="detail-value">{{ partialAllowedText }}</span>
-          </div>
-          <div class="detail-row">
-            <span>상환 방식</span>
-            <span class="detail-value">{{ lumpSumText }}</span>
-          </div>
+      <!-- 6. 월 예상 상환액 -->
+      <section class="card monthly-card">
+        <div class="detail-row">
+          <span>월 예상 상환액</span>
+          <span class="detail-value strong">{{ won(comparison.monthlyPayment) }}원</span>
         </div>
       </section>
 
@@ -737,22 +716,9 @@ button {
   background: var(--gs-gold-deep);
 }
 
-/* 6. 계산 조건 */
-.condition-title {
-  margin: 0 0 12px;
-  font-size: 17px;
-  font-weight: 700;
-}
-
-.condition-card .detail-table {
-  margin-top: 0;
-}
-
-.condition-truncate {
-  overflow: hidden;
-  min-width: 0;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+/* 6. 월 예상 상환액 — 행이 하나뿐이라 detail-row의 margin-bottom을 지운다. */
+.monthly-card .detail-row {
+  margin-bottom: 0;
 }
 
 /* 7. 하단 안내 문구 */
