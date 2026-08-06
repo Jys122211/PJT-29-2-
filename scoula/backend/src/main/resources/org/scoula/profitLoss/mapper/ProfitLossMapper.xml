@@ -9,16 +9,17 @@
 
     <select id="getDepositsByUserId"
             resultType="org.scoula.profitLoss.domain.UserDepositVO">
-        SELECT ud.user_deposit_id,
-               ud.user_id,
-               ud.bank_name,
-               ud.product_name,
-               ud.join_date,
-               ud.maturity_date,
-               ud.applied_rate,
-               ud.base_rate,
-               ud.principal_amount,
-               ud.account_number
+        SELECT
+            ud.user_deposit_id,
+            ud.user_id,
+            ud.bank_name,
+            ud.product_name,
+            ud.account_number,
+            ud.join_date,
+            ud.maturity_date,
+            ud.applied_rate,
+            ud.base_rate,
+            ud.principal_amount
         FROM user_deposits ud
         WHERE ud.user_id = #{userId}
           AND ud.is_deleted = 'N'
@@ -138,7 +139,6 @@
     </select>
 
     <select id="selectUserDeposit" resultType="org.scoula.profitLoss.domain.UserDepositVO">
-<<<<<<< HEAD
         SELECT
             user_deposit_id,
             user_id,
@@ -150,17 +150,6 @@
             applied_rate,
             base_rate,
             principal_amount
-=======
-        SELECT user_deposit_id,
-               user_id,
-               bank_name,
-               product_name,
-               join_date,
-               maturity_date,
-               applied_rate,
-               base_rate,
-               principal_amount
->>>>>>> 626adaed000367ed345d4cb69398cc1b6d8d879a
         FROM user_deposits
         WHERE user_deposit_id = #{userDepositId}
           AND user_id = #{userId}

@@ -238,6 +238,10 @@ async function continueToNextStep() {
                 <div class="kb-card question-card">
                   <p>{{ group.text }}</p>
 
+                  <div class="description" v-if="group.description">
+                    {{ group.description }}
+                  </div>
+
                   <div class="answer-options">
                     <button
                       type="button"
@@ -567,6 +571,7 @@ button {
   color: #8c857a;
   background: #ddd5c3;
 }
+<<<<<<< HEAD
 
 .question-guide {
   display: flex;
@@ -610,5 +615,17 @@ button {
   border: 1.5px solid var(--kb-border);
   border-radius: 12px;
   background: #fff;
+=======
+.description {
+  display: block;
+  margin: -3px 0 12px;
+  padding: 7px 9px;
+  border-radius: 7px;
+  font-size: 9px;
+  font-weight: 400;
+  line-height: 1.45;
+  color: #8d857b;
+  background: #f7f3ec;
+>>>>>>> origin/main
 }
 </style>
