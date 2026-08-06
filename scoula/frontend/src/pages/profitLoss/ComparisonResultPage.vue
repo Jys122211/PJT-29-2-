@@ -150,10 +150,12 @@ const cancelModal = () => {
           <p class="banner-main">두 방법의 결과가 같습니다</p>
         </template>
         <template v-else>
-          <span class="banner-recommend">추천</span>
           <p class="banner-product-name">{{ winnerProductName }}</p>
-          <p class="banner-type-name">{{ winnerTypeLabel }}</p>
-          <p class="banner-main"><span class="gold">{{ won(comparison.savingAmount) }}원</span> 더 이득</p>
+          <p class="banner-main">
+            {{ winnerTypeLabel }}
+            <span class="gold">{{ won(comparison.savingAmount) }}원</span>
+            <span class="banner-nowrap">더 이득</span>
+          </p>
         </template>
 
         <div v-if="!isTie" class="badge-row">
@@ -479,30 +481,14 @@ button {
   outline-offset: 2px;
 }
 
-/* 2. 결론 배너 — 추천/상품명/종류명이 작은 순으로 쌓이고 결론(금액)만 크다.
-   한 줄에 상품명+종류명+금액을 다 넣으면 390px 폭에서 "더 이득"이 잘려
-   다음 줄로 넘어가므로 줄을 나눴다. keep-all은 상품명이 길어져도 단어
-   중간이 아니라 스페이스에서만 줄바꿈되게 한다. */
-.banner-recommend {
-  display: block;
-  margin: 0;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--gs-gold);
-  word-break: keep-all;
-}
-
+/* 2. 결론 배너 — 은행 앱이라 어떤 상품인지가 먼저 보여야 한다. 상품명이
+   가장 진한 색·17px로 위에 오고, 종류명+금액 결론 줄은 22px로 더 크게
+   눌러 위계를 유지한다. keep-all은 상품명·종류명이 길어져도 단어 중간이
+   아니라 스페이스에서만 줄바꿈되게 한다. "더 이득"은 통째로 nowrap해서
+   "더"와 "이득" 사이가 아니라 금액과 "더 이득" 사이에서만 줄바꿈된다. */
 .banner-product-name {
-  margin: 4px 0 0;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--gs-text);
-  word-break: keep-all;
-}
-
-.banner-type-name {
-  margin: 4px 0 0;
-  font-size: 15px;
+  margin: 0;
+  font-size: 17px;
   font-weight: 700;
   color: var(--gs-text);
   word-break: keep-all;
@@ -514,6 +500,10 @@ button {
   font-weight: 700;
   line-height: 1.4;
   word-break: keep-all;
+}
+
+.banner-nowrap {
+  white-space: nowrap;
 }
 
 .badge-row {
