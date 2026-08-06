@@ -13,7 +13,9 @@ const resultModalTitle = ref('');
 const resultModalMessage = ref('');
 
 const qualificationQuestions = computed(() =>
-  profitLossStore.state.jeonseEligibility.questions.filter((q) => q.type === 'QUALIFICATION')
+  profitLossStore.state.jeonseEligibility.questions.filter(
+    (q) => q.type === 'QUALIFICATION',
+  ),
 );
 
 const visibleQualificationQuestions = computed(() => {
@@ -30,12 +32,19 @@ const visibleQualificationQuestions = computed(() => {
 });
 
 const isQualificationComplete = computed(() => {
-  return qualificationQuestions.value.length > 0 &&
-         qualificationQuestions.value.every(q => selectedAnswer(q.id) !== undefined && selectedAnswer(q.id) !== null);
+  return (
+    qualificationQuestions.value.length > 0 &&
+    qualificationQuestions.value.every(
+      (q) =>
+        selectedAnswer(q.id) !== undefined && selectedAnswer(q.id) !== null,
+    )
+  );
 });
 
 const comparisonConditionQuestions = computed(() =>
-  profitLossStore.state.jeonseEligibility.questions.filter((q) => q.type === 'COMPARISON_CONDITION')
+  profitLossStore.state.jeonseEligibility.questions.filter(
+    (q) => q.type === 'COMPARISON_CONDITION',
+  ),
 );
 
 const visibleComparisonConditionQuestions = computed(() => {
@@ -110,10 +119,9 @@ async function continueToNextStep() {
       ...profitLossStore.jeonseQualificationQuestionIds,
     ];
     // 의도적인 N+1 유발 API 호출
-    const loanProductIds =
-      await profitLossApi.getJeonseQualifiedLoanProductIds(
-        qualificationQuestionIds,
-      );
+    const loanProductIds = await profitLossApi.getJeonseQualifiedLoanProductIds(
+      qualificationQuestionIds,
+    );
 
     profitLossStore.setLoanProducts(loanProductIds);
 
@@ -154,7 +162,7 @@ async function continueToNextStep() {
           aria-label="이전 화면으로 이동"
           @click="goBack"
         >
-          ‹
+          <i class="fa-solid fa-chevron-left"></i>
         </button>
 
         <div>
@@ -162,7 +170,7 @@ async function continueToNextStep() {
           <p>자격조건을 입력해 주세요</p>
         </div>
       </header>
-      
+
       <div v-if="isLoading" class="loading-message">
         질문을 불러오는 중입니다...
       </div>
@@ -170,6 +178,12 @@ async function continueToNextStep() {
       <section v-else class="question-section">
         <div class="group-container">
           <h2>자격조건 질문</h2>
+          <p class="question-guide">
+            <span class="guide-icon" aria-hidden="true">!</span>
+            <span>
+              잘 모르시겠다면 우선 <strong>‘예’</strong>를 선택해 주세요.
+            </span>
+          </p>
           <TransitionGroup name="question-fade" tag="div">
             <article
               v-for="question in visibleQualificationQuestions"
@@ -200,8 +214,18 @@ async function continueToNextStep() {
           </TransitionGroup>
         </div>
 
-        <div class="group-container" v-if="visibleComparisonConditionQuestions.length > 0">
+        <div
+          class="group-container"
+          v-if="visibleComparisonConditionQuestions.length > 0"
+        >
           <h2>득실 계산 조건</h2>
+          <p class="question-guide">
+            <span class="guide-icon" aria-hidden="true">!</span>
+            <span>
+              잘 모르시겠다면 우선 <strong>‘예’</strong>를 선택해 주세요.
+            </span>
+          </p>
+
           <TransitionGroup name="question-fade" tag="div">
             <article
               v-for="question in visibleComparisonConditionQuestions"
@@ -255,14 +279,16 @@ async function continueToNextStep() {
         class="eligibility-modal-overlay"
         @click.self="closeResultModal"
       >
-        <section
-          class="eligibility-modal"
-          role="alertdialog"
-          aria-modal="true"
-        >
+        <section class="eligibility-modal" role="alertdialog" aria-modal="true">
           <h2>{{ resultModalTitle }}</h2>
           <p>{{ resultModalMessage }}</p>
-          <button class="kb-btn kb-btn-primary" type="button" @click="closeResultModal">확인</button>
+          <button
+            class="kb-btn kb-btn-primary"
+            type="button"
+            @click="closeResultModal"
+          >
+            확인
+          </button>
         </section>
       </div>
     </Teleport>
@@ -308,19 +334,17 @@ button {
   gap: 10px;
 }
 .back-button {
-  display: grid;
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  border: 1px solid var(--kb-border);
-  border-radius: 9px;
-  flex-shrink: 0;
-  font-size: 23px;
-  line-height: 1;
-  color: #716a62;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  flex: none;
+  border: 1.5px solid var(--kb-border);
+  border-radius: 12px;
   background: #fff;
-  place-items: center;
 }
+
 .page-header h1 {
   margin: 0;
   font-size: 17px;
@@ -384,7 +408,9 @@ button {
   flex-shrink: 0;
   color: #746d65;
   background: #fff;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
 }
 .answer-options button:hover {
   transform: translateY(-2px);
@@ -443,5 +469,37 @@ button {
 .eligibility-modal button {
   width: 100%;
   height: clamp(40px, 11vw, 44px);
+}
+
+.question-guide {
+  display: flex;
+  margin: 0 0 12px;
+  padding: 7px 9px;
+  border-left: 3px solid var(--kb-yellow);
+  border-radius: 6px;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 11px;
+  line-height: 1.45;
+  color: #746d65;
+  background: #fff8df;
+}
+
+.guide-icon {
+  display: grid;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  place-items: center;
+  font-size: 9px;
+  font-weight: 700;
+  color: #292725;
+  background: var(--kb-yellow);
+}
+
+.question-guide strong {
+  font-weight: 700;
+  color: #292725;
 }
 </style>
