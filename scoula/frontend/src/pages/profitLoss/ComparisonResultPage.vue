@@ -19,48 +19,38 @@ const formatManwon = (value) => {
   const eok = Math.floor(man / 10000);
   const remainder = man % 10000;
   if (eok > 0) {
-    return remainder > 0
-      ? `${eok}억 ${remainder.toLocaleString('ko-KR')}만원`
-      : `${eok}억원`;
+    return remainder > 0 ? `${eok}억 ${remainder.toLocaleString('ko-KR')}만원` : `${eok}억원`;
   }
   return `${man.toLocaleString('ko-KR')}만원`;
 };
 
 const isLoanWinner = computed(() => comparison.value?.winner === 'LOAN');
-const isDepositWinner = computed(
-  () => comparison.value?.winner === 'WITHDRAWAL',
-);
+const isDepositWinner = computed(() => comparison.value?.winner === 'WITHDRAWAL');
 const isTie = computed(() => comparison.value?.winner === 'TIE');
 
 const loanTypeLabel = computed(() =>
-  comparison.value?.loan.type === 'CREDIT' ? '신용대출' : '전세자금대출',
+  comparison.value?.loan.type === 'CREDIT' ? '신용대출' : '전세자금대출'
 );
 
 // 배너 둘째 줄(결론)용 — 대출 승이면 종류명, 예금 승이면 고정 문구.
 const winnerTypeLabel = computed(() =>
-  isLoanWinner.value ? loanTypeLabel.value : '중도해지',
+  isLoanWinner.value ? loanTypeLabel.value : '중도해지'
 );
 
 // 배너 첫 줄(무엇을 비교했는지)용 — 실제 상품명. 동점은 승자가 없어 표시하지 않는다.
 const winnerProductName = computed(() =>
-  isLoanWinner.value
-    ? comparison.value?.loan.name
-    : comparison.value?.deposit.name,
+  isLoanWinner.value ? comparison.value?.loan.name : comparison.value?.deposit.name
 );
 
 const partialAllowedText = computed(() =>
-  comparison.value?.badges.isPartialAllowed ? '부분해지 가능' : '부분해지 불가',
+  comparison.value?.badges.isPartialAllowed ? '부분해지 가능' : '부분해지 불가'
 );
 const lumpSumText = computed(() =>
-  comparison.value?.badges.isLumpSum
-    ? '예금 만기에 일시 상환'
-    : '월 납입으로만 상환',
+  comparison.value?.badges.isLumpSum ? '예금 만기에 일시 상환' : '월 납입으로만 상환'
 );
 
 // 부분해지·상환방식은 사용자가 고른 조건, 이 배지는 계산의 전제라 줄을 나눈다.
-const urgentAmountBadgeText = computed(
-  () => `${formatManwon(comparison.value?.urgentAmount)} 필요할때`,
-);
+const urgentAmountBadgeText = computed(() => `${formatManwon(comparison.value?.urgentAmount)} 필요할때`);
 
 // 서버 메시지는 숫자 없이 고정 문구라 앞에 실제 차액/최저임금 금액을 붙여준다.
 const warningMessage = computed(() => {
@@ -69,12 +59,9 @@ const warningMessage = computed(() => {
   if (/\d/.test(w.message)) return w.message;
 
   const amountPrefix = `이 차액(${won(comparison.value.savingAmount)}원)은 최저임금 하루치(${won(
-    w.minimumWageDaily,
+    w.minimumWageDaily
   )}원)보다 적어요.`;
-  const rest = w.message.replace(
-    /^이 차액은 최저임금 하루치보다 적어요\.\s*/,
-    '',
-  );
+  const rest = w.message.replace(/^이 차액은 최저임금 하루치보다 적어요\.\s*/, '');
   return `${amountPrefix} ${rest}`.trim();
 });
 
@@ -86,22 +73,16 @@ const depositDetailOpen = ref(false);
 // finalBalance - withdrawalProfit = 예금 원금(둘 다 aFinalBalance에서 역산되는 값이라 항상 같다).
 const depositMaturityAmount = computed(() => {
   if (!comparison.value) return 0;
-  const principal =
-    comparison.value.deposit.finalBalance -
-    comparison.value.deposit.withdrawalProfit;
+  const principal = comparison.value.deposit.finalBalance - comparison.value.deposit.withdrawalProfit;
   return principal + comparison.value.deposit.maintainInterest;
 });
 
 const depositLoss = computed(() =>
-  comparison.value
-    ? depositMaturityAmount.value - comparison.value.deposit.finalBalance
-    : 0,
+  comparison.value ? depositMaturityAmount.value - comparison.value.deposit.finalBalance : 0
 );
 
 const loanLoss = computed(() =>
-  comparison.value
-    ? depositMaturityAmount.value - comparison.value.loan.finalBalance
-    : 0,
+  comparison.value ? depositMaturityAmount.value - comparison.value.loan.finalBalance : 0
 );
 
 const maxLoss = computed(() => Math.max(depositLoss.value, loanLoss.value));
@@ -154,15 +135,11 @@ const cancelModal = () => {
           aria-label="이전 화면으로 이동"
           @click="router.back()"
         >
-          <i class="fa-solid fa-chevron-left"></i>
+          ‹
         </button>
         <h1>득실 비교 결과</h1>
         <span class="header-hint">만기 기준</span>
-        <router-link
-          to="/"
-          class="header-home-link"
-          aria-label="홈 화면으로 이동"
-        >
+        <router-link to="/" class="header-home-link" aria-label="홈 화면으로 이동">
           <i class="fa-solid fa-house" aria-hidden="true"></i>
         </router-link>
       </header>
@@ -192,10 +169,7 @@ const cancelModal = () => {
 
       <!-- 3. 최저임금 경고 박스 -->
       <section v-if="comparison.warning.isBelowMinimumWage" class="warning-box">
-        <i
-          class="fa-solid fa-triangle-exclamation warning-icon"
-          aria-hidden="true"
-        ></i>
+        <i class="fa-solid fa-triangle-exclamation warning-icon" aria-hidden="true"></i>
         <p>{{ warningMessage }}</p>
       </section>
 
@@ -203,14 +177,8 @@ const cancelModal = () => {
       <section class="compare-grid">
         <div class="card compare-card" :class="{ winner: isDepositWinner }">
           <span v-if="isDepositWinner" class="winner-tag">추천</span>
-          <p class="compare-title">
-            ① 중도 또는 부분해지 <span class="info-icon">ⓘ</span>
-          </p>
-          <p
-            v-if="comparison.deposit.name"
-            class="compare-product"
-            :title="comparison.deposit.name"
-          >
+          <p class="compare-title">① 중도 또는 부분해지 <span class="info-icon">ⓘ</span></p>
+          <p v-if="comparison.deposit.name" class="compare-product" :title="comparison.deposit.name">
             {{ comparison.deposit.name }}
           </p>
           <p
@@ -220,9 +188,7 @@ const cancelModal = () => {
           >
             {{ comparison.deposit.accountNumber }}
           </p>
-          <p class="compare-amount">
-            {{ won(comparison.deposit.finalBalance) }}원
-          </p>
+          <p class="compare-amount">{{ won(comparison.deposit.finalBalance) }}원</p>
 
           <div class="compare-divider"></div>
 
@@ -238,15 +204,11 @@ const cancelModal = () => {
             <div v-show="depositDetailOpen" class="detail-table">
               <div class="detail-row">
                 <span>중도해지이율</span>
-                <span class="detail-value"
-                  >연 {{ comparison.deposit.cancelInterestRate }}%</span
-                >
+                <span class="detail-value">연 {{ comparison.deposit.cancelInterestRate }}%</span>
               </div>
               <div class="detail-row">
                 <span>해지수익</span>
-                <span class="detail-value strong"
-                  >{{ won(comparison.deposit.withdrawalProfit) }}원</span
-                >
+                <span class="detail-value strong">{{ won(comparison.deposit.withdrawalProfit) }}원</span>
               </div>
             </div>
           </div>
@@ -255,16 +217,10 @@ const cancelModal = () => {
         <div class="card compare-card" :class="{ winner: isLoanWinner }">
           <span v-if="isLoanWinner" class="winner-tag">추천</span>
           <p class="compare-title">② {{ loanTypeLabel }} · 예금 유지</p>
-          <p
-            v-if="comparison.loan.name"
-            class="compare-product"
-            :title="comparison.loan.name"
-          >
+          <p v-if="comparison.loan.name" class="compare-product" :title="comparison.loan.name">
             {{ comparison.loan.name }}
           </p>
-          <p class="compare-amount">
-            {{ won(comparison.loan.finalBalance) }}원
-          </p>
+          <p class="compare-amount">{{ won(comparison.loan.finalBalance) }}원</p>
 
           <div class="compare-divider"></div>
 
@@ -282,23 +238,16 @@ const cancelModal = () => {
                 <span>비용 (이자+수수료)</span>
                 <span class="detail-value">
                   {{ won(comparison.loan.cost) }}원
-                  <small
-                    >(이자 {{ won(comparison.loan.interest) }} + 수수료
-                    {{ won(comparison.loan.penalty) }})</small
-                  >
+                  <small>(이자 {{ won(comparison.loan.interest) }} + 수수료 {{ won(comparison.loan.penalty) }})</small>
                 </span>
               </div>
               <div class="detail-row">
                 <span>만기이자</span>
-                <span class="detail-value"
-                  >{{ won(comparison.deposit.maintainInterest) }}원</span
-                >
+                <span class="detail-value">{{ won(comparison.deposit.maintainInterest) }}원</span>
               </div>
               <div class="detail-row">
                 <span>총 이득</span>
-                <span class="detail-value strong"
-                  >{{ won(comparison.loan.netProfit) }}원</span
-                >
+                <span class="detail-value strong">{{ won(comparison.loan.netProfit) }}원</span>
               </div>
               <p v-if="comparison.loan.isRateEstimated" class="detail-note">
                 ※ 추정치이며 실제 심사금리와 다를 수 있습니다
@@ -344,47 +293,18 @@ const cancelModal = () => {
         </div>
       </section>
 
-      <!-- 6. 계산 조건 -->
-      <section class="card condition-card">
-        <p class="condition-title">계산 조건</p>
-        <div class="detail-table">
-          <div class="detail-row">
-            <span>필요 금액</span>
-            <span class="detail-value"
-              >{{ won(comparison.urgentAmount) }}원</span
-            >
-          </div>
-          <div class="detail-row">
-            <span>선택한 예금</span>
-            <span
-              class="detail-value condition-truncate"
-              :title="comparison.deposit.name"
-            >
-              {{ comparison.deposit.name }}
-            </span>
-          </div>
-          <div class="detail-row">
-            <span>월 상환 가능</span>
-            <span class="detail-value"
-              >{{ won(comparison.monthlyPayment) }}원</span
-            >
-          </div>
-          <div class="detail-row">
-            <span>부분해지</span>
-            <span class="detail-value">{{ partialAllowedText }}</span>
-          </div>
-          <div class="detail-row">
-            <span>상환 방식</span>
-            <span class="detail-value">{{ lumpSumText }}</span>
-          </div>
+      <!-- 6. 월 예상 상환액 -->
+      <section class="card monthly-card">
+        <div class="detail-row">
+          <span>월 예상 상환액</span>
+          <span class="detail-value strong">{{ won(comparison.monthlyPayment) }}원</span>
         </div>
       </section>
 
       <!-- 7. 하단 안내 문구 -->
       <p class="footnote">
-        ※ 본 결과는 [득실]만의 계산기로 산출한 참고용 예상값이며, 실제
-        적용금리와 대출한도는 개인의 신용조건 및 금융기관 심사 결과에 따라
-        달라질 수 있습니다.
+        ※ 본 결과는 [득실]만의 계산기로 산출한 참고용 예상값이며, 실제 적용금리와 대출한도는
+        개인의 신용조건 및 금융기관 심사 결과에 따라 달라질 수 있습니다.
       </p>
 
       <!-- 8. 진행 버튼 -->
@@ -410,25 +330,11 @@ const cancelModal = () => {
       <!-- 손실경고 모달 -->
       <div v-if="showLossModal" class="modal-overlay" @click.self="cancelModal">
         <section class="modal-card">
-          <h2>
-            <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
-            손실 경고
-          </h2>
-          <p>
-            {{ won(comparison.savingAmount) }}원 손해를 보는 선택입니다.
-            진행하시겠습니까?
-          </p>
+          <h2><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> 손실 경고</h2>
+          <p>{{ won(comparison.savingAmount) }}원 손해를 보는 선택입니다. 진행하시겠습니까?</p>
           <div class="modal-actions">
-            <button type="button" class="modal-cancel" @click="cancelModal">
-              취소
-            </button>
-            <button
-              type="button"
-              class="modal-confirm"
-              @click="confirmProceed(pendingAction)"
-            >
-              진행
-            </button>
+            <button type="button" class="modal-cancel" @click="cancelModal">취소</button>
+            <button type="button" class="modal-confirm" @click="confirmProceed(pendingAction)">진행</button>
           </div>
         </section>
       </div>
@@ -810,22 +716,9 @@ button {
   background: var(--gs-gold-deep);
 }
 
-/* 6. 계산 조건 */
-.condition-title {
-  margin: 0 0 12px;
-  font-size: 17px;
-  font-weight: 700;
-}
-
-.condition-card .detail-table {
-  margin-top: 0;
-}
-
-.condition-truncate {
-  overflow: hidden;
-  min-width: 0;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+/* 6. 월 예상 상환액 — 행이 하나뿐이라 detail-row의 margin-bottom을 지운다. */
+.monthly-card .detail-row {
+  margin-bottom: 0;
 }
 
 /* 7. 하단 안내 문구 */
@@ -966,52 +859,5 @@ button {
   border-radius: 12px;
   color: var(--gs-text);
   background: var(--gs-gold);
-}
-
-.question-guide {
-  display: flex;
-  margin: 0 0 12px;
-  padding: 7px 9px;
-  border-left: 3px solid var(--kb-yellow);
-  border-radius: 6px;
-  align-items: flex-start;
-  gap: 6px;
-  font-size: 11px;
-  line-height: 1.45;
-  color: #746d65;
-  background: #fff8df;
-}
-
-.guide-icon {
-  display: grid;
-  width: 15px;
-  height: 15px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  place-items: center;
-  font-size: 9px;
-  font-weight: 700;
-  color: #292725;
-  background: var(--kb-yellow);
-}
-
-.question-guide strong {
-  font-weight: 700;
-  color: #292725;
-}
-
-.back-button {
-  display: grid;
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  border: 1px solid var(--kb-border);
-  border-radius: 9px;
-  flex-shrink: 0;
-  font-size: 23px;
-  line-height: 1;
-  color: #716a62;
-  background: #fff;
-  place-items: center;
 }
 </style>
