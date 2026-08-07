@@ -19,6 +19,7 @@ import {
   toCompactDate,
   toDisplayKbAccount,
   toDisplayDate,
+  todayCompact,
 } from '@/util/depositFormat';
 
 const route = useRoute();
@@ -77,6 +78,7 @@ async function load() {
 
     Object.assign(original, { ...form });
     validateAccountNumber();
+    validateDatesAgainstToday();
   } catch (error) {
     loadError.value = extractApiError(error).message;
   } finally {
@@ -96,6 +98,28 @@ function onDateInput(field, event) {
   event.target.value = toDisplayDate(digits);
   errors[field] = '';
   errors.maturityDate = '';
+  validateDatesAgainstToday();
+}
+
+/** 가입일은 오늘 이전, 만기일은 오늘 이후여야 한다 */
+function validateDatesAgainstToday() {
+  const today = todayCompact();
+
+  if (
+    !errors.joinDate &&
+    isValidCompactDate(form.joinDate) &&
+    form.joinDate >= today
+  ) {
+    errors.joinDate = '가입일은 오늘보다 이전 날짜여야 합니다';
+  }
+
+  if (
+    !errors.maturityDate &&
+    isValidCompactDate(form.maturityDate) &&
+    form.maturityDate <= today
+  ) {
+    errors.maturityDate = '만기일은 오늘보다 이후 날짜여야 합니다';
+  }
 }
 
 function onAmountInput(event) {
@@ -186,6 +210,15 @@ const isDateReversed = computed(
     form.maturityDate <= form.joinDate,
 );
 
+/** 가입일은 오늘 이전, 만기일은 오늘 이후 */
+const isDateOutOfRange = computed(() => {
+  const today = todayCompact();
+  return (
+    (isValidCompactDate(form.joinDate) && form.joinDate >= today) ||
+    (isValidCompactDate(form.maturityDate) && form.maturityDate <= today)
+  );
+});
+
 const hasChanges = computed(() =>
   Object.keys(form).some((field) => isEdited(field)),
 );
@@ -194,6 +227,7 @@ const canSubmit = computed(
   () =>
     isComplete.value &&
     !isDateReversed.value &&
+    !isDateOutOfRange.value &&
     hasChanges.value &&
     !submitting.value,
 );
@@ -201,7 +235,7 @@ const canSubmit = computed(
 const submitLabel = computed(() => {
   if (submitting.value) return '수정 중...';
   if (!isComplete.value) return '필수 항목 입력';
-  if (isDateReversed.value) return '날짜 확인 필요';
+  if (isDateReversed.value || isDateOutOfRange.value) return '날짜 확인 필요';
   if (!hasChanges.value) return '변경 없음';
   return '수정하기';
 });
@@ -247,6 +281,10 @@ function validate() {
     form.maturityDate = '';
     ok = false;
   }
+
+  // 가입일은 오늘 이전, 만기일은 오늘 이후
+  validateDatesAgainstToday();
+  if (errors.joinDate || errors.maturityDate) ok = false;
 
   if (
     !errors.baseRate &&

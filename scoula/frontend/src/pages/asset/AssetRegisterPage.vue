@@ -25,6 +25,7 @@ import {
   toCompactDate,
   toDisplayKbAccount,
   toDisplayDate,
+  todayCompact,
 } from '@/util/depositFormat';
 
 const router = useRouter();
@@ -210,6 +211,28 @@ function onDateInput(field, event) {
     errors[field] = '';
     errors.maturityDate = '';
   }
+  validateDatesAgainstToday();
+}
+
+/** 가입일은 오늘 이전, 만기일은 오늘 이후여야 한다 */
+function validateDatesAgainstToday() {
+  const today = todayCompact();
+
+  if (
+    !errors.joinDate &&
+    isValidCompactDate(form.joinDate) &&
+    form.joinDate >= today
+  ) {
+    errors.joinDate = '가입일은 오늘보다 이전 날짜여야 합니다';
+  }
+
+  if (
+    !errors.maturityDate &&
+    isValidCompactDate(form.maturityDate) &&
+    form.maturityDate <= today
+  ) {
+    errors.maturityDate = '만기일은 오늘보다 이후 날짜여야 합니다';
+  }
 }
 
 function onTextInput(field, event) {
@@ -254,14 +277,27 @@ const isDateReversed = computed(
     form.maturityDate <= form.joinDate,
 );
 
+/** 가입일은 오늘 이전, 만기일은 오늘 이후 */
+const isDateOutOfRange = computed(() => {
+  const today = todayCompact();
+  return (
+    (isValidCompactDate(form.joinDate) && form.joinDate >= today) ||
+    (isValidCompactDate(form.maturityDate) && form.maturityDate <= today)
+  );
+});
+
 const canSubmit = computed(
-  () => isComplete.value && !isDateReversed.value && !submitting.value,
+  () =>
+    isComplete.value &&
+    !isDateReversed.value &&
+    !isDateOutOfRange.value &&
+    !submitting.value,
 );
 
 const submitLabel = computed(() => {
   if (submitting.value) return '등록 중...';
   if (!isComplete.value) return '필수 항목을 입력해주세요';
-  if (isDateReversed.value) return '날짜를 확인해주세요';
+  if (isDateReversed.value || isDateOutOfRange.value) return '날짜를 확인해주세요';
   return ocrState.value === 'success' ? '확인했어요 · 등록하기' : '등록하기';
 });
 
@@ -308,6 +344,11 @@ function validate() {
     form.maturityDate = '';
     firstInvalid = firstInvalid ?? 'maturityDate';
   }
+
+  // 가입일은 오늘 이전, 만기일은 오늘 이후
+  validateDatesAgainstToday();
+  if (errors.joinDate) firstInvalid = firstInvalid ?? 'joinDate';
+  if (errors.maturityDate) firstInvalid = firstInvalid ?? 'maturityDate';
 
   if (
     !errors.baseRate &&
@@ -406,6 +447,7 @@ function applyExtracted(extracted = {}) {
   editedFields.value = new Set();
   Object.keys(errors).forEach((key) => (errors[key] = ''));
   validateAccountNumber();
+  validateDatesAgainstToday();
 }
 
 /** 07-05, 07-08 -> 직접 입력으로 전환 */
