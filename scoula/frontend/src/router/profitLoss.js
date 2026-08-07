@@ -155,16 +155,4 @@ export default [
     component: () => import('../pages/profitLoss/HistoryPage.vue'),
     meta: { layout: 'mobile', requiresAuth: true },
   },
-    {
-        path: '/asset/register',
-        name: 'assetRegister',
-        component: () => import('../pages/asset/RegisterPage.vue'),
-        meta: { requiresAuth: true },
-    },
-    {
-        path: '/asset/list',
-        name: 'assetList',
-        component: () => import('../pages/asset/ListPage.vue'),
-        meta: { requiresAuth: true },
-    },
 ];

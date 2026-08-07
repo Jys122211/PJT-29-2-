@@ -153,12 +153,6 @@ async function continueToNextStep() {
 
     profitLossStore.setTotalDiscountRate(Number(totalDiscountRate));
 
-    console.log('전세대출 우대금리 계산 완료:', {
-      loanProductId,
-      preferentialQuestionIds,
-      totalDiscountRate: profitLossStore.state.loan.totalDiscountRate,
-    });
-
     const comparisonResult = await profitLossApi.createComparison(
       profitLossStore.requestPayload,
     );

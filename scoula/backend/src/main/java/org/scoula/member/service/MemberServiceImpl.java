@@ -2,11 +2,9 @@ package org.scoula.member.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.scoula.member.dto.ChangePasswordDTO;
 import org.scoula.member.dto.MemberDTO;
 import org.scoula.member.dto.MemberJoinDTO;
 import org.scoula.member.dto.MemberUpdateDTO;
-import org.scoula.member.exception.PasswordMissmatchException;
 import org.scoula.member.mapper.MemberMapper;
 import org.scoula.security.account.domain.AuthVO;
 import org.scoula.security.account.domain.MemberVO;
@@ -79,19 +77,6 @@ public class MemberServiceImpl implements MemberService {
         saveAvatar(member.getAvatar(), currentMember.getEmail());
 
         return get(userId);
-    }
-
-    @Override
-    public void changePassword(ChangePasswordDTO changePassword) {
-        MemberVO member = mapper.findByEmail(changePassword.getEmail());
-
-        if (!passwordEncoder.matches(changePassword.getOldPassword(), member.getPassword())) {
-            throw new PasswordMissmatchException();
-        }
-
-        changePassword.setNewPassword(passwordEncoder.encode(changePassword.getNewPassword()));
-
-        mapper.updatePassword(changePassword);
     }
 
     /**
