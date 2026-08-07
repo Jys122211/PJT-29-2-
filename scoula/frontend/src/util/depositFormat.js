@@ -97,28 +97,58 @@ export function caretPositionAfterFormat(formattedValue, digitsBeforeCaret) {
   return position;
 }
 
-/** 오늘 날짜를 yyyyMMdd 로 반환. 날짜 비교는 문자열 그대로 대소 비교하면 됩니다. */
+/** 만기·가입일 판정은 기기 시간대와 무관하게 항상 한국 날짜를 기준으로 한다. */
+const KST_DATE = new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'Asia/Seoul',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+});
+
+/**
+ * 오늘(한국 기준) 날짜를 yyyyMMdd 로 반환. 날짜 비교는 문자열 그대로 대소 비교하면 됩니다.
+ *
+ * en-CA 로케일이 YYYY-MM-DD 를 내주므로 하이픈만 걷어내면 된다.
+ */
 export function todayCompact() {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  return `${year}${month}${day}`;
+  return KST_DATE.format(new Date()).replace(/-/g, '');
 }
 
-/** 만기일까지 남은 일수. 서버 dDay가 없을 때 폴백으로만 사용 */
-export function calcDDay(maturityCompact) {
-  if (!isValidCompactDate(maturityCompact)) return null;
-
-  const target = new Date(
-    Number(maturityCompact.slice(0, 4)),
-    Number(maturityCompact.slice(4, 6)) - 1,
-    Number(maturityCompact.slice(6, 8)),
+/** yyyyMMdd 를 시간대 영향이 없는 UTC 기준 밀리초로. 날짜 간 일수 차이 계산용. */
+function compactToUtcMillis(compact) {
+  return Date.UTC(
+    Number(compact.slice(0, 4)),
+    Number(compact.slice(4, 6)) - 1,
+    Number(compact.slice(6, 8)),
   );
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+}
 
-  return Math.round((target - today) / 86400000);
+/**
+ * 만기일까지 남은 일수(한국 날짜 기준). 서버 dDay가 없을 때 폴백으로만 사용.
+ *
+ * "20261016" 과 "2026-10-16" 을 모두 받는다. HomePage가 쓰는
+ * /api/deposits/list(UserDepositDTO.LocalDate)는 하이픈 형식으로,
+ * 보유예금 목록이 쓰는 /api/deposits(DepositDTO.String)는 8자리로 내려오기 때문.
+ *
+ * new Date('2026-10-16') 은 명세상 UTC 자정으로 파싱되어 로컬 자정과 9시간
+ * 어긋나므로 쓰지 않는다. 양쪽 모두 UTC 기준으로 맞춘 뒤 빼면 시간대가 상쇄된다.
+ */
+export function calcDDay(maturity) {
+  const compact = toCompactDate(maturity);
+  if (!isValidCompactDate(compact)) return null;
+
+  const diff = compactToUtcMillis(compact) - compactToUtcMillis(todayCompact());
+  return Math.round(diff / 86400000);
+}
+
+/** 만기일 배지 문구. 남았으면 D-30, 당일이면 D-Day, 지났으면 D+5. */
+export function dDayText(maturity, fallback = '만기일') {
+  const days = calcDDay(maturity);
+  if (days === null) return fallback;
+
+  if (days > 0) return `D-${days}`;
+  if (days === 0) return 'D-Day';
+  return `D+${Math.abs(days)}`;
 }
 
 /** 에러 응답에서 errorCode / field / message 추출 */
