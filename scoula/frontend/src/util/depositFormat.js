@@ -71,6 +71,32 @@ export function isValidCompactDate(compact) {
   );
 }
 
+/**
+ * 입력 시점에 커서 앞에 있던 숫자 개수.
+ *
+ * 포맷된 INPUT은 값을 다시 써넣을 때 커서가 맨 뒤로 초기화되므로,
+ * 하이픈/콤마를 제외한 "숫자 몇 번째"를 기준으로 위치를 기억했다가 복원합니다.
+ */
+export function countDigitsBeforeCaret(input) {
+  const cursorPosition = input.selectionStart ?? input.value.length;
+  return input.value.slice(0, cursorPosition).replace(/[^0-9]/g, '').length;
+}
+
+/** countDigitsBeforeCaret 로 센 숫자 개수가 포맷 후 문자열에서 위치하는 지점 */
+export function caretPositionAfterFormat(formattedValue, digitsBeforeCaret) {
+  let position = 0;
+  let digitCount = 0;
+
+  while (position < formattedValue.length && digitCount < digitsBeforeCaret) {
+    if (/[0-9]/.test(formattedValue[position])) {
+      digitCount += 1;
+    }
+    position += 1;
+  }
+
+  return position;
+}
+
 /** 오늘 날짜를 yyyyMMdd 로 반환. 날짜 비교는 문자열 그대로 대소 비교하면 됩니다. */
 export function todayCompact() {
   const now = new Date();

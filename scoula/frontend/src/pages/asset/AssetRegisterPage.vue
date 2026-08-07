@@ -17,6 +17,8 @@ import depositApi from '@/api/depositApi';
 import BottomNav from '@/components/mobile/BottomNav.vue';
 import ocrApi from '@/api/ocrApi';
 import {
+  caretPositionAfterFormat,
+  countDigitsBeforeCaret,
   extractApiError,
   formatNumber,
   isValidCompactDate,
@@ -71,10 +73,12 @@ const errors = reactive({
 
 // ------------------------------------------------------------ 입력 핸들러
 function onAccountInput(event) {
+  const input = event.target;
   const previousValue = form.accountNumber;
-  const digits = toCompactAccount(event.target.value).slice(0, 14);
+  const digitsBeforeCaret = countDigitsBeforeCaret(input);
+  const digits = toCompactAccount(input.value).slice(0, 14);
   form.accountNumber = digits;
-  event.target.value = toDisplayKbAccount(digits);
+  applyFormattedValue(input, toDisplayKbAccount(digits), digitsBeforeCaret);
   if (digits !== previousValue) {
     markEdited('accountNumber');
     errors.accountNumber = '';
@@ -103,24 +107,16 @@ const principalAmountModel = computed(() => {
   return formatNumber(form.principalAmount);
 });
 
-function applyFormattedAmount(input, formattedValue, digitsBeforeCursor) {
+/**
+ * 포맷된 값을 INPUT에 써넣고 커서를 원래 자리로 되돌린다.
+ * 값을 다시 대입하면 브라우저가 커서를 맨 뒤로 보내기 때문에 필요하다.
+ */
+function applyFormattedValue(input, formattedValue, digitsBeforeCaret) {
   input.value = formattedValue;
 
   nextTick(() => {
-    let cursorPosition = 0;
-    let digitCount = 0;
-
-    while (
-      cursorPosition < formattedValue.length &&
-      digitCount < digitsBeforeCursor
-    ) {
-      if (/[0-9]/.test(formattedValue[cursorPosition])) {
-        digitCount += 1;
-      }
-      cursorPosition += 1;
-    }
-
-    input.setSelectionRange(cursorPosition, cursorPosition);
+    const position = caretPositionAfterFormat(formattedValue, digitsBeforeCaret);
+    input.setSelectionRange(position, position);
   });
 }
 
@@ -128,10 +124,7 @@ function onAmountInput(event) {
   const input = event.target;
   const previousDigits =
     form.principalAmount === '' ? '' : String(form.principalAmount);
-  const cursorPosition = input.selectionStart ?? input.value.length;
-  const digitsBeforeCursor = input.value
-    .slice(0, cursorPosition)
-    .replace(/[^0-9]/g, '').length;
+  const digitsBeforeCaret = countDigitsBeforeCaret(input);
   const digits = String(input.value).replace(/[^0-9]/g, '');
 
   if (digits === '') {
@@ -147,7 +140,7 @@ function onAmountInput(event) {
 
   principalAmountDraft.value = digits;
   form.principalAmount = Number(digits);
-  applyFormattedAmount(input, formatDigitString(digits), digitsBeforeCursor);
+  applyFormattedValue(input, formatDigitString(digits), digitsBeforeCaret);
   if (digits !== previousDigits) {
     markEdited('principalAmount');
     errors.principalAmount = '';
@@ -202,10 +195,12 @@ function onRateInput(field, event) {
 }
 
 function onDateInput(field, event) {
+  const input = event.target;
   const previousValue = form[field];
-  const digits = toCompactDate(event.target.value).slice(0, 8);
+  const digitsBeforeCaret = countDigitsBeforeCaret(input);
+  const digits = toCompactDate(input.value).slice(0, 8);
   form[field] = digits;
-  event.target.value = toDisplayDate(digits);
+  applyFormattedValue(input, toDisplayDate(digits), digitsBeforeCaret);
   if (digits !== previousValue) {
     markEdited(field);
     errors[field] = '';

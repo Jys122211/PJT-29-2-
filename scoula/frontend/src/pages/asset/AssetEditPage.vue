@@ -5,11 +5,13 @@
  * 노란 배경  = 서버에서 불러온 기존값
  * 주황 테두리 = 사용자가 수정한 값
  */
-import { computed, onMounted, reactive, ref } from 'vue';
+import { computed, nextTick, onMounted, reactive, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import depositApi from '@/api/depositApi';
 import BottomNav from '@/components/mobile/BottomNav.vue';
 import {
+  caretPositionAfterFormat,
+  countDigitsBeforeCaret,
   extractApiError,
   formatNumber,
   isValidCompactDate,
@@ -92,10 +94,25 @@ function onTextInput(field, event) {
   errors[field] = '';
 }
 
+/**
+ * 포맷된 값을 INPUT에 써넣고 커서를 원래 자리로 되돌린다.
+ * 값을 다시 대입하면 브라우저가 커서를 맨 뒤로 보내기 때문에 필요하다.
+ */
+function applyFormattedValue(input, formattedValue, digitsBeforeCaret) {
+  input.value = formattedValue;
+
+  nextTick(() => {
+    const position = caretPositionAfterFormat(formattedValue, digitsBeforeCaret);
+    input.setSelectionRange(position, position);
+  });
+}
+
 function onDateInput(field, event) {
-  const digits = toCompactDate(event.target.value).slice(0, 8);
+  const input = event.target;
+  const digitsBeforeCaret = countDigitsBeforeCaret(input);
+  const digits = toCompactDate(input.value).slice(0, 8);
   form[field] = digits;
-  event.target.value = toDisplayDate(digits);
+  applyFormattedValue(input, toDisplayDate(digits), digitsBeforeCaret);
   errors[field] = '';
   errors.maturityDate = '';
   validateDatesAgainstToday();
@@ -123,16 +140,20 @@ function validateDatesAgainstToday() {
 }
 
 function onAmountInput(event) {
-  const parsed = parseNumber(event.target.value);
+  const input = event.target;
+  const digitsBeforeCaret = countDigitsBeforeCaret(input);
+  const parsed = parseNumber(input.value);
   form.principalAmount = parsed === null ? '' : parsed;
-  event.target.value = formatNumber(parsed);
+  applyFormattedValue(input, formatNumber(parsed), digitsBeforeCaret);
   errors.principalAmount = '';
 }
 
 function onAccountInput(event) {
-  const digits = toCompactAccount(event.target.value).slice(0, 14);
+  const input = event.target;
+  const digitsBeforeCaret = countDigitsBeforeCaret(input);
+  const digits = toCompactAccount(input.value).slice(0, 14);
   form.accountNumber = digits;
-  event.target.value = toDisplayKbAccount(digits);
+  applyFormattedValue(input, toDisplayKbAccount(digits), digitsBeforeCaret);
   errors.accountNumber = '';
 }
 
