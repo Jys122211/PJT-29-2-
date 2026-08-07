@@ -59,6 +59,15 @@ public class ServletConfig implements WebMvcConfigurer {
         registry.addResourceHandler("/assets/**")
                 .addResourceLocations("/resources/assets/");
 
+        registry.addResourceHandler(
+                "/favicon.ico",
+                "/apple-touch-icon.png",
+                "/icon-192.png",
+                "/icon-512.png",
+                "/icon-maskable-512.png",
+                "/manifest.webmanifest")
+        .addResourceLocations("/resources/");
+
 
     }
 
