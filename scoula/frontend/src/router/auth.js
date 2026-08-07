@@ -28,10 +28,4 @@ export default [
       requiresAuth: true,
     },
   },
-  {
-    path: '/auth/changepassword',
-    name: 'changepassword',
-    component: () => import('../pages/auth/ChangePasswordPage.vue'),
-    meta: { requiresAuth: true },
-  },
 ];
