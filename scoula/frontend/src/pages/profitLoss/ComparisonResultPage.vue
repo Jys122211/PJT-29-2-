@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useComparison } from '@/composables/useComparison';
+import { toDisplayKbAccount } from '@/util/depositFormat';
 
 const route = useRoute();
 const router = useRouter();
@@ -184,9 +185,9 @@ const cancelModal = () => {
           <p
             v-if="comparison.deposit.accountNumber"
             class="compare-account"
-            :title="comparison.deposit.accountNumber"
+            :title="toDisplayKbAccount(comparison.deposit.accountNumber)"
           >
-            {{ comparison.deposit.accountNumber }}
+            {{ toDisplayKbAccount(comparison.deposit.accountNumber) }}
           </p>
           <p class="compare-amount">{{ won(comparison.deposit.finalBalance) }}원</p>
 
