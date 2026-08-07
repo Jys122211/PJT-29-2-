@@ -5,6 +5,7 @@ import profitLossApi from '@/api/profitLossApi';
 import { useProfitLossStore } from '@/stores/profitLoss';
 import api from '@/api';
 import BottomNav from '@/components/mobile/BottomNav.vue';
+import { toDisplayKbAccount } from '@/util/depositFormat';
 
 const router = useRouter();
 const profitLossStore = useProfitLossStore();
@@ -426,7 +427,7 @@ onMounted(() => {
               </small>
 
               <small class="account-number">
-                계좌번호: {{ deposit.accountNumber || '-' }}
+                계좌번호 : {{ toDisplayKbAccount(deposit.accountNumber) || '-' }}
               </small>
             </span>
 
