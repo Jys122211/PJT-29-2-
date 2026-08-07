@@ -71,6 +71,15 @@ export function isValidCompactDate(compact) {
   );
 }
 
+/** 오늘 날짜를 yyyyMMdd 로 반환. 날짜 비교는 문자열 그대로 대소 비교하면 됩니다. */
+export function todayCompact() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}${month}${day}`;
+}
+
 /** 만기일까지 남은 일수. 서버 dDay가 없을 때 폴백으로만 사용 */
 export function calcDDay(maturityCompact) {
   if (!isValidCompactDate(maturityCompact)) return null;
