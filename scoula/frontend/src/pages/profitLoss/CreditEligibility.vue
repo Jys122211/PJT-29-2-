@@ -148,11 +148,6 @@ async function continueToNextStep() {
 
     profitLossStore.setLoanProducts(loanProductIds);
 
-    console.log('자격조건 상품 조회:', {
-      qualificationQuestionIds,
-      loanProductIds,
-    });
-
     if (loanProductIds.length === 0) {
       openResultModal(
         '신청 가능한 상품 없음',

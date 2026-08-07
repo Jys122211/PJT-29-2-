@@ -264,14 +264,12 @@ function resetAmount() {
 
 function registerAsset() {
   // 실제 자산 등록 페이지가 만들어지면 변경
-  console.log('자산 등록 페이지로 이동');
   router.replace({ name: 'assetRegister' });
 }
 
 async function compareProfitLoss() {
   if (!canCompare.value) return;
 
-  console.log('손익 비교 요청:', profitLossStore.requestPayload);
   try {
     await api.patch('/api/users/me/credit-score', {
       creditScore: creditScore.value,

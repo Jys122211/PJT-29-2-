@@ -1,29 +1,13 @@
 <script setup>
-import { computed } from 'vue';
-import { RouterView, useRoute } from 'vue-router';
-import DefaultLayout from './components/layouts/DefaultLayout.vue';
-
-const route = useRoute();
-
-// 로그인·회원가입(blank)과 계산기 모바일 화면(mobile)은 공통 헤더 없이 표시한다.
-const isStandaloneLayout = computed(() =>
-  ['blank', 'mobile'].includes(route.meta.layout),
-);
+import { RouterView } from 'vue-router';
 </script>
 
 <template>
+  <!-- 모든 화면이 blank/mobile 레이아웃이라 공통 헤더 없이 화면을 그대로 그린다. -->
   <RouterView v-slot="{ Component, route }">
-    <template v-if="isStandaloneLayout">
-      <transition name="page-fade" mode="out-in">
-        <component :is="Component" :key="route.path" />
-      </transition>
-    </template>
-
-    <DefaultLayout v-else>
-      <transition name="page-fade" mode="out-in">
-        <component :is="Component" :key="route.path" />
-      </transition>
-    </DefaultLayout>
+    <transition name="page-fade" mode="out-in">
+      <component :is="Component" :key="route.path" />
+    </transition>
   </RouterView>
 </template>
 

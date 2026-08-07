@@ -28,13 +28,6 @@
         WHERE user_id = #{userId}
     </update>
 
-    <update id="updatePassword">
-        UPDATE users
-        SET password_hash = #{newPassword},
-            updated_at = now()
-        WHERE email = #{email}
-    </update>
-
     <update id="updateCreditScore">
         UPDATE users
         SET credit_score = #{creditScore},
