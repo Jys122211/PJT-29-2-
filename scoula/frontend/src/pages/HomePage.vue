@@ -4,7 +4,7 @@ import api from '@/api';
 import { useAuthStore } from '@/stores/auth';
 import { useRouter } from 'vue-router';
 import BottomNav from '@/components/mobile/BottomNav.vue';
-import { toDisplayKbAccount } from '@/util/depositFormat';
+import { dDayText, toDisplayKbAccount } from '@/util/depositFormat';
 
 const auth = useAuthStore();
 const isMenuOpen = ref(false);
@@ -23,13 +23,6 @@ onMounted(async () => {
 const totalDeposit = computed(() =>
   deposits.value.reduce((sum, d) => sum + d.balance, 0),
 );
-const calcDDay = (maturityDate) => {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const maturity = new Date(maturityDate);
-  const diffTime = maturity - today;
-  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-};
 const formatDate = (isoDate) => isoDate.replaceAll('-', '.');
 </script>
 
@@ -160,7 +153,7 @@ const formatDate = (isoDate) => isoDate.replaceAll('-', '.');
           </p>
         </div>
         <div class="deposit-meta">
-          <span class="d-day-badge">D-{{ calcDDay(d.maturityDate) }}</span>
+          <span class="d-day-badge">{{ dDayText(d.maturityDate) }}</span>
           <span class="deposit-maturity">{{ formatDate(d.maturityDate) }}</span>
         </div>
       </div>
