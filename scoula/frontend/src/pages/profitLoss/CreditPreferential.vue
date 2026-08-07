@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, nextTick, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import profitLossApi from '@/api/profitLossApi';
 import { useProfitLossStore } from '@/stores/profitLoss';
@@ -58,6 +58,40 @@ const visiblePreferentialGroups = computed(() => {
 });
 
 const isComplete = computed(() => profitLossStore.isCreditPreferentialComplete);
+
+// 답변할 때마다 다음 질문이 아래에 추가되므로, 새 질문이 화면 밖이면 스크롤로 끌어온다.
+const questionElements = new Map();
+
+function registerQuestion(groupId, el) {
+  if (el) {
+    questionElements.set(groupId, el);
+  } else {
+    questionElements.delete(groupId);
+  }
+}
+
+watch(
+  () => visiblePreferentialGroups.value.length,
+  async (count, previousCount) => {
+    // 이전 답변을 바꿔 질문이 줄어드는 경우에는 스크롤하지 않는다.
+    if (previousCount === undefined || count <= previousCount) return;
+
+    await nextTick();
+
+    const lastGroup = visiblePreferentialGroups.value[count - 1];
+    const element = questionElements.get(lastGroup?.id);
+    if (!element) return;
+
+    const prefersReducedMotion = window.matchMedia(
+      '(prefers-reduced-motion: reduce)',
+    ).matches;
+
+    element.scrollIntoView({
+      behavior: prefersReducedMotion ? 'auto' : 'smooth',
+      block: 'nearest',
+    });
+  },
+);
 
 function selectedAnswer(groupId) {
   return profitLossStore.state.creditPreferential.answers[groupId];
@@ -179,6 +213,7 @@ async function continueToNextStep() {
             >
               <article
                 v-if="group.type === 'SINGLE_SELECT'"
+                :ref="(el) => registerQuestion(group.id, el)"
                 class="preferential-group"
               >
                 <h3>{{ group.title }}</h3>
@@ -206,6 +241,7 @@ async function continueToNextStep() {
 
               <article
                 v-else-if="group.type === 'YES_NO'"
+                :ref="(el) => registerQuestion(group.id, el)"
                 class="preferential-group yes-no-group"
               >
                 <h3>{{ group.title }}</h3>

@@ -17,6 +17,8 @@ import depositApi from '@/api/depositApi';
 import BottomNav from '@/components/mobile/BottomNav.vue';
 import ocrApi from '@/api/ocrApi';
 import {
+  caretPositionAfterFormat,
+  countDigitsBeforeCaret,
   extractApiError,
   formatNumber,
   isValidCompactDate,
@@ -25,6 +27,7 @@ import {
   toCompactDate,
   toDisplayKbAccount,
   toDisplayDate,
+  todayCompact,
 } from '@/util/depositFormat';
 
 const router = useRouter();
@@ -70,10 +73,12 @@ const errors = reactive({
 
 // ------------------------------------------------------------ 입력 핸들러
 function onAccountInput(event) {
+  const input = event.target;
   const previousValue = form.accountNumber;
-  const digits = toCompactAccount(event.target.value).slice(0, 14);
+  const digitsBeforeCaret = countDigitsBeforeCaret(input);
+  const digits = toCompactAccount(input.value).slice(0, 14);
   form.accountNumber = digits;
-  event.target.value = toDisplayKbAccount(digits);
+  applyFormattedValue(input, toDisplayKbAccount(digits), digitsBeforeCaret);
   if (digits !== previousValue) {
     markEdited('accountNumber');
     errors.accountNumber = '';
@@ -102,24 +107,16 @@ const principalAmountModel = computed(() => {
   return formatNumber(form.principalAmount);
 });
 
-function applyFormattedAmount(input, formattedValue, digitsBeforeCursor) {
+/**
+ * 포맷된 값을 INPUT에 써넣고 커서를 원래 자리로 되돌린다.
+ * 값을 다시 대입하면 브라우저가 커서를 맨 뒤로 보내기 때문에 필요하다.
+ */
+function applyFormattedValue(input, formattedValue, digitsBeforeCaret) {
   input.value = formattedValue;
 
   nextTick(() => {
-    let cursorPosition = 0;
-    let digitCount = 0;
-
-    while (
-      cursorPosition < formattedValue.length &&
-      digitCount < digitsBeforeCursor
-    ) {
-      if (/[0-9]/.test(formattedValue[cursorPosition])) {
-        digitCount += 1;
-      }
-      cursorPosition += 1;
-    }
-
-    input.setSelectionRange(cursorPosition, cursorPosition);
+    const position = caretPositionAfterFormat(formattedValue, digitsBeforeCaret);
+    input.setSelectionRange(position, position);
   });
 }
 
@@ -127,10 +124,7 @@ function onAmountInput(event) {
   const input = event.target;
   const previousDigits =
     form.principalAmount === '' ? '' : String(form.principalAmount);
-  const cursorPosition = input.selectionStart ?? input.value.length;
-  const digitsBeforeCursor = input.value
-    .slice(0, cursorPosition)
-    .replace(/[^0-9]/g, '').length;
+  const digitsBeforeCaret = countDigitsBeforeCaret(input);
   const digits = String(input.value).replace(/[^0-9]/g, '');
 
   if (digits === '') {
@@ -146,7 +140,7 @@ function onAmountInput(event) {
 
   principalAmountDraft.value = digits;
   form.principalAmount = Number(digits);
-  applyFormattedAmount(input, formatDigitString(digits), digitsBeforeCursor);
+  applyFormattedValue(input, formatDigitString(digits), digitsBeforeCaret);
   if (digits !== previousDigits) {
     markEdited('principalAmount');
     errors.principalAmount = '';
@@ -201,14 +195,38 @@ function onRateInput(field, event) {
 }
 
 function onDateInput(field, event) {
+  const input = event.target;
   const previousValue = form[field];
-  const digits = toCompactDate(event.target.value).slice(0, 8);
+  const digitsBeforeCaret = countDigitsBeforeCaret(input);
+  const digits = toCompactDate(input.value).slice(0, 8);
   form[field] = digits;
-  event.target.value = toDisplayDate(digits);
+  applyFormattedValue(input, toDisplayDate(digits), digitsBeforeCaret);
   if (digits !== previousValue) {
     markEdited(field);
     errors[field] = '';
     errors.maturityDate = '';
+  }
+  validateDatesAgainstToday();
+}
+
+/** 가입일은 오늘 이전, 만기일은 오늘 이후여야 한다 */
+function validateDatesAgainstToday() {
+  const today = todayCompact();
+
+  if (
+    !errors.joinDate &&
+    isValidCompactDate(form.joinDate) &&
+    form.joinDate >= today
+  ) {
+    errors.joinDate = '가입일은 오늘보다 이전 날짜여야 합니다';
+  }
+
+  if (
+    !errors.maturityDate &&
+    isValidCompactDate(form.maturityDate) &&
+    form.maturityDate <= today
+  ) {
+    errors.maturityDate = '만기일은 오늘보다 이후 날짜여야 합니다';
   }
 }
 
@@ -254,14 +272,27 @@ const isDateReversed = computed(
     form.maturityDate <= form.joinDate,
 );
 
+/** 가입일은 오늘 이전, 만기일은 오늘 이후 */
+const isDateOutOfRange = computed(() => {
+  const today = todayCompact();
+  return (
+    (isValidCompactDate(form.joinDate) && form.joinDate >= today) ||
+    (isValidCompactDate(form.maturityDate) && form.maturityDate <= today)
+  );
+});
+
 const canSubmit = computed(
-  () => isComplete.value && !isDateReversed.value && !submitting.value,
+  () =>
+    isComplete.value &&
+    !isDateReversed.value &&
+    !isDateOutOfRange.value &&
+    !submitting.value,
 );
 
 const submitLabel = computed(() => {
   if (submitting.value) return '등록 중...';
   if (!isComplete.value) return '필수 항목을 입력해주세요';
-  if (isDateReversed.value) return '날짜를 확인해주세요';
+  if (isDateReversed.value || isDateOutOfRange.value) return '날짜를 확인해주세요';
   return ocrState.value === 'success' ? '확인했어요 · 등록하기' : '등록하기';
 });
 
@@ -308,6 +339,11 @@ function validate() {
     form.maturityDate = '';
     firstInvalid = firstInvalid ?? 'maturityDate';
   }
+
+  // 가입일은 오늘 이전, 만기일은 오늘 이후
+  validateDatesAgainstToday();
+  if (errors.joinDate) firstInvalid = firstInvalid ?? 'joinDate';
+  if (errors.maturityDate) firstInvalid = firstInvalid ?? 'maturityDate';
 
   if (
     !errors.baseRate &&
@@ -406,6 +442,7 @@ function applyExtracted(extracted = {}) {
   editedFields.value = new Set();
   Object.keys(errors).forEach((key) => (errors[key] = ''));
   validateAccountNumber();
+  validateDatesAgainstToday();
 }
 
 /** 07-05, 07-08 -> 직접 입력으로 전환 */
