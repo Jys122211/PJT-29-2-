@@ -43,4 +43,17 @@ public class DepositExceptionAdvice {
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
     }
+
+    /** 위에서 잡히지 않은 모든 예외. 원인은 로그에만 남기고 사용자에겐 일반 문구만 보낸다. */
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String, String>> handleUnexpected(Exception e) {
+        log.error("예금 도메인 처리 중 예상하지 못한 오류", e);
+
+        Map<String, String> body = new LinkedHashMap<>();
+        body.put("errorCode", "INTERNAL_ERROR");
+        body.put("message", "요청을 처리하지 못했습니다. 잠시 후 다시 시도해주세요.");
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
+    }
+
 }
