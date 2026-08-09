@@ -90,7 +90,15 @@ async function load() {
 
 // ------------------------------------------------------------ 입력
 function onTextInput(field, event) {
-  form[field] = event.target.value;
+  const raw = event.target.value;
+
+  const cleaned =
+    field === 'bankName'
+      ? raw.replace(/[^가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z ]/g, '').slice(0, 30)
+      : raw.replace(/[^가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z0-9 ()\-.]/g, '').slice(0, 50);
+
+  form[field] = cleaned;
+  event.target.value = cleaned;
   errors[field] = '';
 }
 
@@ -146,7 +154,8 @@ function validateDateFields() {
 function onAmountInput(event) {
   const input = event.target;
   const digitsBeforeCaret = countDigitsBeforeCaret(input);
-  const parsed = parseNumber(input.value);
+  const digits = String(input.value).replace(/[^0-9]/g, '').slice(0, 11);
+  const parsed = digits === '' ? null : Number(digits);
   form.principalAmount = parsed === null ? '' : parsed;
   applyFormattedValue(input, formatNumber(parsed), digitsBeforeCaret);
   errors.principalAmount = '';
@@ -292,6 +301,12 @@ function validate() {
   if (form.principalAmount === '' || Number(form.principalAmount) <= 0) {
     errors.principalAmount = '가입금액을 입력해주세요';
     ok = false;
+  } else if (Number(form.principalAmount) < 10000) {
+    errors.principalAmount = '가입금액은 1만원 이상 입력해주세요';
+    ok = false;
+  } else if (Number(form.principalAmount) > 10000000000) {
+    errors.principalAmount = '가입금액은 100억원 이하로 입력해주세요';
+    ok = false;
   }
 
   ['joinDate', 'maturityDate'].forEach((field) => {
@@ -413,6 +428,7 @@ onMounted(load);
             :value="form.bankName"
             placeholder="은행명"
             aria-label="은행명"
+            maxlength="50"
             @input="onTextInput('bankName', $event)"
           />
         </div>
@@ -425,6 +441,7 @@ onMounted(load);
             :value="form.productName"
             placeholder="상품명"
             aria-label="상품명"
+            maxlength="50"
             @input="onTextInput('productName', $event)"
           />
         </div>

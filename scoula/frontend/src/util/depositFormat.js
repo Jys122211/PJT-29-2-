@@ -38,16 +38,19 @@ export function parseNumber(text) {
 export function sanitizeRate(text) {
   let cleaned = String(text ?? '').replace(/[^0-9.]/g, '');
 
-  // 소수점 중복 제거
   const parts = cleaned.split('.');
   if (parts.length > 2) {
     cleaned = `${parts[0]}.${parts.slice(1).join('')}`;
   }
 
   const [whole, decimal] = cleaned.split('.');
-  if (decimal === undefined) return whole.slice(0, 2);
+  const w = whole.slice(0, 2);
 
-  return `${whole.slice(0, 2)}.${decimal.slice(0, 3)}`;
+  // 20% 초과 입력 차단
+  if (Number(w) > 20) return '20';
+
+  if (decimal === undefined) return w;
+  return `${w}.${decimal.slice(0, 3)}`;
 }
 
 /**
@@ -152,15 +155,23 @@ export function dDayText(maturity, fallback = '만기일') {
 }
 
 /** 에러 응답에서 errorCode / field / message 추출 */
+/** 서버 메시지 중 사용자용으로 정의된 것만 통과시킨다. */
 export function extractApiError(error) {
-  const data = error?.response?.data ?? {};
+  const data = error?.response?.data;
+
+  if (data && typeof data === 'object' && data.errorCode && data.message) {
+    return {
+      errorCode: data.errorCode,
+      field: data.field ?? null,
+      message: data.message,
+    };
+  }
+
+  // 문자열 본문, HTML 오류 페이지, 스택트레이스 등은 그대로 노출하지 않는다
   return {
-    errorCode: typeof data === 'object' ? (data.errorCode ?? null) : null,
-    field: typeof data === 'object' ? (data.field ?? null) : null,
-    message:
-      typeof data === 'string'
-        ? data
-        : (data.message ?? '요청을 처리하지 못했어요. 다시 시도해주세요.'),
+    errorCode: null,
+    field: null,
+    message: '요청을 처리하지 못했어요. 잠시 후 다시 시도해주세요.',
   };
 }
 /** 숫자만 남긴다. '123-456-789012' → '123456789012' */
