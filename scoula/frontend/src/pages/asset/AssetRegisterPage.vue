@@ -71,6 +71,7 @@ const errors = reactive({
   appliedRate: '',
 });
 
+
 // ------------------------------------------------------------ 입력 핸들러
 function onAccountInput(event) {
   const input = event.target;
@@ -234,19 +235,33 @@ function validateDateFields() {
   });
 }
 
+/** 은행명·상품명 길이 기준. warn 을 넘으면 경고, max 에서 입력을 멈춘다. */
+const NAME_RULES = {
+  bankName: { warn: 12, max: 30, label: '은행명' },
+  productName: { warn: 25, max: 50, label: '상품명' },
+};
+
 /** 은행명은 문자만, 상품명은 숫자까지 허용한다. */
 function onTextInput(field, event) {
+  const rule = NAME_RULES[field];
   const raw = event.target.value;
 
-  const cleaned =
+  const filtered =
     field === 'bankName'
-      ? raw.replace(/[^가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z ]/g, '').slice(0, 30)
-      : raw.replace(/[^가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z0-9 ()\-.]/g, '').slice(0, 50);
+      ? raw.replace(/[^가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z ]/g, '')
+      : raw.replace(/[^가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z0-9 ()\-.]/g, '');
+
+  const cleaned = filtered.slice(0, rule.max);
 
   form[field] = cleaned;
   event.target.value = cleaned;
   markEdited(field);
-  errors[field] = '';
+
+if (cleaned.trim().length > rule.warn) {
+    errors[field] = `${rule.label}은 ${rule.warn}자 이내로 입력해주세요`;
+  } else {
+    errors[field] = '';
+  }
 }
 
 function markEdited(field) {
@@ -268,7 +283,9 @@ function fieldClass(field) {
 const isComplete = computed(
   () =>
     form.bankName.trim() !== '' &&
+    form.bankName.trim().length <= NAME_RULES.bankName.warn &&
     form.productName.trim() !== '' &&
+    form.productName.trim().length <= NAME_RULES.productName.warn &&
     form.accountNumber.length === 14 &&
     form.joinDate.length === 8 &&
     form.maturityDate.length === 8 &&
@@ -327,6 +344,14 @@ function validate() {
   require('maturityDate', '만기일을 입력해주세요');
   require('baseRate', '기본금리를 입력해주세요');
   require('appliedRate', '적용금리를 입력해주세요');
+
+  ['bankName', 'productName'].forEach((field) => {
+    const rule = NAME_RULES[field];
+    if (form[field].trim().length > rule.warn) {
+      errors[field] = `${rule.label}은 ${rule.warn}자 이내로 입력해주세요`;
+      firstInvalid = firstInvalid ?? field;
+    }
+  });
 
   if (form.accountNumber !== '' && form.accountNumber.length !== 14) {
     errors.accountNumber = 'KB 계좌번호 숫자 14자리를 입력해주세요';
@@ -1029,6 +1054,12 @@ onMounted(async () => {
 
 .err-msg.center {
   text-align: center;
+}
+.warn-msg {
+  margin: -4px 2px 10px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--kb-deep, #8a6d1f);
 }
 
 /* ---------- 버튼 ---------- */
