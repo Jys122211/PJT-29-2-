@@ -2,7 +2,6 @@ package org.scoula.member.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.scoula.common.util.UploadFiles;
 import org.scoula.member.dto.*;
 import org.scoula.member.service.MemberService;
 import org.scoula.security.account.domain.CustomUser;
@@ -10,8 +9,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletResponse;
-import java.io.File;
 import java.security.Principal;
 
 /**
@@ -72,6 +69,7 @@ public class MemberController {
     }
 
     /**
+<<<<<<< HEAD
      * 유저 아바타 이미지 조회
      */
     @GetMapping("/{email}/avatar")
@@ -84,6 +82,13 @@ public class MemberController {
             file = new File("C:/upload/avatar/unknown.png");
         }
         UploadFiles.downloadImage(response, file);
+=======
+     * 회원 가입
+     */
+    @PostMapping("")
+    public ResponseEntity<MemberDTO> join(MemberJoinDTO member) {
+        return ResponseEntity.ok(service.join(member));
+>>>>>>> origin/main
     }
 
     /**
@@ -92,15 +97,6 @@ public class MemberController {
     @PutMapping("/me")
     public ResponseEntity<MemberDTO> changeProfile(MemberUpdateDTO member, Principal principal) {
         return ResponseEntity.ok(service.update(getAuthenticatedUserId(principal), member));
-    }
-
-    /**
-     * 비밀번호 변경
-     */
-    @PutMapping("/{email}/changepassword")
-    public ResponseEntity<?> changePassword(@RequestBody ChangePasswordDTO changePasswordDTO) {
-        service.changePassword(changePasswordDTO);
-        return ResponseEntity.ok().build();
     }
 
 }

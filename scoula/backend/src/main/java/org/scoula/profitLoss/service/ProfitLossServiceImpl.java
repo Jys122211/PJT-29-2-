@@ -13,9 +13,11 @@ import org.scoula.profitLoss.mapper.ProfitLossMapper;
 import org.scoula.profitLoss.service.calculator.ComparisonCalculator;
 import org.scoula.profitLoss.service.calculator.DepositCalculator;
 import org.scoula.profitLoss.service.calculator.JeonseLoanCalculator;
+import org.scoula.profitLoss.service.calculator.PaymentTooLowException;
 import org.scoula.profitLoss.vo.ComparisonVO;
 import org.scoula.profitLoss.vo.JeonseLoanProductVO;
 import org.scoula.profitLoss.vo.LoanProductRateVO;
+import org.scoula.deposit.util.AccountCrypto;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -119,13 +121,29 @@ public class ProfitLossServiceImpl implements ProfitLossService {
         // 중도해지이율 구간이 바뀐다 — CLAUDE.md에 명시된 함정)
         int elapsedMonths = (int) ChronoUnit.MONTHS.between(deposit.getJoinDate(), LocalDate.now(DEPOSIT_TIMEZONE));
 
-        ComparisonVO vo = request.getLoan().getLoanType() == LoanType.JEONSE
-                ? compareJeonse(userId, request, deposit, contractMonths, elapsedMonths)
-                : compareCredit(userId, request, deposit, contractMonths, elapsedMonths);
+        try {
+            ComparisonVO vo = request.getLoan().getLoanType() == LoanType.JEONSE
+                    ? compareJeonse(userId, request, deposit, contractMonths, elapsedMonths)
+                    : compareCredit(userId, request, deposit, contractMonths, elapsedMonths);
 
-        mapper.insertComparison(vo);
+            mapper.insertComparison(vo);
 
-        return buildResponse(vo, deposit.getPrincipalAmount());
+            return buildResponse(vo, deposit.getPrincipalAmount());
+        } catch (PaymentTooLowException | ExceedLoanLimitException e) {
+            // 비교 불가는 서버 오류가 아니라 계산 결과다 — 이력에 남길 게 없으니 저장하지 않고 200으로 내린다.
+            return buildInfeasibleResponse(request, e);
+        }
+    }
+
+    private static ComparisonResponse buildInfeasibleResponse(ComparisonRequest request, RuntimeException e) {
+        String reason = e instanceof PaymentTooLowException ? "PAYMENT_TOO_LOW" : "EXCEED_LOAN_LIMIT";
+
+        return ComparisonResponse.builder()
+                .feasible(false)
+                .reason(reason)
+                .urgentAmount(request.getComparisonCondition().getUrgentAmount())
+                .monthlyPayment(request.getUserFinancialInfo().getMonthlyPayment())
+                .build();
     }
 
     // loanType=CREDIT 경로. rate_period(3/6/12) 순환 해결 + 원리금균등 상환 시뮬레이션.
@@ -200,7 +218,7 @@ public class ProfitLossServiceImpl implements ProfitLossService {
                 .loanInterest(bestResult.loan().interest())
                 .loanPenalty(bestResult.loan().penalty())
                 .depositName(deposit.getProductName())
-                .depositAccountNumber(deposit.getAccountNumber())
+                .depositAccountNumber(AccountCrypto.decrypt(deposit.getAccountNumber()))
                 .depositMaintainInterest(bestResult.deposit().maintainInterest())
                 .depositCancelInterestRate(bestResult.deposit().cancelInterestRate())
                 .depositCancelInterest(bestResult.deposit().cancelInterest())
@@ -280,7 +298,7 @@ public class ProfitLossServiceImpl implements ProfitLossService {
                 .loanInterest(bestResult.loan().interest())
                 .loanPenalty(bestResult.loan().penalty())
                 .depositName(deposit.getProductName())
-                .depositAccountNumber(deposit.getAccountNumber())
+                .depositAccountNumber(AccountCrypto.decrypt(deposit.getAccountNumber()))
                 .depositMaintainInterest(bestResult.deposit().maintainInterest())
                 .depositCancelInterestRate(bestResult.deposit().cancelInterestRate())
                 .depositCancelInterest(bestResult.deposit().cancelInterest())
@@ -328,7 +346,7 @@ public class ProfitLossServiceImpl implements ProfitLossService {
                         .savingAmount(Math.abs(vo.getAFinalBalance() - vo.getBFinalBalance()))
                         .depositName(vo.getDepositName())          // 추가
                         .loanTypeLabel(loanTypeLabel(vo))          // 추가
-                        .accountNumber(vo.getDepositAccountNumber())
+                        .accountNumber(AccountCrypto.decrypt(vo.getDepositAccountNumber()))
                         .build())
                 .collect(Collectors.toList());
     }
@@ -396,7 +414,7 @@ public class ProfitLossServiceImpl implements ProfitLossService {
 
         ComparisonResponse.DepositInfo deposit = ComparisonResponse.DepositInfo.builder()
                 .name(vo.getDepositName())
-                .accountNumber(vo.getDepositAccountNumber())
+                .accountNumber(AccountCrypto.decrypt(vo.getDepositAccountNumber()))
                 .maintainInterest(vo.getDepositMaintainInterest())
                 .cancelInterestRate(vo.getDepositCancelInterestRate())
                 .cancelInterest(vo.getDepositCancelInterest())
@@ -405,6 +423,8 @@ public class ProfitLossServiceImpl implements ProfitLossService {
                 .build();
 
         return ComparisonResponse.builder()
+                .feasible(true)
+                .reason(null)
                 .comparisonId(vo.getComparisonId())
                 .winner(vo.getWinner())
                 .savingAmount(savingAmount)

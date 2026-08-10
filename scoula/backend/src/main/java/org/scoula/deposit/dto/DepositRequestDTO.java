@@ -44,6 +44,8 @@ public class DepositRequestDTO {
         requireText(accountNumber, "accountNumber", "계좌번호를 입력해주세요");
         requireText(joinDate, "joinDate", "가입일을 입력해주세요");
         requireText(maturityDate, "maturityDate", "만기일을 입력해주세요");
+        requireBankName(bankName);
+        requireProductName(productName);
 
         if (!accountNumber.trim().matches("\\d{10,16}")) {
             throw new ValidationException("INVALID_ACCOUNT", "accountNumber",
@@ -54,6 +56,15 @@ public class DepositRequestDTO {
             throw new ValidationException("REQUIRED_FIELD", "principalAmount",
                     "가입금액을 입력해주세요");
         }
+        if (principalAmount < 10_000L) {
+            throw new ValidationException("INVALID_AMOUNT", "principalAmount",
+                    "가입금액은 1만원 이상 입력해주세요");
+        }
+        if (principalAmount > 10_000_000_000L) {
+            throw new ValidationException("INVALID_AMOUNT", "principalAmount",
+                    "가입금액은 100억원 이하로 입력해주세요");
+        }
+
         if (baseRate == null) {
             throw new ValidationException("REQUIRED_FIELD", "baseRate",
                     "기본금리를 입력해주세요");
@@ -61,6 +72,16 @@ public class DepositRequestDTO {
         if (appliedRate == null) {
             throw new ValidationException("REQUIRED_FIELD", "appliedRate",
                     "적용금리를 입력해주세요");
+        }
+
+        BigDecimal MAX_RATE = new BigDecimal("20");
+        if (baseRate.compareTo(BigDecimal.ZERO) < 0 || baseRate.compareTo(MAX_RATE) > 0) {
+            throw new ValidationException("INVALID_RATE", "baseRate",
+                    "기본금리는 0~20% 사이로 입력해주세요");
+        }
+        if (appliedRate.compareTo(BigDecimal.ZERO) < 0 || appliedRate.compareTo(MAX_RATE) > 0) {
+            throw new ValidationException("INVALID_RATE", "appliedRate",
+                    "적용금리는 0~20% 사이로 입력해주세요");
         }
 
         // BigDecimal 비교는 compareTo 사용
@@ -75,6 +96,43 @@ public class DepositRequestDTO {
         if (!maturity.isAfter(join)) {
             throw new ValidationException("INVALID_DATE", "maturityDate",
                     "만기일이 가입일보다 빠릅니다");
+        }
+
+
+    }
+
+    /** 은행명 : 한글·영문·공백만. 실제 은행명에 숫자가 쓰이는 경우는 없다. */
+    private void requireBankName(String value) {
+        String v = value.trim();
+
+        if (v.length() > 30) {
+            throw new ValidationException("INVALID_LENGTH", "bankName",
+                    "은행명은 30자 이내로 입력해주세요");
+        }
+        if (!v.matches("[가-힣a-zA-Z ]+")) {
+            throw new ValidationException("INVALID_CHARACTER", "bankName",
+                    "은행명은 한글과 영문만 입력할 수 있습니다");
+        }
+    }
+
+    /**
+     * 상품명 : 숫자를 허용한다. '26주적금', '369정기예금' 같은 실제 상품이 있다.
+     * 다만 숫자나 기호만으로 이루어진 값은 막는다.
+     */
+    private void requireProductName(String value) {
+        String v = value.trim();
+
+        if (v.length() > 50) {
+            throw new ValidationException("INVALID_LENGTH", "productName",
+                    "상품명은 50자 이내로 입력해주세요");
+        }
+        if (!v.matches("[가-힣a-zA-Z0-9 ()\\-.]+")) {
+            throw new ValidationException("INVALID_CHARACTER", "productName",
+                    "상품명에 사용할 수 없는 문자가 있습니다");
+        }
+        if (!v.matches(".*[가-힣a-zA-Z].*")) {
+            throw new ValidationException("INVALID_CHARACTER", "productName",
+                    "상품명에 한글 또는 영문이 포함되어야 합니다");
         }
     }
 

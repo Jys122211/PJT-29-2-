@@ -5,6 +5,7 @@ import profitLossApi from '@/api/profitLossApi';
 import { useProfitLossStore } from '@/stores/profitLoss';
 import api from '@/api';
 import BottomNav from '@/components/mobile/BottomNav.vue';
+import { toDisplayKbAccount } from '@/util/depositFormat';
 
 const router = useRouter();
 const profitLossStore = useProfitLossStore();
@@ -263,14 +264,12 @@ function resetAmount() {
 
 function registerAsset() {
   // 실제 자산 등록 페이지가 만들어지면 변경
-  console.log('자산 등록 페이지로 이동');
   router.replace({ name: 'assetRegister' });
 }
 
 async function compareProfitLoss() {
   if (!canCompare.value) return;
 
-  console.log('손익 비교 요청:', profitLossStore.requestPayload);
   try {
     await api.patch('/api/users/me/credit-score', {
       creditScore: creditScore.value,
@@ -426,7 +425,7 @@ onMounted(() => {
               </small>
 
               <small class="account-number">
-                계좌번호: {{ deposit.accountNumber || '-' }}
+                계좌번호 : {{ toDisplayKbAccount(deposit.accountNumber) || '-' }}
               </small>
             </span>
 

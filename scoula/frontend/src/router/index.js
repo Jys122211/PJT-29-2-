@@ -6,7 +6,6 @@ import { useAuthStore } from '@/stores/auth';
 
 // ===================================
 import assetRoutes from './asset.js';
-// import introRoutes from './intro.js';
 // ===================================
 
 const router = createRouter({
@@ -32,7 +31,6 @@ const router = createRouter({
     ...profitLossRoutes,
     // ===============
     ...assetRoutes,
-    // ...introRoutes,
     // ===============
     {
       path: '/:pathMatch(.*)*',

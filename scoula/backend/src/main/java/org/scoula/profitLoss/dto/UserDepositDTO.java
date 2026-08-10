@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.scoula.profitLoss.domain.UserDepositVO;
+import org.scoula.deposit.util.AccountCrypto;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -31,14 +32,13 @@ public class UserDepositDTO {
                 .id(vo.getUserDepositId())
                 .bankName(vo.getBankName())
                 .productName(vo.getProductName())
-                .accountNumber(vo.getAccountNumber())
+                .accountNumber(AccountCrypto.decrypt(vo.getAccountNumber()))
                 .joinDate(vo.getJoinDate())
                 .maturityDate(vo.getMaturityDate())
                 .interestRate(vo.getAppliedRate())
                 .baseRate(vo.getBaseRate())
                 .balance(vo.getPrincipalAmount())
                 .maturityText(makeMaturityText(vo.getJoinDate()))
-                .accountNumber(vo.getAccountNumber())   // 추가
                 .build();
     }
 

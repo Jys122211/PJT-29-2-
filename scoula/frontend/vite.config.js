@@ -33,5 +33,8 @@ export default defineConfig({
   },
   build: {
     outDir: '../backend/src/main/webapp/resources',
+    // outDir이 프로젝트 밖이라 vite가 기본으로 비우지 않는다.
+    // 끄면 해시가 바뀐 옛 청크가 빌드마다 쌓이므로 매번 비운다.
+    emptyOutDir: true,
   },
 });

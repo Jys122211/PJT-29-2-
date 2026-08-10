@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, nextTick, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import profitLossApi from '@/api/profitLossApi';
 import { useProfitLossStore } from '@/stores/profitLoss';
@@ -63,6 +63,46 @@ const visibleComparisonConditionQuestions = computed(() => {
 
 const isComplete = computed(() => profitLossStore.isCreditEligibilityComplete);
 
+// 답변할 때마다 다음 질문이 아래에 추가되므로, 새 질문이 화면 밖이면 스크롤로 끌어온다.
+// 질문 목록이 둘이라 접두사를 붙여 구분해 저장한다.
+const questionElements = new Map();
+
+function registerQuestion(key, el) {
+  if (el) {
+    questionElements.set(key, el);
+  } else {
+    questionElements.delete(key);
+  }
+}
+
+function watchQuestionList(visibleQuestions, prefix) {
+  watch(
+    () => visibleQuestions.value.length,
+    async (count, previousCount) => {
+      // 이전 답변을 바꿔 질문이 줄어드는 경우에는 스크롤하지 않는다.
+      if (previousCount === undefined || count <= previousCount) return;
+
+      await nextTick();
+
+      const lastQuestion = visibleQuestions.value[count - 1];
+      const element = questionElements.get(`${prefix}-${lastQuestion?.id}`);
+      if (!element) return;
+
+      const prefersReducedMotion = window.matchMedia(
+        '(prefers-reduced-motion: reduce)',
+      ).matches;
+
+      element.scrollIntoView({
+        behavior: prefersReducedMotion ? 'auto' : 'smooth',
+        block: 'nearest',
+      });
+    },
+  );
+}
+
+watchQuestionList(visibleQualificationQuestions, 'qualification');
+watchQuestionList(visibleComparisonConditionQuestions, 'comparison-condition');
+
 function selectedAnswer(questionId) {
   return profitLossStore.state.creditEligibility.answers[questionId];
 }
@@ -107,11 +147,6 @@ async function continueToNextStep() {
     );
 
     profitLossStore.setLoanProducts(loanProductIds);
-
-    console.log('자격조건 상품 조회:', {
-      qualificationQuestionIds,
-      loanProductIds,
-    });
 
     if (loanProductIds.length === 0) {
       openResultModal(
@@ -167,6 +202,7 @@ async function continueToNextStep() {
             <article
               v-for="item in visibleQualificationQuestions"
               :key="item.id"
+              :ref="(el) => registerQuestion(`qualification-${item.id}`, el)"
               class="kb-card question-card"
             >
               <h3>{{ item.text }}</h3>
@@ -217,6 +253,9 @@ async function continueToNextStep() {
             <article
               v-for="item in visibleComparisonConditionQuestions"
               :key="item.id"
+              :ref="
+                (el) => registerQuestion(`comparison-condition-${item.id}`, el)
+              "
               class="kb-card question-card"
             >
               <h3>{{ item.text }}</h3>

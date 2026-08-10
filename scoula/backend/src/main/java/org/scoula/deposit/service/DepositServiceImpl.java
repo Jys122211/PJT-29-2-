@@ -9,6 +9,7 @@ import org.scoula.deposit.dto.DepositRequestDTO;
 import org.scoula.deposit.exception.DepositNotFoundException;
 import org.scoula.deposit.mapper.DepositMapper;
 import org.scoula.deposit.util.LoginUser;
+import org.scoula.deposit.util.AccountCrypto;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +29,9 @@ public class DepositServiceImpl implements DepositService {
         Long userId = LoginUser.getUserId();
 
         List<UserDepositVO> list = mapper.getList(userId);
+
+        list.forEach(vo -> vo.setAccountNumber(
+                AccountCrypto.decrypt(vo.getAccountNumber())));
 
         List<DepositDTO> deposits = list.stream()
                 .map(DepositDTO::of)
@@ -52,6 +56,9 @@ public class DepositServiceImpl implements DepositService {
         if (vo == null) {
             throw new DepositNotFoundException();
         }
+
+        vo.setAccountNumber(AccountCrypto.decrypt(vo.getAccountNumber()));
+
         return DepositDTO.of(vo);
     }
 
@@ -63,6 +70,7 @@ public class DepositServiceImpl implements DepositService {
         Long userId = LoginUser.getUserId();
 
         UserDepositVO vo = request.toVO();
+        vo.setAccountNumber(AccountCrypto.encrypt(vo.getAccountNumber()));
         vo.setGlobalId(UUID.randomUUID().toString());   // 글로벌 ID는 서버에서 생성
         vo.setUserId(userId);
         vo.setCreatedBy(userId);
@@ -81,6 +89,7 @@ public class DepositServiceImpl implements DepositService {
         Long userId = LoginUser.getUserId();
 
         UserDepositVO vo = request.toVO();
+        vo.setAccountNumber(AccountCrypto.encrypt(vo.getAccountNumber()));
         vo.setUserDepositId(userDepositId);
         vo.setUserId(userId);
         vo.setUpdatedBy(userId);

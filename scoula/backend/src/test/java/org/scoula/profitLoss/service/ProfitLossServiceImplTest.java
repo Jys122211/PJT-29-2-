@@ -20,7 +20,11 @@ import java.time.ZoneId;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -172,9 +176,10 @@ class ProfitLossServiceImplTest {
                 .createdAt(java.time.LocalDateTime.now(SEOUL));
     }
 
-    // 인터페이스 계약서 4장 EXCEED_LOAN_LIMIT: 조회된 모든 상품의 loanLimit보다 필요금액이 크면 예외.
+    // 인터페이스 계약서 4장 EXCEED_LOAN_LIMIT: 조회된 모든 상품의 loanLimit보다 필요금액이 크면
+    // 예외 대신 feasible=false 응답을 정상(200)으로 내린다 — 비교 불가는 서버 오류가 아니라 계산 결과다.
     @Test
-    void compare_throwsExceedLoanLimit_whenUrgentAmountExceedsMaxLoanLimit() {
+    void compare_returnsInfeasible_whenUrgentAmountExceedsMaxLoanLimit() {
         Long userId = 1L;
 
         when(mapper.selectUserDeposit(10L, userId)).thenReturn(UserDepositVO.builder()
@@ -198,8 +203,15 @@ class ProfitLossServiceImplTest {
                 .comparisonCondition(ComparisonRequest.ComparisonCondition.builder().urgentAmount(20_000_000L).isLumpSum(true).build())
                 .build();
 
-        org.junit.jupiter.api.Assertions.assertThrows(ExceedLoanLimitException.class,
-                () -> service.compare(userId, request));
+        ComparisonResponse response = service.compare(userId, request);
+
+        assertEquals(Boolean.FALSE, response.getFeasible());
+        assertEquals("EXCEED_LOAN_LIMIT", response.getReason());
+        assertEquals(20_000_000L, response.getUrgentAmount());
+        assertEquals(900_000L, response.getMonthlyPayment());
+        assertNull(response.getComparisonId());
+        assertNull(response.getWinner());
+        verify(mapper, never()).insertComparison(any());
     }
 
     // 한도 이내(정확히 최고한도와 같은 경우 포함)면 예외 없이 정상적으로 계산이 진행돼야 한다.

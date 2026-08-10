@@ -80,7 +80,7 @@ async function load() {
 
     Object.assign(original, { ...form });
     validateAccountNumber();
-    validateDatesAgainstToday();
+    validateDateFields();
   } catch (error) {
     loadError.value = extractApiError(error).message;
   } finally {
@@ -90,7 +90,15 @@ async function load() {
 
 // ------------------------------------------------------------ 입력
 function onTextInput(field, event) {
-  form[field] = event.target.value;
+  const raw = event.target.value;
+
+  const cleaned =
+    field === 'bankName'
+      ? raw.replace(/[^가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z ]/g, '').slice(0, 30)
+      : raw.replace(/[^가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z0-9 ()\-.]/g, '').slice(0, 50);
+
+  form[field] = cleaned;
+  event.target.value = cleaned;
   errors[field] = '';
 }
 
@@ -115,34 +123,39 @@ function onDateInput(field, event) {
   applyFormattedValue(input, toDisplayDate(digits), digitsBeforeCaret);
   errors[field] = '';
   errors.maturityDate = '';
-  validateDatesAgainstToday();
+  validateDateFields();
 }
 
-/** 가입일은 오늘 이전, 만기일은 오늘 이후여야 한다 */
-function validateDatesAgainstToday() {
+/**
+ * 8자리를 다 채운 날짜를 곧바로 검사한다.
+ * 실재하지 않는 날짜, 그리고 가입일은 오늘 이전 / 만기일은 오늘 이후 규칙.
+ */
+function validateDateFields() {
   const today = todayCompact();
 
-  if (
-    !errors.joinDate &&
-    isValidCompactDate(form.joinDate) &&
-    form.joinDate >= today
-  ) {
-    errors.joinDate = '가입일은 오늘보다 이전 날짜여야 합니다';
-  }
+  ['joinDate', 'maturityDate'].forEach((field) => {
+    if (errors[field] || form[field].length !== 8) return;
 
-  if (
-    !errors.maturityDate &&
-    isValidCompactDate(form.maturityDate) &&
-    form.maturityDate <= today
-  ) {
-    errors.maturityDate = '만기일은 오늘보다 이후 날짜여야 합니다';
-  }
+    if (!isValidCompactDate(form[field])) {
+      errors[field] = '존재하지 않는 날짜예요';
+      return;
+    }
+
+    if (field === 'joinDate' && form.joinDate > today) {
+      errors.joinDate = '가입일은 오늘이거나 오늘보다 전이여야 해요';
+    }
+
+    if (field === 'maturityDate' && form.maturityDate <= today) {
+      errors.maturityDate = '만기일은 오늘 이후 날짜여야 해요';
+    }
+  });
 }
 
 function onAmountInput(event) {
   const input = event.target;
   const digitsBeforeCaret = countDigitsBeforeCaret(input);
-  const parsed = parseNumber(input.value);
+  const digits = String(input.value).replace(/[^0-9]/g, '').slice(0, 11);
+  const parsed = digits === '' ? null : Number(digits);
   form.principalAmount = parsed === null ? '' : parsed;
   applyFormattedValue(input, formatNumber(parsed), digitsBeforeCaret);
   errors.principalAmount = '';
@@ -235,7 +248,7 @@ const isDateReversed = computed(
 const isDateOutOfRange = computed(() => {
   const today = todayCompact();
   return (
-    (isValidCompactDate(form.joinDate) && form.joinDate >= today) ||
+    (isValidCompactDate(form.joinDate) && form.joinDate > today) ||
     (isValidCompactDate(form.maturityDate) && form.maturityDate <= today)
   );
 });
@@ -288,6 +301,12 @@ function validate() {
   if (form.principalAmount === '' || Number(form.principalAmount) <= 0) {
     errors.principalAmount = '가입금액을 입력해주세요';
     ok = false;
+  } else if (Number(form.principalAmount) < 10000) {
+    errors.principalAmount = '가입금액은 1만원 이상 입력해주세요';
+    ok = false;
+  } else if (Number(form.principalAmount) > 10000000000) {
+    errors.principalAmount = '가입금액은 100억원 이하로 입력해주세요';
+    ok = false;
   }
 
   ['joinDate', 'maturityDate'].forEach((field) => {
@@ -304,7 +323,7 @@ function validate() {
   }
 
   // 가입일은 오늘 이전, 만기일은 오늘 이후
-  validateDatesAgainstToday();
+  validateDateFields();
   if (errors.joinDate || errors.maturityDate) ok = false;
 
   if (
@@ -409,6 +428,7 @@ onMounted(load);
             :value="form.bankName"
             placeholder="은행명"
             aria-label="은행명"
+            maxlength="50"
             @input="onTextInput('bankName', $event)"
           />
         </div>
@@ -421,6 +441,7 @@ onMounted(load);
             :value="form.productName"
             placeholder="상품명"
             aria-label="상품명"
+            maxlength="50"
             @input="onTextInput('productName', $event)"
           />
         </div>

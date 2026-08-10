@@ -3,7 +3,7 @@ import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import profitLossApi from '@/api/profitLossApi';
 import BottomNav from '@/components/mobile/BottomNav.vue';
-import { formatNumber } from '@/util/depositFormat';
+import { formatNumber, toDisplayKbAccount } from '@/util/depositFormat';
 
 const router = useRouter();
 
@@ -83,7 +83,7 @@ onMounted(load);
             <span class="saving">{{ formatNumber(item.savingAmount) }}원 이득</span>
           </div>
           <div class="account-row" v-if="item.accountNumber">
-            계좌번호: {{ item.accountNumber }}
+            계좌번호 : {{ toDisplayKbAccount(item.accountNumber) }}
           </div>
         </button>
       </li>

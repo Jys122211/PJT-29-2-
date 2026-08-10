@@ -49,7 +49,6 @@ export default {
 
   async getComparison(id) {
     const { data } = await api.get(`${COMPARISONS_URL}/${id}`);
-    console.log('COMPARISON GET: ', data);
     return data;
   },
   async getComparisons() {

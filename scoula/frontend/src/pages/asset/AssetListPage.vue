@@ -9,7 +9,7 @@ import { useRouter } from 'vue-router';
 import depositApi from '@/api/depositApi';
 import BottomNav from '@/components/mobile/BottomNav.vue';
 import {
-  calcDDay,
+  dDayText,
   extractApiError,
   formatNumber,
   toDotDate,
@@ -52,33 +52,6 @@ function goEdit(deposit) {
     name: 'assetEdit',
     params: { userDepositId: deposit.userDepositId },
   });
-}
-
-/** 만기일 기준으로 D-Day 직접 계산 */
-function dDayText(deposit) {
-  if (!deposit || !deposit.maturityDate) return '만기일';
-
-  // 1. 숫자만 추출 (예: '20261016')
-  const dateString = String(deposit.maturityDate).replace(/[^0-9]/g, '');
-  if (dateString.length !== 8) return '만기일';
-
-  // 2. 날짜 객체 생성 (자바스크립트 Date는 월을 0부터 시작하므로 -1)
-  const year = parseInt(dateString.substring(0, 4), 10);
-  const month = parseInt(dateString.substring(4, 6), 10) - 1;
-  const day = parseInt(dateString.substring(6, 8), 10);
-
-  const targetDate = new Date(year, month, day);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0); // 시간은 제외하고 날짜만 비교
-
-  // 3. 차이 일수 계산
-  const diffTime = targetDate.getTime() - today.getTime();
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-  // 4. 결과 텍스트 반환
-  if (diffDays > 0) return `D-${diffDays}`;
-  if (diffDays === 0) return 'D-Day';
-  return `D+${Math.abs(diffDays)}`; // 만기가 지났을 경우 D+1 등으로 표시
 }
 
 onMounted(load);
@@ -145,7 +118,7 @@ onMounted(load);
             </div>
 
             <div class="right">
-              <span class="dday">{{ dDayText(deposit) }}</span>
+              <span class="dday">{{ dDayText(deposit.maturityDate) }}</span>
               <small class="mat">{{ toDotDate(deposit.maturityDate) }}</small>
             </div>
           </button>

@@ -38,16 +38,19 @@ export function parseNumber(text) {
 export function sanitizeRate(text) {
   let cleaned = String(text ?? '').replace(/[^0-9.]/g, '');
 
-  // 소수점 중복 제거
   const parts = cleaned.split('.');
   if (parts.length > 2) {
     cleaned = `${parts[0]}.${parts.slice(1).join('')}`;
   }
 
   const [whole, decimal] = cleaned.split('.');
-  if (decimal === undefined) return whole.slice(0, 2);
+  const w = whole.slice(0, 2);
 
-  return `${whole.slice(0, 2)}.${decimal.slice(0, 3)}`;
+  // 20% 초과 입력 차단
+  if (Number(w) > 20) return '20';
+
+  if (decimal === undefined) return w;
+  return `${w}.${decimal.slice(0, 3)}`;
 }
 
 /**
@@ -97,40 +100,78 @@ export function caretPositionAfterFormat(formattedValue, digitsBeforeCaret) {
   return position;
 }
 
-/** 오늘 날짜를 yyyyMMdd 로 반환. 날짜 비교는 문자열 그대로 대소 비교하면 됩니다. */
+/** 만기·가입일 판정은 기기 시간대와 무관하게 항상 한국 날짜를 기준으로 한다. */
+const KST_DATE = new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'Asia/Seoul',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+});
+
+/**
+ * 오늘(한국 기준) 날짜를 yyyyMMdd 로 반환. 날짜 비교는 문자열 그대로 대소 비교하면 됩니다.
+ *
+ * en-CA 로케일이 YYYY-MM-DD 를 내주므로 하이픈만 걷어내면 된다.
+ */
 export function todayCompact() {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  return `${year}${month}${day}`;
+  return KST_DATE.format(new Date()).replace(/-/g, '');
 }
 
-/** 만기일까지 남은 일수. 서버 dDay가 없을 때 폴백으로만 사용 */
-export function calcDDay(maturityCompact) {
-  if (!isValidCompactDate(maturityCompact)) return null;
-
-  const target = new Date(
-    Number(maturityCompact.slice(0, 4)),
-    Number(maturityCompact.slice(4, 6)) - 1,
-    Number(maturityCompact.slice(6, 8)),
+/** yyyyMMdd 를 시간대 영향이 없는 UTC 기준 밀리초로. 날짜 간 일수 차이 계산용. */
+function compactToUtcMillis(compact) {
+  return Date.UTC(
+    Number(compact.slice(0, 4)),
+    Number(compact.slice(4, 6)) - 1,
+    Number(compact.slice(6, 8)),
   );
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+}
 
-  return Math.round((target - today) / 86400000);
+/**
+ * 만기일까지 남은 일수(한국 날짜 기준). 서버 dDay가 없을 때 폴백으로만 사용.
+ *
+ * "20261016" 과 "2026-10-16" 을 모두 받는다. HomePage가 쓰는
+ * /api/deposits/list(UserDepositDTO.LocalDate)는 하이픈 형식으로,
+ * 보유예금 목록이 쓰는 /api/deposits(DepositDTO.String)는 8자리로 내려오기 때문.
+ *
+ * new Date('2026-10-16') 은 명세상 UTC 자정으로 파싱되어 로컬 자정과 9시간
+ * 어긋나므로 쓰지 않는다. 양쪽 모두 UTC 기준으로 맞춘 뒤 빼면 시간대가 상쇄된다.
+ */
+export function calcDDay(maturity) {
+  const compact = toCompactDate(maturity);
+  if (!isValidCompactDate(compact)) return null;
+
+  const diff = compactToUtcMillis(compact) - compactToUtcMillis(todayCompact());
+  return Math.round(diff / 86400000);
+}
+
+/** 만기일 배지 문구. 남았으면 D-30, 당일이면 D-Day, 지났으면 D+5. */
+export function dDayText(maturity, fallback = '만기일') {
+  const days = calcDDay(maturity);
+  if (days === null) return fallback;
+
+  if (days > 0) return `D-${days}`;
+  if (days === 0) return 'D-Day';
+  return `D+${Math.abs(days)}`;
 }
 
 /** 에러 응답에서 errorCode / field / message 추출 */
+/** 서버 메시지 중 사용자용으로 정의된 것만 통과시킨다. */
 export function extractApiError(error) {
-  const data = error?.response?.data ?? {};
+  const data = error?.response?.data;
+
+  if (data && typeof data === 'object' && data.errorCode && data.message) {
+    return {
+      errorCode: data.errorCode,
+      field: data.field ?? null,
+      message: data.message,
+    };
+  }
+
+  // 문자열 본문, HTML 오류 페이지, 스택트레이스 등은 그대로 노출하지 않는다
   return {
-    errorCode: typeof data === 'object' ? (data.errorCode ?? null) : null,
-    field: typeof data === 'object' ? (data.field ?? null) : null,
-    message:
-      typeof data === 'string'
-        ? data
-        : (data.message ?? '요청을 처리하지 못했어요. 다시 시도해주세요.'),
+    errorCode: null,
+    field: null,
+    message: '요청을 처리하지 못했어요. 잠시 후 다시 시도해주세요.',
   };
 }
 /** 숫자만 남긴다. '123-456-789012' → '123456789012' */
@@ -148,6 +189,8 @@ export function toDisplayAccount(value) {
 
 /** KB국민은행 일반 계좌 표시: 14자리 숫자 → 6자리-2자리-6자리 */
 export function toDisplayKbAccount(value) {
+  if (value === null || value === undefined || value === '') return '-';
+
   const digits = toCompactAccount(value).slice(0, 14);
 
   if (digits.length <= 6) return digits;
