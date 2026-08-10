@@ -33,6 +33,9 @@ const fieldErrors = reactive({
 
 const emailLocalPattern = /^[^\s@]+$/;
 
+// 비밀번호 최대 자릿수. 백엔드 SignupServiceImpl의 PASSWORD_MAX_LENGTH와 같은 값이어야 한다.
+const PASSWORD_MAX_LENGTH = 16;
+
 // 사용자가 선택한 이메일 아이디와 도메인을 하나의 이메일 주소로 합친다.
 const email = computed(
   () => `${form.emailLocal.trim()}@${form.emailDomain}`,
@@ -65,6 +68,8 @@ const validateForm = () => {
 
   if (!form.password) {
     fieldErrors.password = '비밀번호를 입력해 주세요.';
+  } else if (form.password.length > PASSWORD_MAX_LENGTH) {
+    fieldErrors.password = `비밀번호는 최대 ${PASSWORD_MAX_LENGTH}자까지 입력할 수 있습니다.`;
   }
 
   return !fieldErrors.name && !fieldErrors.email && !fieldErrors.password;
@@ -187,7 +192,8 @@ const join = async () => {
             v-model="form.password"
             type="password"
             autocomplete="new-password"
-            placeholder="비밀번호 입력"
+            :maxlength="PASSWORD_MAX_LENGTH"
+            :placeholder="`비밀번호 입력 (최대 ${PASSWORD_MAX_LENGTH}자)`"
             :class="{ 'input-error': fieldErrors.password }"
             @input="clearFieldError('password')"
           />
