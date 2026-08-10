@@ -41,4 +41,32 @@
             NULL
         )
     </insert>
+
+    <!--
+        비밀번호 찾기에서 가입 여부와 user_id를 확인할 때 쓴다.
+        컬럼 별칭을 직접 지정해 mybatis 설정과 무관하게 UserVO에 매핑되도록 했다.
+        탈퇴한 계정(is_deleted = 'Y')은 조회되지 않는다.
+    -->
+    <select id="findByEmail" resultType="org.scoula.member.domain.UserVO">
+        SELECT user_id             AS userId,
+               email,
+               password_hash       AS passwordHash,
+               name,
+               credit_score        AS creditScore,
+               max_monthly_payment AS maxMonthlyPayment,
+               is_deleted          AS isDeleted
+        FROM users
+        WHERE email = #{email}
+          AND is_deleted = 'N'
+    </select>
+
+    <!-- 비밀번호 찾기 마지막 단계. 비밀번호 해시만 교체하고 나머지 정보는 건드리지 않는다. -->
+    <update id="updatePasswordHash">
+        UPDATE users
+        SET password_hash = #{passwordHash},
+            updated_at    = NOW(),
+            updated_by    = #{userId}
+        WHERE user_id = #{userId}
+          AND is_deleted = 'N'
+    </update>
 </mapper>

@@ -92,6 +92,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .authorizeRequests() // 경로별 접근 권한 설정
                 .antMatchers(HttpMethod.OPTIONS).permitAll()
                 .antMatchers(HttpMethod.POST, "/api/auth/signup").permitAll()
+                // 비밀번호 찾기는 로그인하지 못한 사용자가 쓰는 기능이라 인증 없이 열어 둔다.
+                .antMatchers(HttpMethod.POST, "/api/auth/password/**").permitAll()
                 .antMatchers(HttpMethod.GET, "/api/users/me").authenticated()
                 .antMatchers(HttpMethod.PATCH, "/api/users/me/**").authenticated()
                 .antMatchers(HttpMethod.PUT, "/api/users/**").authenticated()
