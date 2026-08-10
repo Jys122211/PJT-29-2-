@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useComparison } from '@/composables/useComparison';
+import ConfirmModal from '@/components/ConfirmModal.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -328,16 +329,15 @@ const cancelModal = () => {
       </div>
 
       <!-- 손실경고 모달 -->
-      <div v-if="showLossModal" class="modal-overlay" @click.self="cancelModal">
-        <section class="modal-card">
-          <h2><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> 손실 경고</h2>
-          <p>{{ won(comparison.savingAmount) }}원 손해를 보는 선택입니다. 진행하시겠습니까?</p>
-          <div class="modal-actions">
-            <button type="button" class="modal-cancel" @click="cancelModal">취소</button>
-            <button type="button" class="modal-confirm" @click="confirmProceed(pendingAction)">진행</button>
-          </div>
-        </section>
-      </div>
+      <ConfirmModal
+        :visible="showLossModal"
+        title="손실 경고"
+        :message="`${won(comparison.savingAmount)}원 손해를 보는 선택입니다. 진행하시겠습니까?`"
+        cancel-text="취소"
+        confirm-text="진행"
+        @cancel="cancelModal"
+        @confirm="confirmProceed(pendingAction)"
+      />
     </div>
 
     <div v-else-if="loading" class="state-view">
@@ -755,67 +755,6 @@ button {
   background: #fff;
 }
 
-/* 손실경고 모달 */
-.modal-overlay {
-  position: fixed;
-  z-index: 1000;
-  inset: 0;
-  display: grid;
-  padding: 24px;
-  background: rgb(0 0 0 / 50%);
-  place-items: center;
-}
-
-.modal-card {
-  width: 100%;
-  max-width: 320px;
-  padding: 24px 20px 16px;
-  border-radius: 16px;
-  background: #fff;
-  box-shadow: 0 16px 40px rgb(0 0 0 / 18%);
-}
-
-.modal-card h2 {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0;
-  font-size: 17px;
-  font-weight: 700;
-  color: var(--gs-warn-strong);
-}
-
-.modal-card p {
-  margin: 12px 0 20px;
-  font-size: 13px;
-  line-height: 1.6;
-  color: var(--gs-text);
-}
-
-.modal-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.modal-cancel,
-.modal-confirm {
-  height: 44px;
-  border-radius: 11px;
-  flex: 1;
-  font-weight: 700;
-}
-
-.modal-cancel {
-  border: 1px solid var(--gs-line);
-  color: var(--gs-text);
-  background: #fff;
-}
-
-.modal-confirm {
-  border: 0;
-  color: #fff;
-  background: var(--gs-warn-strong);
-}
 
 /* 로딩 / 에러 */
 .state-view {
