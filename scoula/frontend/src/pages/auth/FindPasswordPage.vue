@@ -130,6 +130,13 @@ const messageOf = (error, fallback) => {
   return typeof body === 'string' && body.trim() ? body : fallback;
 };
 
+// "~합니다. ~해 주세요." 처럼 두 문장인 안내를 문장마다 한 줄씩 보여준다.
+const toLines = (text) =>
+  String(text || '')
+    .split('. ')
+    .map((line, index, all) => (index < all.length - 1 ? `${line}.` : line))
+    .filter((line) => line.trim());
+
 /** 1단계 - 인증번호 발송 요청 */
 const requestCode = async () => {
   fieldErrors.email = '';
@@ -268,10 +275,16 @@ const changePassword = async () => {
     form.newPasswordConfirm = '';
     step.value = 4;
   } catch (error) {
-    alertMessage.value = messageOf(
-      error,
-      '비밀번호 변경 중 오류가 발생했습니다.',
-    );
+    const message = messageOf(error, '비밀번호 변경 중 오류가 발생했습니다.');
+
+    // 비밀번호 규칙 위반(기존 비밀번호와 동일 등)은 입력창 아래에,
+    // 토큰 만료처럼 다시 처음부터 진행해야 하는 오류는 위쪽 배너에 보여준다.
+    if (error.response?.status === 400 && message.includes('비밀번호')) {
+      fieldErrors.newPassword = message;
+      return;
+    }
+
+    alertMessage.value = message;
   } finally {
     isSubmitting.value = false;
   }
@@ -306,7 +319,9 @@ const submit = () => {
 
       <!-- 가입되지 않은 이메일 등 화면 전체에 해당하는 오류 -->
       <p v-if="alertMessage" class="alert-banner" role="alert" aria-live="polite">
-        {{ alertMessage }}
+        <span v-for="(line, index) in toLines(alertMessage)" :key="index">
+          {{ line }}
+        </span>
       </p>
 
       <form class="find-password-form" @submit.prevent="submit">
@@ -346,7 +361,9 @@ const submit = () => {
               @input="onCodeInput"
             />
             <p v-if="fieldErrors.code" class="field-error">
-              {{ fieldErrors.code }}
+              <span v-for="(line, index) in toLines(fieldErrors.code)" :key="index">
+                {{ line }}
+              </span>
             </p>
             <p v-else class="field-hint">남은 시간 {{ remainingTimeLabel }}</p>
           </label>
@@ -375,7 +392,12 @@ const submit = () => {
               @input="clearFieldError('newPassword')"
             />
             <p v-if="fieldErrors.newPassword" class="field-error">
-              {{ fieldErrors.newPassword }}
+              <span
+                v-for="(line, index) in toLines(fieldErrors.newPassword)"
+                :key="index"
+              >
+                {{ line }}
+              </span>
             </p>
           </label>
 
@@ -426,16 +448,16 @@ const submit = () => {
         이전 비밀번호는 더 이상 사용할 수 없습니다.
       </p>
 
+      <!--
+        홈(/)은 requiresAuth라 비밀번호를 막 바꾼 비로그인 상태에서는 들어갈 수 없다.
+        갈 곳이 로그인 화면뿐이라 보조 버튼은 두지 않는다.
+      -->
       <button
         class="submit-button"
         type="button"
         @click="router.push('/login')"
       >
         로그인하러 가기
-      </button>
-
-      <button class="text-button" type="button" @click="router.push('/')">
-        홈으로 이동
       </button>
     </section>
   </main>
@@ -521,7 +543,15 @@ const submit = () => {
   color: #dc4540;
   font-size: 12px;
   font-weight: 700;
-  line-height: 1.5;
+  /* 한글은 단어 중간에서 끊지 않아야 읽기 편하다. */
+  word-break: keep-all;
+  line-height: 1.55;
+}
+
+/* 문장마다 한 줄씩 표시한다. */
+.alert-banner span,
+.field-error span {
+  display: block;
 }
 
 .find-password-form {
@@ -571,6 +601,8 @@ const submit = () => {
   color: #e54848;
   font-size: 12px;
   font-weight: 700;
+  word-break: keep-all;
+  line-height: 1.55;
 }
 
 .field-hint {
@@ -683,13 +715,4 @@ const submit = () => {
   line-height: 1.7;
 }
 
-.text-button {
-  margin-top: 22px;
-  border: 0;
-  background: transparent;
-  color: #7f776d;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-}
 </style>

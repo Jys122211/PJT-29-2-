@@ -130,6 +130,14 @@ public class PasswordResetServiceImpl implements PasswordResetService {
             throw new EmailNotFoundException();
         }
 
+        // 저장된 값은 BCrypt 해시라 문자열 비교가 안 된다. matches로 원문과 대조한다.
+        // 프론트는 기존 비밀번호를 알 수 없으므로 이 검사는 서버에서만 가능하다.
+        if (passwordEncoder.matches(newPassword, user.getPasswordHash())) {
+            throw new InvalidPasswordResetException(
+                    "현재 사용 중인 비밀번호와 동일합니다. " +
+                            "다른 비밀번호를 입력해 주세요.");
+        }
+
         userMapper.updatePasswordHash(user.getUserId(), passwordEncoder.encode(newPassword));
 
         // 같은 토큰으로 두 번 바꾸지 못하도록 즉시 폐기한다.
