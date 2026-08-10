@@ -1,10 +1,13 @@
 <script setup>
-import { ref, onMounted, computed, nextTick } from 'vue';
+import { ref, reactive, onMounted, computed, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import api from '@/api';
 import BottomNav from '@/components/mobile/BottomNav.vue';
 import ConfirmModal from '@/components/ConfirmModal.vue';
+import { useLogout } from '@/composables/useLogout';
+import { EMAIL_DOMAINS } from '@/constants/emailDomains';
+import EmailDomainSelect from '@/components/auth/EmailDomainSelect.vue';
 
 const router = useRouter();
 const auth = useAuthStore();
@@ -14,11 +17,24 @@ onMounted(() => {
 });
 
 // --- 상태 관리 ---
+const isEditingProfile = ref(false);
 const isEditingCreditScore = ref(false); // 신용점수 수정 모드 여부
-const isEditingMaxPayment = ref(false);  // 월 상환 금액 수정 모드 여부
+const isEditingMaxPayment = ref(false); // 월 상환 금액 수정 모드 여부
 
+const tempName = ref('');
+const form = reactive({
+  emailLocal: '',
+  emailDomain: 'naver.com',
+  customEmailDomain: '',
+});
+const email = computed(() => {
+  const domain = form.emailDomain === '직접입력' ? form.customEmailDomain.trim() : form.emailDomain;
+  return `${form.emailLocal.trim()}@${domain}`;
+});
 const tempCreditScore = ref(''); // 편집 중에는 앞자리 삭제 상태를 보존
 const tempMaxPayment = ref('');  // 편집 중에는 앞자리 삭제 상태를 보존
+const nameError = ref('');
+const emailError = ref('');
 const creditScoreError = ref('');
 const maxPaymentError = ref('');
 
@@ -104,6 +120,104 @@ const handleMaxPaymentInput = (event) => {
       : '';
 };
 
+// --- 기본 프로필(이름/이메일) 수정 관련 ---
+const emailLocalPattern = /^[^\s@]+$/;
+const domainPattern = /^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+const editProfile = () => {
+  tempName.value = auth.name || '';
+  
+  if (auth.email) {
+    const parts = auth.email.split('@');
+    form.emailLocal = parts[0] || '';
+    const domain = parts[1] || '';
+    
+    const isStandardDomain = EMAIL_DOMAINS.some(opt => opt.value === domain);
+    
+    if (isStandardDomain) {
+      form.emailDomain = domain;
+      form.customEmailDomain = '';
+    } else {
+      form.emailDomain = '직접입력';
+      form.customEmailDomain = domain;
+    }
+  } else {
+    form.emailLocal = '';
+    form.emailDomain = 'naver.com';
+    form.customEmailDomain = '';
+  }
+  
+  nameError.value = '';
+  emailError.value = '';
+  isEditingProfile.value = true;
+};
+
+const cancelProfile = () => {
+  nameError.value = '';
+  emailError.value = '';
+  isEditingProfile.value = false;
+};
+
+const saveProfile = async () => {
+  let hasError = false;
+  nameError.value = '';
+  emailError.value = '';
+
+  const newName = tempName.value.trim();
+  const newEmail = email.value;
+
+  if (!newName) {
+    nameError.value = '이름을 입력해 주세요.';
+    hasError = true;
+  }
+  
+  if (!form.emailLocal.trim()) {
+    emailError.value = '이메일을 입력해 주세요.';
+    hasError = true;
+  } else if (!emailLocalPattern.test(form.emailLocal.trim())) {
+    emailError.value = '올바른 아이디 형식을 입력해 주세요.';
+    hasError = true;
+  } else if (form.emailDomain === '직접입력' && !form.customEmailDomain.trim()) {
+    emailError.value = '이메일 도메인을 입력해 주세요.';
+    hasError = true;
+  } else if (form.emailDomain === '직접입력' && !domainPattern.test(form.customEmailDomain.trim())) {
+    emailError.value = '올바른 도메인 형식을 입력해 주세요. (예: example.com)';
+    hasError = true;
+  } else if (newEmail.length > 50) {
+    emailError.value = '이메일 주소는 최대 50자까지 입력할 수 있습니다.';
+    hasError = true;
+  }
+
+  if (hasError) return;
+
+  try {
+    let emailChanged = false;
+    
+    if (newName !== auth.name) {
+      await api.patch('/api/users/me/name', { name: newName });
+      auth.state.user.name = newName;
+    }
+    
+    if (newEmail !== auth.email) {
+      await api.patch('/api/users/me/email', { email: newEmail });
+      emailChanged = true;
+    }
+
+    if (emailChanged) {
+      showEmailChangeModal.value = true;
+    } else {
+      isEditingProfile.value = false;
+    }
+  } catch (error) {
+    if (error.response?.status === 409 || error.response?.data?.includes('Duplicate') || error.response?.data?.includes('가입된')) {
+      emailError.value = '이미 가입된 이메일입니다.';
+    } else {
+      console.error('Failed to update profile', error);
+      alert('정보 수정에 실패했습니다.');
+    }
+  }
+};
+
 // --- 신용점수 수정 관련 ---
 const editCreditScore = () => {
   tempCreditScore.value = String(
@@ -145,7 +259,9 @@ const cancelMaxPayment = () => {
 const saveMaxPayment = async () => {
   try {
     const actualAmount = Number(tempMaxPayment.value || 0);
-    await api.patch('/api/users/me/max-monthly-payment', { maxMonthlyPayment: actualAmount });
+    await api.patch('/api/users/me/max-monthly-payment', {
+      maxMonthlyPayment: actualAmount,
+    });
     auth.state.user.maxMonthlyPayment = actualAmount;
     isEditingMaxPayment.value = false;
   } catch (error) {
@@ -155,21 +271,15 @@ const saveMaxPayment = async () => {
 };
 
 // --- 로그아웃 및 기타 유틸 ---
-const showLogoutModal = ref(false);
+const { isConfirmLogout, requestLogout, cancelLogout, confirmLogout } =
+  useLogout();
 
-const handleLogoutClick = () => {
-  showLogoutModal.value = true;
-};
+const showEmailChangeModal = ref(false);
 
-const confirmLogout = () => {
-  showLogoutModal.value = false;
+const handleEmailChangeLogout = () => {
+  showEmailChangeModal.value = false;
   auth.logout();
-  alert('로그아웃 되었습니다.');
   router.push('/login');
-};
-
-const cancelLogout = () => {
-  showLogoutModal.value = false;
 };
 
 const formatKoreanAmount = (amount, emptyMessage = '금액을 입력해주세요') => {
@@ -215,14 +325,75 @@ const initialChar = computed(() => {
 
     <!-- Profile Card -->
     <div class="card profile-card border-0 shadow-sm mb-4 rounded-4">
-      <div class="card-body d-flex align-items-center">
-        <div class="avatar-circle me-3 fw-bold d-flex align-items-center justify-content-center">
-          {{ initialChar }}
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start">
+          <div class="d-flex align-items-center flex-grow-1">
+            <div class="avatar-circle me-3 fw-bold d-flex align-items-center justify-content-center flex-shrink-0">
+              {{ initialChar }}
+            </div>
+            
+            <div class="flex-grow-1" style="min-width: 0; padding-right: 10px;">
+              <transition name="fade-slide" mode="out-in">
+                <!-- Read Mode -->
+                <div v-if="!isEditingProfile" key="read">
+                  <h5 class="card-title fw-bold mb-1 text-truncate">{{ auth.name || '유저' }}</h5>
+                  <p class="card-text text-muted mb-0 email-text text-truncate">{{ auth.email }}</p>
+                </div>
+                
+                <!-- Edit Mode -->
+                <div v-else key="edit" class="premium-edit-form w-100 mt-2">
+                  <div class="field-group">
+                    <label class="field-label">이름</label>
+                    <input type="text" class="premium-input" v-model="tempName" placeholder="이름 입력" />
+                    <div v-if="nameError" class="field-error mt-1">{{ nameError }}</div>
+                  </div>
+                  
+                  <div class="field-group mt-3">
+                    <label class="field-label">이메일</label>
+                    <div class="email-input-wrapper" :class="{ 'has-error': emailError }">
+                      <div class="d-flex align-items-center gap-2" :class="{'mb-2': form.emailDomain === '직접입력'}">
+                        <input
+                          v-model="form.emailLocal"
+                          type="text"
+                          inputmode="email"
+                          autocomplete="off"
+                          placeholder="아이디"
+                          class="premium-input flex-grow-1"
+                          style="min-width: 0;"
+                        />
+                        <span class="email-at flex-shrink-0">@</span>
+                        <EmailDomainSelect
+                          v-model="form.emailDomain"
+                          :options="EMAIL_DOMAINS"
+                          :invalid="Boolean(emailError)"
+                          class="premium-dropdown flex-grow-1"
+                          style="min-width: 0;"
+                        />
+                      </div>
+                      <input
+                        v-if="form.emailDomain === '직접입력'"
+                        v-model="form.customEmailDomain"
+                        type="text"
+                        placeholder="이메일 도메인 입력"
+                        class="premium-input w-100"
+                      />
+                    </div>
+                    <div v-if="emailError" class="field-error mt-1">{{ emailError }}</div>
+                  </div>
+                </div>
+              </transition>
+            </div>
+          </div>
+          
+          <button v-if="!isEditingProfile" class="btn btn-outline-warning edit-btn fw-bold rounded-pill px-3 py-1 flex-shrink-0" @click="editProfile">수정</button>
         </div>
-        <div>
-          <h5 class="card-title fw-bold mb-1">{{ auth.name || '유저' }}</h5>
-          <p class="card-text text-muted mb-0 email-text">{{ auth.email }}</p>
-        </div>
+
+        <transition name="fade-slide">
+          <div v-if="isEditingProfile" class="d-flex gap-2 mt-4 pt-4 border-top">
+            <button class="btn btn-warning fw-bold flex-grow-1 text-white save-btn rounded-pill py-2" @click="saveProfile">저장</button>
+            <button class="btn btn-light fw-bold flex-grow-1 cancel-btn rounded-pill py-2" @click="cancelProfile">취소</button>
+          </div>
+        </transition>
       </div>
     </div>
 
@@ -234,43 +405,44 @@ const initialChar = computed(() => {
             <h5 class="fw-bold mb-1">내 신용점수</h5>
             <small class="text-muted">KCB에서 직접 조회 후 입력합니다</small>
           </div>
-          <button v-if="!isEditingCreditScore" class="btn btn-outline-warning edit-btn fw-bold rounded-pill px-3 py-1" @click="editCreditScore">수정</button>
+          <button
+            v-if="!isEditingCreditScore"
+            class="btn btn-outline-warning edit-btn fw-bold rounded-pill px-3 py-1"
+            @click="editCreditScore"
+          >
+            수정
+          </button>
         </div>
         
-        <div v-if="!isEditingCreditScore" class="data-box rounded-3 px-3 py-3 mt-3 d-flex justify-content-between align-items-center">
-          <span class="text-secondary fw-semibold">KCB {{ getCreditGrade(auth.creditScore) }}</span>
-          <span class="fw-bold fs-5">{{ auth.creditScore || 0 }}점</span>
-        </div>
+        <transition name="fade-slide" mode="out-in">
+          <div v-if="!isEditingCreditScore" key="read" class="data-box rounded-3 px-3 py-3 mt-3 d-flex justify-content-between align-items-center">
+            <span class="text-secondary fw-semibold">KCB {{ getCreditGrade(auth.creditScore) }}</span>
+            <span class="fw-bold fs-5">{{ auth.creditScore || 0 }}점</span>
+          </div>
 
-        <div v-else class="mt-3">
-          <div class="data-box rounded-3 px-3 py-3 d-flex justify-content-between align-items-center mb-3 edit-input-wrapper">
-            <span class="text-secondary fw-semibold">현재 설정 점수</span>
-            <div class="text-end">
-              <div class="d-flex align-items-center justify-content-end">
+          <div v-else key="edit" class="premium-edit-card mt-3">
+            <div class="d-flex flex-column mb-4">
+              <span class="text-secondary fw-semibold mb-2">현재 설정 점수</span>
+              <div class="d-flex align-items-center justify-content-end w-100">
                 <input
                   type="text"
                   inputmode="numeric"
                   pattern="[0-9]*"
                   maxlength="4"
-                  class="form-control text-end border-0 bg-transparent fw-bold fs-5 p-0 me-1 edit-input"
+                  class="premium-inline-input"
                   :value="tempCreditScore"
                   @input="handleCreditScoreInput"
                 />
-                <span class="fw-bold fs-5">점</span>
+                <span class="fw-bold fs-4 ms-2 flex-shrink-0">점</span>
               </div>
-              <div
-                v-if="creditScoreError"
-                class="text-danger mt-1 input-message"
-              >
-                {{ creditScoreError }}
-              </div>
+              <div v-if="creditScoreError" class="field-error mt-2 text-end">{{ creditScoreError }}</div>
+            </div>
+            <div class="d-flex gap-2">
+              <button class="btn btn-warning fw-bold flex-grow-1 text-white save-btn rounded-pill py-2" @click="saveCreditScore">저장</button>
+              <button class="btn btn-light fw-bold flex-grow-1 cancel-btn rounded-pill py-2" @click="cancelCreditScore">취소</button>
             </div>
           </div>
-          <div class="d-flex gap-2">
-            <button class="btn btn-warning fw-bold flex-grow-1 text-white save-btn rounded-3 py-2" @click="saveCreditScore">저장</button>
-            <button class="btn btn-outline-secondary fw-bold flex-grow-1 cancel-btn rounded-3 bg-white py-2" @click="cancelCreditScore">취소</button>
-          </div>
-        </div>
+        </transition>
       </div>
     </div>
 
@@ -280,63 +452,68 @@ const initialChar = computed(() => {
         <div class="d-flex justify-content-between align-items-start mb-2">
           <div>
             <h5 class="fw-bold mb-1">월 상환 가능 금액</h5>
-            <small class="text-muted">매월 부담할 수 있는 최대 상환 금액입니다.</small>
+            <small class="text-muted"
+              >매월 부담할 수 있는 최대 상환 금액입니다.</small
+            >
           </div>
-          <button v-if="!isEditingMaxPayment" class="btn btn-outline-warning edit-btn fw-bold rounded-pill px-3 py-1" @click="editMaxPayment">수정</button>
+          <button
+            v-if="!isEditingMaxPayment"
+            class="btn btn-outline-warning edit-btn fw-bold rounded-pill px-3 py-1"
+            @click="editMaxPayment"
+          >
+            수정
+          </button>
         </div>
         
-        <div v-if="!isEditingMaxPayment" class="data-box rounded-3 px-3 py-3 mt-3 d-flex justify-content-between align-items-center">
-          <span class="text-secondary fw-semibold">현재 설정 금액</span>
-          <div class="text-end">
-            <div class="fw-bold fs-5">{{ (auth.maxMonthlyPayment || 0).toLocaleString() }} <span class="text-secondary fs-6">원</span></div>
-            <div class="text-secondary mt-1" style="font-size: 0.9rem;">
-              {{ formatKoreanAmount(auth.maxMonthlyPayment, '0원') }}
+        <transition name="fade-slide" mode="out-in">
+          <div v-if="!isEditingMaxPayment" key="read" class="data-box rounded-3 px-3 py-3 mt-3 d-flex justify-content-between align-items-center">
+            <span class="text-secondary fw-semibold">현재 설정 금액</span>
+            <div class="text-end">
+              <div class="fw-bold fs-5">{{ (auth.maxMonthlyPayment || 0).toLocaleString() }} <span class="text-secondary fs-6">원</span></div>
+              <div class="text-secondary mt-1" style="font-size: 0.9rem;">
+                {{ formatKoreanAmount(auth.maxMonthlyPayment, '0원') }}
+              </div>
             </div>
           </div>
-        </div>
 
-        <div v-else class="mt-3">
-          <div class="data-box rounded-3 px-3 py-3 d-flex justify-content-between align-items-center gap-3 mb-3 edit-input-wrapper">
-            <span class="text-secondary fw-semibold flex-shrink-0">현재 설정 금액</span>
-            <div class="text-end monthly-edit-value">
-              <div class="d-flex align-items-center justify-content-end">
+          <div v-else key="edit" class="premium-edit-card mt-3">
+            <div class="d-flex flex-column mb-4">
+              <span class="text-secondary fw-semibold mb-2">현재 설정 금액</span>
+              <div class="d-flex align-items-center justify-content-end w-100">
                 <input
                   type="text"
                   inputmode="numeric"
                   pattern="[0-9]*"
-                  class="form-control text-end border-0 bg-transparent fw-bold fs-5 p-0 me-1 edit-input amount-edit-input"
+                  class="premium-inline-input flex-grow-1"
                   :value="formatDigitString(tempMaxPayment)"
                   @input="handleMaxPaymentInput"
+                  style="max-width: 220px;"
                 />
-                <span class="fw-bold fs-5">원</span>
+                <span class="fw-bold fs-4 ms-2 flex-shrink-0">원</span>
               </div>
-              <div
-                class="mt-1"
-                :class="maxPaymentError ? 'text-danger' : 'text-secondary'"
-                style="font-size: 0.9rem;"
-              >
-                {{
-                  maxPaymentError ||
-                  formatKoreanAmount(tempMaxPayment)
-                }}
+              <div class="mt-2 fw-semibold text-end" :class="maxPaymentError ? 'field-error' : 'text-secondary'" style="font-size: 0.95rem;">
+                {{ maxPaymentError || formatKoreanAmount(tempMaxPayment) }}
               </div>
             </div>
+            <div class="d-flex gap-2">
+              <button class="btn btn-warning fw-bold flex-grow-1 text-white save-btn rounded-pill py-2" @click="saveMaxPayment">저장</button>
+              <button class="btn btn-light fw-bold flex-grow-1 cancel-btn rounded-pill py-2" @click="cancelMaxPayment">취소</button>
+            </div>
           </div>
-          <div class="d-flex gap-2">
-            <button class="btn btn-warning fw-bold flex-grow-1 text-white save-btn rounded-3 py-2" @click="saveMaxPayment">저장</button>
-            <button class="btn btn-outline-secondary fw-bold flex-grow-1 cancel-btn rounded-3 bg-white py-2" @click="cancelMaxPayment">취소</button>
-          </div>
-        </div>
+        </transition>
       </div>
     </div>
 
     <!-- Logout Button -->
-    <button class="btn logout-btn w-100 fw-bold py-3 mt-3 rounded-4" @click="handleLogoutClick">
+    <button
+      class="btn logout-btn w-100 fw-bold py-3 mt-3 rounded-4"
+      @click="requestLogout"
+    >
       로그아웃
     </button>
-    
+
     <ConfirmModal
-      :visible="showLogoutModal"
+      :visible="isConfirmLogout"
       title="로그아웃"
       message="정말 로그아웃 하시겠습니까?"
       cancel-text="취소"
@@ -344,14 +521,28 @@ const initialChar = computed(() => {
       @cancel="cancelLogout"
       @confirm="confirmLogout"
     />
-    
+
     <!-- Toast Message Placeholder (Based on UI image) -->
-    <div v-if="false" class="toast-overlay mt-3 py-3 text-center text-white rounded-3 fw-bold">
+    <div
+      v-if="false"
+      class="toast-overlay mt-3 py-3 text-center text-white rounded-3 fw-bold"
+    >
       로그아웃 되었습니다 &rarr; 01 로그인
     </div>
 
-    <BottomNav active="profile" />
+    <!-- Email Changed Modal -->
+    <ConfirmModal
+      :visible="showEmailChangeModal"
+      title="안내"
+      message="이메일이 변경되어 로그아웃 됩니다. 변경된 이메일로 다시 로그인해 주세요."
+      confirm-text="확인"
+      icon-class="fa-solid fa-circle-check"
+      :hide-cancel="true"
+      @confirm="handleEmailChangeLogout"
+      @cancel="handleEmailChangeLogout"
+    />
 
+    <BottomNav active="profile" />
   </main>
 </template>
 
@@ -427,29 +618,111 @@ const initialChar = computed(() => {
   background-color: #fcfbf8;
 }
 
-.edit-input {
-  width: 100px;
+.premium-edit-form {
+  background: transparent;
+}
+.field-group {
+  display: flex;
+  flex-direction: column;
+}
+.field-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #797979;
+  margin-bottom: 6px;
+}
+.premium-input {
+  width: 100%;
+  height: 48px;
+  padding: 0 12px;
+  background: #f8f9fa;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #333;
+  transition: all 0.2s ease;
+}
+.premium-input:focus {
+  background: #fff;
+  border-color: #ffbc00;
+  box-shadow: 0 0 0 3px rgba(255, 188, 0, 0.15);
+  outline: none;
+}
+:deep(.domain-trigger) {
+  height: 48px;
+  padding: 0 10px;
+  background: #f8f9fa;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #333;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+:deep(.domain-trigger:focus),
+:deep(.domain-trigger.is-open) {
+  background: #fff;
+  border-color: #ffbc00;
+  box-shadow: 0 0 0 3px rgba(255, 188, 0, 0.15);
+  outline: none;
+}
+:deep(.domain-trigger > span:first-child) {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.email-input-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+.email-at {
+  color: #9a948a;
+  font-size: 16px;
+  font-weight: 700;
+}
+.premium-edit-card {
+  background: #fff;
+  border: 1px solid #f0f0f0;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+}
+.premium-inline-input {
+  border: none;
+  border-bottom: 3px solid #e0e0e0;
+  border-radius: 0;
+  padding: 4px 8px;
+  font-size: 1.5rem;
+  font-weight: 800;
+  background: transparent;
+  text-align: right;
+  width: 120px;
+  color: #222;
+  transition: border-color 0.2s;
+}
+.premium-inline-input:focus {
+  border-bottom-color: #ffbc00;
+  outline: none;
+}
+.field-error {
+  color: #e54848;
+  font-size: 0.8rem;
+  font-weight: 700;
 }
 
-.monthly-edit-value {
-  flex: 1 1 220px;
-  min-width: 0;
-  max-width: 260px;
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
-
-.amount-edit-input {
-  width: 190px;
-  max-width: 100%;
-  min-width: 0;
+.fade-slide-enter-from {
+  opacity: 0;
+  transform: translateY(-8px);
 }
-
-.input-message {
-  font-size: var(--kb-font-xs);
-  line-height: 1.35;
-}
-
-.edit-input:focus {
-  box-shadow: none;
+.fade-slide-leave-to {
+  opacity: 0;
+  transform: translateY(8px);
 }
 
 .save-btn {
@@ -460,10 +733,11 @@ const initialChar = computed(() => {
   background-color: #e5a600;
 }
 .cancel-btn {
-  border: 1px solid #c9c9c9;
+  background: #f1f1f1;
+  border: none;
   color: #555;
 }
 .cancel-btn:hover {
-  background-color: #f5f5f5;
+  background: #e8e8e8;
 }
 </style>

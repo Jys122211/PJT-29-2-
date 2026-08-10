@@ -42,6 +42,20 @@
         WHERE user_id = #{userId}
     </update>
 
+    <update id="updateName">
+        UPDATE users
+        SET name = #{name},
+            updated_at = now()
+        WHERE user_id = #{userId}
+    </update>
+
+    <update id="updateEmail">
+        UPDATE users
+        SET email = #{email},
+            updated_at = now()
+        WHERE user_id = #{userId}
+    </update>
+
     <select id="get" resultMap="memberMap">
         SELECT *
         FROM users

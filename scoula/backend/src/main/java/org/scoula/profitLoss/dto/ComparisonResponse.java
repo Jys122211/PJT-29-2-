@@ -77,6 +77,7 @@ public class ComparisonResponse {
     public static class DepositInfo {
         private String name;
         private String accountNumber;
+        private BigDecimal appliedRate;
         private Long maintainInterest;
         private BigDecimal cancelInterestRate;
         private Long cancelInterest;

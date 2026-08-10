@@ -17,4 +17,8 @@ public interface MemberService {
 
     MemberDTO updateMaxMonthlyPayment(Long userId, Long maxMonthlyPayment);
 
+    MemberDTO updateName(Long userId, String name);
+
+    MemberDTO updateEmail(Long userId, String email);
+
 }

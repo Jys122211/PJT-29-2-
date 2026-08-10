@@ -19,4 +19,8 @@ public interface MemberMapper {
 
     int updateMaxMonthlyPayment(@Param("userId") Long userId, @Param("maxMonthlyPayment") Long maxMonthlyPayment);
 
+    int updateName(@Param("userId") Long userId, @Param("name") String name);
+
+    int updateEmail(@Param("userId") Long userId, @Param("email") String email);
+
 }
