@@ -1,4 +1,5 @@
 <script setup>
+import scaleLogo from '@/assets/scale-logo.png';
 import { ref, onMounted, computed } from 'vue';
 import api from '@/api';
 import { useAuthStore } from '@/stores/auth';
@@ -32,68 +33,12 @@ const formatDate = (isoDate) => isoDate.replaceAll('-', '.');
     <header class="header">
       <button class="menu-toggle" @click="isMenuOpen = true">☰</button>
       <span class="brand-icon">
-        <svg viewBox="0 0 120 120" width="20" height="20">
-          <line
-            x1="25"
-            y1="55"
-            x2="95"
-            y2="35"
-            stroke="#ffbc00"
-            stroke-width="9"
-            stroke-linecap="round"
-          />
-          <path d="M60 28 L44 96 L76 96 Z" fill="#26221c" />
-          <circle cx="60" cy="28" r="5" fill="#26221c" />
-          <ellipse cx="60" cy="97" rx="20" ry="4" fill="#26221c" />
-          <line
-            x1="25"
-            y1="55"
-            x2="25"
-            y2="84"
-            stroke="#26221c"
-            stroke-width="2.5"
-          />
-          <line
-            x1="95"
-            y1="35"
-            x2="95"
-            y2="64"
-            stroke="#26221c"
-            stroke-width="2.5"
-          />
-          <circle cx="25" cy="94" r="16" fill="#26221c" />
-          <text
-            x="25"
-            y="95"
-            fill="#fff"
-            font-size="14"
-            font-weight="700"
-            text-anchor="middle"
-            dominant-baseline="central"
-          >
-            득
-          </text>
-          <circle
-            cx="95"
-            cy="74"
-            r="13"
-            fill="#d9d3c4"
-            stroke="#26221c"
-            stroke-width="1.5"
-          />
-          <text
-            x="95"
-            y="75"
-            fill="#26221c"
-            font-size="12"
-            font-weight="700"
-            text-anchor="middle"
-            dominant-baseline="central"
-          >
-            실
-          </text>
-        </svg>
-      </span>
+  <img
+      :src="scaleLogo"
+      alt="득실"
+      style="height: 20px; width: auto; display: block;"
+  />
+</span>
       <h1 class="greeting">안녕하세요, {{ auth.name || '게스트' }}님</h1>
       <div
         class="avatar"
@@ -186,68 +131,12 @@ const formatDate = (isoDate) => isoDate.replaceAll('-', '.');
       <nav v-if="isMenuOpen" class="menu-drawer">
         <div class="menu-header">
           <span class="brand-icon">
-            <svg viewBox="0 0 120 120" width="18" height="18">
-              <line
-                x1="25"
-                y1="55"
-                x2="95"
-                y2="35"
-                stroke="#ffbc00"
-                stroke-width="9"
-                stroke-linecap="round"
-              />
-              <path d="M60 28 L44 96 L76 96 Z" fill="#26221c" />
-              <circle cx="60" cy="28" r="5" fill="#26221c" />
-              <ellipse cx="60" cy="97" rx="20" ry="4" fill="#26221c" />
-              <line
-                x1="25"
-                y1="55"
-                x2="25"
-                y2="84"
-                stroke="#26221c"
-                stroke-width="2.5"
-              />
-              <line
-                x1="95"
-                y1="35"
-                x2="95"
-                y2="64"
-                stroke="#26221c"
-                stroke-width="2.5"
-              />
-              <circle cx="25" cy="94" r="16" fill="#26221c" />
-              <text
-                x="25"
-                y="95"
-                fill="#fff"
-                font-size="14"
-                font-weight="700"
-                text-anchor="middle"
-                dominant-baseline="central"
-              >
-                득
-              </text>
-              <circle
-                cx="95"
-                cy="74"
-                r="13"
-                fill="#d9d3c4"
-                stroke="#26221c"
-                stroke-width="1.5"
-              />
-              <text
-                x="95"
-                y="75"
-                fill="#26221c"
-                font-size="12"
-                font-weight="700"
-                text-anchor="middle"
-                dominant-baseline="central"
-              >
-                실
-              </text>
-            </svg>
-          </span>
+  <img
+      :src="scaleLogo"
+      alt="득실"
+      style="height: 22px; width: auto; display: block;"
+  />
+</span>
           <span class="menu-title">득실</span>
           <button class="icon-btn menu-close" @click="isMenuOpen = false">
             ✕
@@ -434,12 +323,11 @@ const formatDate = (isoDate) => isoDate.replaceAll('-', '.');
 .brand-icon {
   width: 32px;
   height: 32px;
-  border-radius: 50%;
-  background: #fff3cf;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  line-height: 0;
 }
 .greeting {
   flex: 1;
