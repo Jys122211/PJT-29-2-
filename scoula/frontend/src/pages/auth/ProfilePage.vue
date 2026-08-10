@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import api from '@/api';
 import BottomNav from '@/components/mobile/BottomNav.vue';
+import ConfirmModal from '@/components/ConfirmModal.vue';
 
 const router = useRouter();
 const auth = useAuthStore();
@@ -154,12 +155,21 @@ const saveMaxPayment = async () => {
 };
 
 // --- 로그아웃 및 기타 유틸 ---
-const handleLogout = () => {
-  if (confirm('로그아웃 하시겠습니까?')) {
-    auth.logout();
-    alert('로그아웃 되었습니다.');
-    router.push('/login');
-  }
+const showLogoutModal = ref(false);
+
+const handleLogoutClick = () => {
+  showLogoutModal.value = true;
+};
+
+const confirmLogout = () => {
+  showLogoutModal.value = false;
+  auth.logout();
+  alert('로그아웃 되었습니다.');
+  router.push('/login');
+};
+
+const cancelLogout = () => {
+  showLogoutModal.value = false;
 };
 
 const formatKoreanAmount = (amount, emptyMessage = '금액을 입력해주세요') => {
@@ -321,9 +331,19 @@ const initialChar = computed(() => {
     </div>
 
     <!-- Logout Button -->
-    <button class="btn logout-btn w-100 fw-bold py-3 mt-3 rounded-4" @click="handleLogout">
+    <button class="btn logout-btn w-100 fw-bold py-3 mt-3 rounded-4" @click="handleLogoutClick">
       로그아웃
     </button>
+    
+    <ConfirmModal
+      :visible="showLogoutModal"
+      title="로그아웃"
+      message="정말 로그아웃 하시겠습니까?"
+      cancel-text="취소"
+      confirm-text="로그아웃"
+      @cancel="cancelLogout"
+      @confirm="confirmLogout"
+    />
     
     <!-- Toast Message Placeholder (Based on UI image) -->
     <div v-if="false" class="toast-overlay mt-3 py-3 text-center text-white rounded-3 fw-bold">
