@@ -5,7 +5,7 @@
  * 노란 배경  = 서버에서 불러온 기존값
  * 주황 테두리 = 사용자가 수정한 값
  */
-import { computed, nextTick, onMounted, reactive, ref } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, reactive, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import depositApi from '@/api/depositApi';
 import BottomNav from '@/components/mobile/BottomNav.vue';
@@ -27,14 +27,14 @@ import {
 const route = useRoute();
 const router = useRouter();
 const userDepositId = route.params.userDepositId;
-
 const loading = ref(true);
 const loadError = ref('');
 const submitting = ref(false);
 const submitError = ref('');
-const toast = ref('');
 const showDeleteModal = ref(false);
 const deleting = ref(false);
+const showUpdateDone = ref(false);
+let doneTimer = null;
 
 const form = reactive({
   bankName: '',
@@ -186,7 +186,7 @@ function onAmountInput(event) {
 function onAccountInput(event) {
   const input = event.target;
   const digitsBeforeCaret = countDigitsBeforeCaret(input);
-  const digits = toCompactAccount(input.value).slice(0, 14);
+  const digits = toCompactAccount(input.value).slice(0, 16);
   form.accountNumber = digits;
   applyFormattedValue(input, toDisplayKbAccount(digits), digitsBeforeCaret);
   errors.accountNumber = '';
@@ -194,7 +194,7 @@ function onAccountInput(event) {
 
 function validateAccountNumber() {
   if (form.accountNumber !== '' && form.accountNumber.length !== 14) {
-    errors.accountNumber = 'KB 계좌번호 숫자 14자리를 입력해주세요';
+    errors.accountNumber = '계좌번호 숫자 14자리를 입력해주세요';
   }
 }
 
@@ -327,7 +327,7 @@ function validate() {
   });
 
   if (form.accountNumber !== '' && form.accountNumber.length !== 14) {
-    errors.accountNumber = 'KB 계좌번호 숫자 14자리를 입력해주세요';
+    errors.accountNumber = '계좌번호 숫자 14자리를 입력해주세요';
     ok = false;
   }
 
@@ -390,8 +390,8 @@ async function submit() {
       appliedRate: Number(form.appliedRate),
     });
 
-    toast.value = '수정 완료';
-    setTimeout(() => router.push({ name: 'assetList' }));
+    showUpdateDone.value = true;
+    doneTimer = setTimeout(goToList, 900);
   } catch (error) {
     const { field, message } = extractApiError(error);
     if (field && field in errors) {
@@ -404,6 +404,16 @@ async function submit() {
   }
 }
 
+/** 모달을 닫고 목록으로 이동한다. 타이머와 수동 클릭 어느 쪽에서 불려도 한 번만 실행된다. */
+function goToList() {
+  if (doneTimer) {
+    clearTimeout(doneTimer);
+    doneTimer = null;
+  }
+  showUpdateDone.value = false;
+  router.push({ name: 'assetList' });
+}
+
 // ------------------------------------------------------------ 삭제 (07-11)
 async function confirmDelete() {
   deleting.value = true;
@@ -412,8 +422,7 @@ async function confirmDelete() {
   try {
     await depositApi.remove(userDepositId);
     showDeleteModal.value = false;
-    toast.value = '삭제 완료';
-    setTimeout(() => router.push({ name: 'assetList' }));
+    router.push({ name: 'assetList' });
   } catch (error) {
     showDeleteModal.value = false;
     submitError.value = extractApiError(error).message;
@@ -423,6 +432,10 @@ async function confirmDelete() {
 }
 
 onMounted(load);
+
+onUnmounted(() => {
+  if (doneTimer) clearTimeout(doneTimer);
+});
 </script>
 
 <template>
@@ -584,7 +597,24 @@ onMounted(load);
       </form>
     </template>
 
-    <p v-if="toast" class="toast">{{ toast }}</p>
+<!-- 수정 완료 확인 -->
+    <div v-if="showUpdateDone" class="modal-host">
+      <div class="dimmer" @click="goToList"></div>
+
+      <div
+        class="delete-modal"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="doneTitle"
+      >
+        <div class="check">
+          <svg viewBox="0 0 32 32" aria-hidden="true">
+            <path d="M8 17 l6 6 l11 -13" />
+          </svg>
+        </div>
+        <strong id="doneTitle">수정이 완료되었어요</strong>
+      </div>
+    </div>
 
     <!-- 07-11 삭제 확인 팝업 -->
     <div v-if="showDeleteModal" class="modal-host">
@@ -886,16 +916,6 @@ onMounted(load);
   flex: 1;
 }
 
-.toast {
-  margin: 14px auto 0;
-  padding: 9px 14px;
-  border-radius: 8px;
-  font-size: 11.5px;
-  color: #fff;
-  background: #26282b;
-  text-align: center;
-}
-
 /* ---------- 모달 ---------- */
 .modal-host {
   position: fixed;
@@ -935,6 +955,60 @@ onMounted(load);
   font-size: 19px;
   color: #a5493f;
   background: #f6dada;
+}
+
+.check {
+  display: grid;
+  width: 56px;
+  height: 56px;
+  margin: 4px auto 14px;
+  border-radius: 50%;
+  place-items: center;
+  background: var(--kb-yellow);
+  animation: check-pop 0.28s cubic-bezier(0.34, 1.4, 0.64, 1) both;
+}
+
+.check svg {
+  width: 30px;
+  height: 30px;
+}
+
+.check path {
+  fill: none;
+  stroke: #1c1e21;
+  stroke-width: 3.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 26;
+  stroke-dashoffset: 26;
+  animation: check-draw 0.32s 0.16s ease-out forwards;
+}
+
+@keyframes check-pop {
+  from {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes check-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .check,
+  .check path {
+    animation: none;
+  }
+  .check path {
+    stroke-dashoffset: 0;
+  }
 }
 
 .delete-modal strong {
