@@ -21,6 +21,12 @@ const form = reactive({
 // 로그인 API 실패처럼 화면 위쪽 모달에 표시할 오류이다.
 const loginError = ref(null);
 
+// 비밀번호 표시 여부를 관리한다.
+const showPassword = ref(false);
+const togglePasswordVisibility = () => {
+  showPassword.value = !showPassword.value;
+};
+
 // API 요청 중 중복 클릭을 막고 버튼 문구를 바꿀 때 사용한다.
 const isSubmitting = ref(false);
 
@@ -56,6 +62,7 @@ const routeError = computed(() => {
 const displayedError = computed(() => loginError.value || routeError.value);
 
 const emailLocalPattern = /^[^\s@]+$/;
+const domainPattern = /^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
 // 분리된 이메일 아이디와 도메인을 실제 로그인 이메일 주소로 합친다.
 const email = computed(() => {
@@ -74,9 +81,13 @@ const validateForm = () => {
   fieldErrors.password = '';
 
   if (!emailLocalPattern.test(form.emailLocal.trim())) {
-    fieldErrors.email = '이메일을 입력해주세요.';
+    fieldErrors.email = '올바른 아이디 형식을 입력해주세요.';
   } else if (form.emailDomain === '직접입력' && !form.customEmailDomain.trim()) {
     fieldErrors.email = '이메일 도메인을 입력해주세요.';
+  } else if (form.emailDomain === '직접입력' && !domainPattern.test(form.customEmailDomain.trim())) {
+    fieldErrors.email = '올바른 도메인 형식을 입력해 주세요. (예: example.com)';
+  } else if (email.value.length > 50) {
+    fieldErrors.email = '이메일 주소는 최대 50자까지 입력할 수 있습니다.';
   }
 
   if (!form.password) {
@@ -128,8 +139,17 @@ const login = async () => {
         description: '이메일 또는 비밀번호를 확인해 주세요.',
       };
     } else {
+      let title = '로그인 처리 중 오류가 발생했습니다.';
+      const responseData = error.response?.data;
+      
+      if (typeof responseData === 'string') {
+        title = responseData.trim().startsWith('<') ? '서버와 연결할 수 없습니다.' : responseData;
+      } else if (responseData?.message) {
+        title = responseData.message;
+      }
+
       loginError.value = {
-        title: error.response?.data || '로그인 처리 중 오류가 발생했습니다.',
+        title,
         description: '잠시 후 다시 시도해 주세요.',
       };
     }
@@ -208,14 +228,31 @@ const login = async () => {
 
         <label class="field">
           <span>비밀번호</span>
-          <input
-            v-model="form.password"
-            type="password"
-            autocomplete="current-password"
-            placeholder="비밀번호 입력"
-            :class="{ 'input-error': fieldErrors.password }"
-            @input="clearFieldError('password')"
-          />
+          <div class="password-wrapper">
+            <input
+              v-model="form.password"
+              :type="showPassword ? 'text' : 'password'"
+              autocomplete="current-password"
+              placeholder="비밀번호 입력"
+              :class="{ 'input-error': fieldErrors.password }"
+              @input="clearFieldError('password')"
+            />
+            <button
+              type="button"
+              class="toggle-password"
+              @click="togglePasswordVisibility"
+              :aria-label="showPassword ? '비밀번호 숨기기' : '비밀번호 표시'"
+            >
+              <svg v-if="!showPassword" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+              <svg v-else viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                <line x1="1" y1="1" x2="23" y2="23"></line>
+              </svg>
+            </button>
+          </div>
           <p v-if="fieldErrors.password" class="field-error">
             {{ fieldErrors.password }}
           </p>
@@ -428,6 +465,40 @@ const login = async () => {
   color: #9a948a;
   font-size: 14px;
   font-weight: 700;
+}
+
+.password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-wrapper input {
+  padding-right: 42px;
+}
+
+/* Edge 브라우저 기본 눈 모양 아이콘 숨기기 */
+.password-wrapper input::-ms-reveal,
+.password-wrapper input::-ms-clear {
+  display: none;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 12px;
+  background: transparent;
+  border: none;
+  padding: 4px;
+  color: #a49e95;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease;
+}
+
+.toggle-password:hover {
+  color: #555;
 }
 
 .login-button {

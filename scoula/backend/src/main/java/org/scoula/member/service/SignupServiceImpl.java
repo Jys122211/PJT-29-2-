@@ -22,6 +22,7 @@ public class SignupServiceImpl implements SignupService {
 
     // 비밀번호 최대 자릿수. 프론트 JoinPage.vue의 PASSWORD_MAX_LENGTH와 같은 값이어야 한다.
     // 프론트에서 maxlength로 막지만, API를 직접 호출하는 경우를 대비해 서버에서도 확인한다.
+    private static final int PASSWORD_MIN_LENGTH = 4;
     private static final int PASSWORD_MAX_LENGTH = 16;
 
     // 이메일 중복 조회와 사용자 INSERT를 담당하는 MyBatis Mapper이다.
@@ -74,6 +75,10 @@ public class SignupServiceImpl implements SignupService {
         }
         if (isBlank(request.getPassword())) {
             throw new InvalidSignupRequestException("비밀번호를 입력해 주세요.");
+        }
+        if (request.getPassword().length() < PASSWORD_MIN_LENGTH) {
+            throw new InvalidSignupRequestException(
+                    "비밀번호는 최소 " + PASSWORD_MIN_LENGTH + "자 이상 입력해야 합니다.");
         }
         if (request.getPassword().length() > PASSWORD_MAX_LENGTH) {
             throw new InvalidSignupRequestException(
