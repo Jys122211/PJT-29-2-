@@ -9,6 +9,7 @@ import { useRouter } from 'vue-router';
 import depositApi from '@/api/depositApi';
 import BottomNav from '@/components/mobile/BottomNav.vue';
 import {
+  calcDDay,
   dDayText,
   extractApiError,
   formatNumber,
@@ -18,11 +19,13 @@ import {
 
 const router = useRouter();
 
+const URGENT_DAYS = 30;
 const deposits = ref([]);
 const count = ref(0);
 const totalPrincipal = ref(0);
 const loading = ref(true);
 const loadError = ref('');
+
 
 async function load() {
   loading.value = true;
@@ -45,6 +48,11 @@ async function load() {
 
 function goRegister() {
   router.push({ name: 'assetRegister' });
+}
+
+function isUrgent(maturity) {
+  const days = calcDDay(maturity);
+  return days !== null && days <= URGENT_DAYS;
 }
 
 function goEdit(deposit) {
@@ -118,7 +126,10 @@ onMounted(load);
             </div>
 
             <div class="right">
-              <span class="dday">{{ dDayText(deposit.maturityDate) }}</span>
+              <span
+                class="dday"
+                :class="{ urgent: isUrgent(deposit.maturityDate) }"
+              >{{ dDayText(deposit.maturityDate) }}</span>
               <small class="mat">{{ toDotDate(deposit.maturityDate) }}</small>
             </div>
           </button>
@@ -245,7 +256,7 @@ onMounted(load);
   display: grid;
   flex: 1;
   min-height: 0;
-  gap: 8px;
+  gap: 10px;
   align-content: start;
   overflow-y: auto;
   margin: 0;
@@ -273,10 +284,10 @@ onMounted(load);
   width: 100%;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  padding: 11px 14px;
+  gap: 15px;
+  padding: 15px 17px;
   border: 1.5px solid var(--kb-line);
-  border-radius: 12px;
+  border-radius: 16px;
   font: inherit;
   text-align: left;
   background: #fff;
@@ -316,24 +327,25 @@ onMounted(load);
 
 .name {
   display: block;
-  margin: 0 0 3px;
+  margin: 0 0 4px;
   overflow: hidden;
-  font-size: 14px;
+  font-size: 16px;
+  font-weight: 700;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .meta {
-  font-size: 11.5px;
+  font-size: 12px;
   color: var(--kb-muted);
 }
 
 .acct {
   display: block;
   margin-top: 2px;
-  font-size: 10.5px;
+  font-size: 11px;
   letter-spacing: 0.3px;
-  color: #b3aca2;
+  color: #b3aa99;
 }
 
 .right {
@@ -343,19 +355,24 @@ onMounted(load);
 
 .dday {
   display: inline-block;
-  padding: 3px 8px;
-  border-radius: 10px;
-  font-size: 10.5px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 11px;
   font-weight: 700;
-  color: #7a6218;
-  background: var(--kb-soft);
+  color: #8a6400;
+  background: #fff3cf;
+}
+
+.dday.urgent {
+  color: #fff;
+  background: var(--kb-red);
 }
 
 .mat {
   display: block;
-  margin-top: 4px;
-  font-size: 10.5px;
-  color: #a8adb2;
+  margin-top: 8px;
+  font-size: 11px;
+  color: #b3aa99;
 }
 
 /* ---------- 추가 버튼 ---------- */
@@ -364,12 +381,12 @@ onMounted(load);
   flex: none;
   width: 100%;
   align-items: center;
-  gap: 12px;
-  margin-top: 10px;
-  margin-bottom: 10px;
-  padding: 11px 14px;
+  gap: 14px;
+  margin-top: 12px;
+  margin-bottom: 12px;
+  padding: 18px 19px;
   border: 0;
-  border-radius: 12px;
+  border-radius: 16px;
   font: inherit;
   color: #fff;
   background: #26282b;
@@ -379,8 +396,8 @@ onMounted(load);
 
 .add-card .ico {
   display: grid;
-  width: 28px;
-  height: 28px;
+  width: 34px;
+  height: 34px;
   flex: none;
   border-radius: 8px;
   place-items: center;
@@ -391,7 +408,7 @@ onMounted(load);
 
 .add-card .tx {
   flex: 1;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
 }
 
