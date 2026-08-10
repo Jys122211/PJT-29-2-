@@ -6,11 +6,16 @@ import { useAuthStore } from '@/stores/auth';
 import { useRouter } from 'vue-router';
 import BottomNav from '@/components/mobile/BottomNav.vue';
 import { dDayText, toDisplayKbAccount } from '@/util/depositFormat';
+import { useLogout } from '@/composables/useLogout';
+import ConfirmModal from '@/components/ConfirmModal.vue';
 
 const auth = useAuthStore();
 const isMenuOpen = ref(false);
 const deposits = ref([]);
 const router = useRouter();
+
+const { isConfirmLogout, requestLogout, cancelLogout, confirmLogout } =
+  useLogout();
 
 const goToAssetRegister = () => router.push({ name: 'assetRegister' });
 const goToComparisonInput = () => router.push({ name: 'comparisonInput' });
@@ -33,12 +38,12 @@ const formatDate = (isoDate) => isoDate.replaceAll('-', '.');
     <header class="header">
       <button class="menu-toggle" @click="isMenuOpen = true">☰</button>
       <span class="brand-icon">
-  <img
-      :src="scaleLogo"
-      alt="득실"
-      style="height: 20px; width: auto; display: block;"
-  />
-</span>
+        <img
+          :src="scaleLogo"
+          alt="득실"
+          style="height: 20px; width: auto; display: block"
+        />
+      </span>
       <h1 class="greeting">안녕하세요, {{ auth.name || '게스트' }}님</h1>
       <div
         class="avatar"
@@ -131,12 +136,12 @@ const formatDate = (isoDate) => isoDate.replaceAll('-', '.');
       <nav v-if="isMenuOpen" class="menu-drawer">
         <div class="menu-header">
           <span class="brand-icon">
-  <img
-      :src="scaleLogo"
-      alt="득실"
-      style="height: 22px; width: auto; display: block;"
-  />
-</span>
+            <img
+              :src="scaleLogo"
+              alt="득실"
+              style="height: 22px; width: auto; display: block"
+            />
+          </span>
           <span class="menu-title">득실</span>
           <button class="icon-btn menu-close" @click="isMenuOpen = false">
             ✕
@@ -200,19 +205,24 @@ const formatDate = (isoDate) => isoDate.replaceAll('-', '.');
               >
             </li>
             <li>
-              <a
-                href="#"
-                @click.prevent="
-                  auth.logout();
-                  isMenuOpen = false;
-                "
-                >로그아웃</a
-              >
+              <a href="#" @click.prevent="requestLogout()">로그아웃</a>
             </li>
           </ul>
         </div>
       </nav>
     </Transition>
+    <ConfirmModal
+      :visible="isConfirmLogout"
+      title="로그아웃"
+      message="정말 로그아웃 하시겠습니까?"
+      cancel-text="취소"
+      confirm-text="로그아웃"
+      @cancel="cancelLogout"
+      @confirm="
+        isMenuOpen = false;
+        confirmLogout();
+      "
+    />
   </div>
 </template>
 <style scoped>
