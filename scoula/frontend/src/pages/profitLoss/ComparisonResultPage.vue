@@ -309,16 +309,18 @@ const closeDoneModal = () => {
                 <span>대출금리</span>
                 <span class="detail-value">
                   연 {{ rate(comparison.loan.interestRate) }}%
-                  <small>({{ comparison.loan.ratePeriodMonths }}개월)</small>
+                  <small class="detail-sub"
+                    >({{ comparison.loan.ratePeriodMonths }}개월)</small
+                  >
                 </span>
               </div>
               <div class="detail-row">
-                <span>비용 (이자+수수료)</span>
+                <span>총비용</span>
                 <span class="detail-value">
                   {{ won(comparison.loan.cost) }}원
-                  <small
-                    >(이자 {{ won(comparison.loan.interest) }} + 수수료
-                    {{ won(comparison.loan.penalty) }})</small
+                  <small class="detail-sub"
+                    >이자 {{ won(comparison.loan.interest) }} + 수수료
+                    {{ won(comparison.loan.penalty) }}</small
                   >
                 </span>
               </div>
@@ -772,10 +774,14 @@ button {
   font-weight: 700;
 }
 
-.detail-value small {
+/* 금액 줄(.detail-value)에만 nowrap을 걸고 내역 줄은 상속을 끊어 필요하면 줄바꿈되게 한다. */
+.detail-sub {
   display: block;
+  margin-top: 2px;
   font-size: 11px;
   color: var(--gs-text-sub);
+  text-align: right;
+  white-space: normal;
 }
 
 .detail-note {
