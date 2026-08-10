@@ -102,6 +102,10 @@ const depositBarWidth = computed(() => {
 const showLossModal = ref(false);
 const pendingAction = ref(null); // 'LOAN' | 'WITHDRAWAL'
 
+// 진행이 확정되면 완료 모달을 띄운다.
+const showDoneModal = ref(false);
+const doneAction = ref(null);
+
 const actionLabel = (action) => (action === 'LOAN' ? '대출' : '예금 중도해지');
 
 const proceed = (action) => {
@@ -116,12 +120,18 @@ const proceed = (action) => {
 const confirmProceed = (action) => {
   showLossModal.value = false;
   // TODO(5단계): 실제 진행 로직(다음 화면 이동 등) 연결
-  alert(`${actionLabel(action)}(으)로 진행합니다.`);
+  doneAction.value = action;
+  showDoneModal.value = true;
 };
 
 const cancelModal = () => {
   showLossModal.value = false;
   pendingAction.value = null;
+};
+
+const closeDoneModal = () => {
+  showDoneModal.value = false;
+  doneAction.value = null;
 };
 </script>
 
@@ -336,6 +346,17 @@ const cancelModal = () => {
           <div class="modal-actions">
             <button type="button" class="modal-cancel" @click="cancelModal">취소</button>
             <button type="button" class="modal-confirm" @click="confirmProceed(pendingAction)">진행</button>
+          </div>
+        </section>
+      </div>
+
+      <!-- 완료 안내 모달 -->
+      <div v-if="showDoneModal" class="modal-overlay" @click.self="closeDoneModal">
+        <section class="modal-card">
+          <h2><i class="fa-solid fa-circle-check" aria-hidden="true"></i> 신청 완료</h2>
+          <p>{{ actionLabel(doneAction) }}(으)로 진행합니다.</p>
+          <div class="modal-actions">
+            <button type="button" class="modal-confirm" @click="closeDoneModal">확인</button>
           </div>
         </section>
       </div>
