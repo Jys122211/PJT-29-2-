@@ -17,6 +17,7 @@ import org.scoula.profitLoss.service.calculator.PaymentTooLowException;
 import org.scoula.profitLoss.vo.ComparisonVO;
 import org.scoula.profitLoss.vo.JeonseLoanProductVO;
 import org.scoula.profitLoss.vo.LoanProductRateVO;
+import org.scoula.deposit.util.AccountCrypto;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -217,7 +218,7 @@ public class ProfitLossServiceImpl implements ProfitLossService {
                 .loanInterest(bestResult.loan().interest())
                 .loanPenalty(bestResult.loan().penalty())
                 .depositName(deposit.getProductName())
-                .depositAccountNumber(deposit.getAccountNumber())
+                .depositAccountNumber(AccountCrypto.decrypt(deposit.getAccountNumber()))
                 .depositMaintainInterest(bestResult.deposit().maintainInterest())
                 .depositCancelInterestRate(bestResult.deposit().cancelInterestRate())
                 .depositCancelInterest(bestResult.deposit().cancelInterest())
@@ -297,7 +298,7 @@ public class ProfitLossServiceImpl implements ProfitLossService {
                 .loanInterest(bestResult.loan().interest())
                 .loanPenalty(bestResult.loan().penalty())
                 .depositName(deposit.getProductName())
-                .depositAccountNumber(deposit.getAccountNumber())
+                .depositAccountNumber(AccountCrypto.decrypt(deposit.getAccountNumber()))
                 .depositMaintainInterest(bestResult.deposit().maintainInterest())
                 .depositCancelInterestRate(bestResult.deposit().cancelInterestRate())
                 .depositCancelInterest(bestResult.deposit().cancelInterest())
@@ -345,7 +346,7 @@ public class ProfitLossServiceImpl implements ProfitLossService {
                         .savingAmount(Math.abs(vo.getAFinalBalance() - vo.getBFinalBalance()))
                         .depositName(vo.getDepositName())          // 추가
                         .loanTypeLabel(loanTypeLabel(vo))          // 추가
-                        .accountNumber(vo.getDepositAccountNumber())
+                        .accountNumber(AccountCrypto.decrypt(vo.getDepositAccountNumber()))
                         .build())
                 .collect(Collectors.toList());
     }
@@ -413,7 +414,7 @@ public class ProfitLossServiceImpl implements ProfitLossService {
 
         ComparisonResponse.DepositInfo deposit = ComparisonResponse.DepositInfo.builder()
                 .name(vo.getDepositName())
-                .accountNumber(vo.getDepositAccountNumber())
+                .accountNumber(AccountCrypto.decrypt(vo.getDepositAccountNumber()))
                 .maintainInterest(vo.getDepositMaintainInterest())
                 .cancelInterestRate(vo.getDepositCancelInterestRate())
                 .cancelInterest(vo.getDepositCancelInterest())
