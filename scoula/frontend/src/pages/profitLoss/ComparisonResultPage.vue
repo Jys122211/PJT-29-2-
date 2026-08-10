@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useComparison } from '@/composables/useComparison';
 import { toDisplayKbAccount } from '@/util/depositFormat';
+import ConfirmModal from '@/components/ConfirmModal.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -339,24 +340,23 @@ const closeDoneModal = () => {
       </div>
 
       <!-- 손실경고 모달 -->
-      <div v-if="showLossModal" class="modal-overlay" @click.self="cancelModal">
-        <section class="modal-card">
-          <h2><i class="fa-solid fa-triangle-exclamation modal-icon-warn" aria-hidden="true"></i> 손실 경고</h2>
-          <p>{{ won(comparison.savingAmount) }}원 손해를 보는 선택입니다. 진행하시겠습니까?</p>
-          <div class="modal-actions">
-            <button type="button" class="modal-cancel" @click="cancelModal">취소</button>
-            <button type="button" class="modal-confirm" @click="confirmProceed(pendingAction)">진행</button>
-          </div>
-        </section>
-      </div>
+      <ConfirmModal
+        :visible="showLossModal"
+        title="손실 경고"
+        :message="`${won(comparison.savingAmount)}원 손해를 보는 선택입니다. 진행하시겠습니까?`"
+        cancel-text="취소"
+        confirm-text="진행"
+        @cancel="cancelModal"
+        @confirm="confirmProceed(pendingAction)"
+      />
 
       <!-- 완료 안내 모달 -->
-      <div v-if="showDoneModal" class="modal-overlay" @click.self="closeDoneModal">
-        <section class="modal-card">
-          <h2><i class="fa-solid fa-circle-check modal-icon-done" aria-hidden="true"></i> 신청 완료</h2>
+      <div v-if="showDoneModal" class="done-overlay" @click.self="closeDoneModal">
+        <section class="done-card">
+          <h2><i class="fa-solid fa-circle-check" aria-hidden="true"></i> 신청 완료</h2>
           <p>{{ actionLabel(doneAction) }}(으)로 진행합니다.</p>
-          <div class="modal-actions">
-            <button type="button" class="modal-confirm modal-done" @click="closeDoneModal">확인</button>
+          <div class="done-actions">
+            <button type="button" class="done-confirm" @click="closeDoneModal">확인</button>
           </div>
         </section>
       </div>
@@ -777,8 +777,10 @@ button {
   background: #fff;
 }
 
-/* 손실경고 모달 */
-.modal-overlay {
+/* 완료 안내 모달 — ConfirmModal과 카드 치수를 맞추되(크기가 이어져도 튀지 않게),
+   손실 경고(빨강)와 구분되는 골드 팔레트를 쓴다. ConfirmModal은 버튼이 항상
+   둘이고 색이 --gs-warn-strong 고정이라 이 용도로 재사용할 수 없다. */
+.done-overlay {
   position: fixed;
   z-index: 1000;
   inset: 0;
@@ -788,7 +790,7 @@ button {
   place-items: center;
 }
 
-.modal-card {
+.done-card {
   width: 100%;
   max-width: 320px;
   padding: 24px 20px 16px;
@@ -797,7 +799,7 @@ button {
   box-shadow: 0 16px 40px rgb(0 0 0 / 18%);
 }
 
-.modal-card h2 {
+.done-card h2 {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -807,48 +809,29 @@ button {
   color: var(--gs-text);
 }
 
-.modal-icon-warn {
-  color: var(--gs-warn-strong);
-}
-
-.modal-icon-done {
+.done-card h2 i {
   color: var(--gs-gold);
 }
 
-.modal-card p {
+.done-card p {
   margin: 12px 0 20px;
   font-size: 13px;
   line-height: 1.6;
   color: var(--gs-text);
 }
 
-.modal-actions {
+.done-actions {
   display: flex;
   gap: 8px;
 }
 
-.modal-cancel,
-.modal-confirm {
+.done-confirm {
   height: 44px;
   border-radius: 11px;
   flex: 1;
   font-weight: 700;
-}
-
-.modal-cancel {
-  border: 1px solid var(--gs-line);
-  color: var(--gs-text);
-  background: #fff;
-}
-
-.modal-confirm {
+  font-size: 14px;
   border: 0;
-  color: #fff;
-  background: var(--gs-warn-strong);
-}
-
-/* 완료 모달 확인 버튼 — 손실 경고(빨강)와 구분되는 KB 골드 */
-.modal-done {
   color: #212121;
   background: #f3c13a;
 }
