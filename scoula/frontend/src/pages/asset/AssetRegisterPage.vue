@@ -125,7 +125,7 @@ function onAmountInput(event) {
   const previousDigits =
     form.principalAmount === '' ? '' : String(form.principalAmount);
   const digitsBeforeCaret = countDigitsBeforeCaret(input);
-  const digits = String(input.value).replace(/[^0-9]/g, '');
+const digits = String(input.value).replace(/[^0-9]/g, '').slice(0, 11);
 
   if (digits === '') {
     principalAmountDraft.value = '';
@@ -234,8 +234,17 @@ function validateDateFields() {
   });
 }
 
+/** 은행명은 문자만, 상품명은 숫자까지 허용한다. */
 function onTextInput(field, event) {
-  form[field] = event.target.value;
+  const raw = event.target.value;
+
+  const cleaned =
+    field === 'bankName'
+      ? raw.replace(/[^가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z ]/g, '').slice(0, 30)
+      : raw.replace(/[^가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z0-9 ()\-.]/g, '').slice(0, 50);
+
+  form[field] = cleaned;
+  event.target.value = cleaned;
   markEdited(field);
   errors[field] = '';
 }
@@ -324,8 +333,14 @@ function validate() {
     firstInvalid = firstInvalid ?? 'accountNumber';
   }
 
-  if (form.principalAmount === '' || Number(form.principalAmount) <= 0) {
+ if (form.principalAmount === '' || Number(form.principalAmount) <= 0) {
     errors.principalAmount = '가입금액을 입력해주세요';
+    firstInvalid = firstInvalid ?? 'principalAmount';
+  } else if (Number(form.principalAmount) < 10000) {
+    errors.principalAmount = '가입금액은 1만원 이상 입력해주세요';
+    firstInvalid = firstInvalid ?? 'principalAmount';
+  } else if (Number(form.principalAmount) > 10000000000) {
+    errors.principalAmount = '가입금액은 100억원 이하로 입력해주세요';
     firstInvalid = firstInvalid ?? 'principalAmount';
   }
 

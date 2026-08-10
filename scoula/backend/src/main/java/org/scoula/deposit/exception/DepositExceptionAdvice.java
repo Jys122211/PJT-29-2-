@@ -5,6 +5,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.LinkedHashMap;
@@ -43,4 +44,32 @@ public class DepositExceptionAdvice {
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
     }
+
+    /**
+     * 요청 본문을 DTO로 바꾸지 못한 경우.
+     * 금액이 Long 범위를 넘거나, 숫자 자리에 문자가 온 경우가 여기서 잡힌다.
+     * validate()는 변환 이후에 실행되므로 이 단계를 통과하지 못한 요청은 닿지 않는다.
+     */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<Map<String, String>> handleUnreadable(HttpMessageNotReadableException e) {
+        log.info("요청 본문 변환 실패 : {}", e.getMostSpecificCause().getMessage());
+
+        Map<String, String> body = new LinkedHashMap<>();
+        body.put("errorCode", "INVALID_FORMAT");
+        body.put("message", "입력값이 올바르지 않습니다. 금액과 금리를 다시 확인해주세요.");
+        return ResponseEntity.badRequest().body(body);
+    }
+
+    /** 위에서 잡히지 않은 모든 예외. 원인은 로그에만 남기고 사용자에겐 일반 문구만 보낸다. */
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String, String>> handleUnexpected(Exception e) {
+        log.error("예금 도메인 처리 중 예상하지 못한 오류", e);
+
+        Map<String, String> body = new LinkedHashMap<>();
+        body.put("errorCode", "INTERNAL_ERROR");
+        body.put("message", "요청을 처리하지 못했습니다. 잠시 후 다시 시도해주세요.");
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
+    }
+
 }
