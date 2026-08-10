@@ -14,10 +14,12 @@ import java.util.Map;
 /**
  * deposit 도메인 전용 예외 처리.
  *
- * <p>org.scoula.exception 패키지의 공용 Advice(@Order(2))보다 먼저 잡히도록
+ * <p>
+ * org.scoula.exception 패키지의 공용 Advice(@Order(2))보다 먼저 잡히도록
+ * 
  * @Order(1)로 설정합니다. 공용 파일을 수정하지 않기 위해 자체 패키지에 둡니다.
  */
-@RestControllerAdvice
+@RestControllerAdvice(basePackages = "org.scoula.deposit")
 @Log4j2
 @Order(1)
 public class DepositExceptionAdvice {
