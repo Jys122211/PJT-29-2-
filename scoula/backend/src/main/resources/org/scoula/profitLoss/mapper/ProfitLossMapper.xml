@@ -131,7 +131,8 @@
          이 경우 계좌번호만 null이 된다. -->
     <select id="selectComparisonById" resultType="org.scoula.profitLoss.vo.ComparisonVO">
         SELECT c.*,
-               d.account_number AS deposit_account_number
+               d.account_number AS deposit_account_number,
+               d.applied_rate AS deposit_applied_rate
           FROM comparisons c
           LEFT JOIN user_deposits d ON d.user_deposit_id = c.user_deposit_id
          WHERE c.comparison_id = #{comparisonId}

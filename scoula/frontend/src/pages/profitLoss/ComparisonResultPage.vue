@@ -15,6 +15,13 @@ onMounted(load);
 
 const won = (value) => (value ?? 0).toLocaleString('ko-KR');
 
+// BigDecimal 금리(소수점 3자리)를 화면 표시용 2자리로 줄인다. 계산 정확도는
+// 백엔드 setScale(3)이 그대로 유지하고 여기서는 표시만 줄인다.
+const rate = (value) => {
+  if (value == null) return '-';
+  return Number(value).toFixed(2);
+};
+
 // 억 단위가 있으면 "억 + 만"으로, 없으면 "만"만 남긴다. 딱 떨어지는 억은 "만원"을 생략한다.
 const formatManwon = (value) => {
   const man = Math.round((value ?? 0) / 10000);
@@ -232,6 +239,7 @@ const closeDoneModal = () => {
           >
             {{ toDisplayKbAccount(comparison.deposit.accountNumber) }}
           </p>
+          <p class="compare-amount-label">만기 시점 잔액</p>
           <p class="compare-amount">
             {{ won(comparison.deposit.finalBalance) }}원
           </p>
@@ -249,9 +257,15 @@ const closeDoneModal = () => {
 
             <div v-show="depositDetailOpen" class="detail-table">
               <div class="detail-row">
+                <span>적용금리</span>
+                <span class="detail-value"
+                  >연 {{ rate(comparison.deposit.appliedRate) }}%</span
+                >
+              </div>
+              <div class="detail-row">
                 <span>중도해지이율</span>
                 <span class="detail-value"
-                  >연 {{ comparison.deposit.cancelInterestRate }}%</span
+                  >연 {{ rate(comparison.deposit.cancelInterestRate) }}%</span
                 >
               </div>
               <div class="detail-row">
@@ -274,6 +288,7 @@ const closeDoneModal = () => {
           >
             {{ comparison.loan.name }}
           </p>
+          <p class="compare-amount-label">만기 시점 잔액</p>
           <p class="compare-amount">
             {{ won(comparison.loan.finalBalance) }}원
           </p>
@@ -291,12 +306,21 @@ const closeDoneModal = () => {
 
             <div v-show="loanDetailOpen" class="detail-table">
               <div class="detail-row">
-                <span>비용 (이자+수수료)</span>
+                <span>대출금리</span>
+                <span class="detail-value">
+                  연 {{ rate(comparison.loan.interestRate) }}%
+                  <small class="detail-sub"
+                    >({{ comparison.loan.ratePeriodMonths }}개월)</small
+                  >
+                </span>
+              </div>
+              <div class="detail-row">
+                <span>총비용</span>
                 <span class="detail-value">
                   {{ won(comparison.loan.cost) }}원
-                  <small
-                    >(이자 {{ won(comparison.loan.interest) }} + 수수료
-                    {{ won(comparison.loan.penalty) }})</small
+                  <small class="detail-sub"
+                    >이자 {{ won(comparison.loan.interest) }} + 수수료
+                    {{ won(comparison.loan.penalty) }}</small
                   >
                 </span>
               </div>
@@ -615,17 +639,17 @@ button {
 }
 
 /* 4. 비교 카드 2장 — 두 카드가 행 트랙을 공유하는 subgrid.
-   행 1 제목 / 2 상품명 / 3 계좌번호 / 4 금액 / 5 구분선 / 6 상세 보기.
-   계좌번호가 없는 카드는 3행이 비어서, 4행(금액) 위치는 항상 같다.
-   상세 보기 버튼+펼침 내용을 .compare-actions로 묶어 6행 하나에 둔다 —
-   펼침 내용을 7행으로 따로 두면 subgrid 범위 밖이라 Chrome이 6행 위에
+   행 1 제목 / 2 상품명 / 3 계좌번호 / 4 금액 라벨 / 5 금액 / 6 구분선 / 7 상세 보기.
+   계좌번호가 없는 카드는 3행이 비어서, 4행(금액 라벨) 위치는 항상 같다.
+   상세 보기 버튼+펼침 내용을 .compare-actions로 묶어 7행 하나에 둔다 —
+   펼침 내용을 8행으로 따로 두면 subgrid 범위 밖이라 Chrome이 7행 위에
    겹쳐 그린다. 추천 배지는 position: absolute라 행을 배정하지 않는다.
    subgrid 미지원 브라우저는 각 카드가 독립된 행으로 돌아가 정렬만
    어긋날 뿐 레이아웃이 깨지지는 않는다. */
 .compare-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  grid-template-rows: repeat(6, auto);
+  grid-template-rows: repeat(7, auto);
   column-gap: 12px;
   row-gap: 0; /* subgrid 행은 margin으로만 간격을 두므로 0 고정 — 바꾸면 정렬이 깨진다 */
   align-items: stretch;
@@ -634,7 +658,7 @@ button {
 .compare-card {
   display: grid;
   grid-template-rows: subgrid;
-  grid-row: span 6;
+  grid-row: span 7;
   position: relative;
   border: 1px solid var(--gs-line);
 }
@@ -689,22 +713,29 @@ button {
   font-size: 11px;
 }
 
-.compare-amount {
+.compare-amount-label {
   grid-row: 4;
   margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--gs-text-sub);
+}
+
+.compare-amount {
+  grid-row: 5;
+  margin: 2px 0 0;
   font-size: 20px;
   font-weight: 700;
   word-break: break-all;
 }
 
 .compare-divider {
-  grid-row: 5;
+  grid-row: 6;
   margin: 12px 0;
   border-top: 1px solid var(--gs-line);
 }
 
 .compare-actions {
-  grid-row: 6;
+  grid-row: 7;
 }
 
 .detail-toggle {
@@ -736,16 +767,21 @@ button {
 .detail-value {
   color: var(--gs-text);
   text-align: right;
+  white-space: nowrap;
 }
 
 .detail-value.strong {
   font-weight: 700;
 }
 
-.detail-value small {
+/* 금액 줄(.detail-value)에만 nowrap을 걸고 내역 줄은 상속을 끊어 필요하면 줄바꿈되게 한다. */
+.detail-sub {
   display: block;
+  margin-top: 2px;
   font-size: 11px;
   color: var(--gs-text-sub);
+  text-align: right;
+  white-space: normal;
 }
 
 .detail-note {
