@@ -26,6 +26,10 @@ const props = defineProps({
     type: String,
     default: 'fa-solid fa-triangle-exclamation',
   },
+  hideCancel: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const emit = defineEmits(['cancel', 'confirm']);
@@ -57,7 +61,7 @@ onBeforeUnmount(() => {
           <p v-if="message">{{ message }}</p>
           <slot v-else></slot>
           <div class="modal-actions">
-            <button type="button" class="modal-cancel" @click="$emit('cancel')">{{ cancelText }}</button>
+            <button v-if="!hideCancel" type="button" class="modal-cancel" @click="$emit('cancel')">{{ cancelText }}</button>
             <button type="button" class="modal-confirm" @click="$emit('confirm')">{{ confirmText }}</button>
           </div>
         </section>
