@@ -189,6 +189,8 @@ export function toDisplayAccount(value) {
 
 /** KB국민은행 일반 계좌 표시: 14자리 숫자 → 6자리-2자리-6자리 */
 export function toDisplayKbAccount(value) {
+  if (value === null || value === undefined || value === '') return '-';
+
   const digits = toCompactAccount(value).slice(0, 14);
 
   if (digits.length <= 6) return digits;
