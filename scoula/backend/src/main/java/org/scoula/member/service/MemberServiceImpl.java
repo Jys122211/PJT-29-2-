@@ -18,6 +18,8 @@ import java.io.IOException;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
+import org.scoula.member.exception.DuplicateEmailException;
+
 @Log4j2
 @Service
 @RequiredArgsConstructor
@@ -100,6 +102,32 @@ public class MemberServiceImpl implements MemberService {
     @Override
     public MemberDTO updateMaxMonthlyPayment(Long userId, Long maxMonthlyPayment) {
         mapper.updateMaxMonthlyPayment(userId, maxMonthlyPayment);
+        return get(userId);
+    }
+    /**
+     * 이름 수정
+     * @param userId 유저 ID
+     * @param name 변경할 이름
+     * @return 업데이트된 유저 정보
+     */
+    @Override
+    public MemberDTO updateName(Long userId, String name) {
+        mapper.updateName(userId, name);
+        return get(userId);
+    }
+
+    /**
+     * 이메일 수정
+     * @param userId 유저 ID
+     * @param email 변경할 이메일
+     * @return 업데이트된 유저 정보
+     */
+    @Override
+    public MemberDTO updateEmail(Long userId, String email) {
+        if (checkDuplicate(email)) {
+            throw new DuplicateEmailException();
+        }
+        mapper.updateEmail(userId, email);
         return get(userId);
     }
 

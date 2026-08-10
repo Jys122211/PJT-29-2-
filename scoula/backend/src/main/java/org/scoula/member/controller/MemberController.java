@@ -61,6 +61,24 @@ public class MemberController {
     }
 
     /**
+     * 내 이름 수정 (PATCH)
+     */
+    @PatchMapping("/me/name")
+    public ResponseEntity<MemberDTO> updateName(@RequestBody UpdateNameDTO dto, Principal principal) {
+        Long userId = getAuthenticatedUserId(principal);
+        return ResponseEntity.ok(service.updateName(userId, dto.getName()));
+    }
+
+    /**
+     * 내 이메일 수정 (PATCH)
+     */
+    @PatchMapping("/me/email")
+    public ResponseEntity<MemberDTO> updateEmail(@RequestBody UpdateEmailDTO dto, Principal principal) {
+        Long userId = getAuthenticatedUserId(principal);
+        return ResponseEntity.ok(service.updateEmail(userId, dto.getEmail()));
+    }
+
+    /**
      * 이메일 중복 체크
      */
     @GetMapping("/checkemail/{email}")
