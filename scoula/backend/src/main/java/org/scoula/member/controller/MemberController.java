@@ -69,14 +69,6 @@ public class MemberController {
     }
 
     /**
-     * 회원 가입
-     */
-    @PostMapping("")
-    public ResponseEntity<MemberDTO> join(MemberJoinDTO member) {
-        return ResponseEntity.ok(service.join(member));
-    }
-
-    /**
      * 프로필 전체 수정 (PUT)
      */
     @PutMapping("/me")
