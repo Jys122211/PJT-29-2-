@@ -241,14 +241,16 @@ const initialChar = computed(() => {
           <span class="text-secondary fw-semibold"
             >KCB {{ getCreditGrade(auth.creditScore) }}</span
           >
-          <span class="fw-bold fs-5">{{ auth.creditScore || 0 }}점</span>
+          <span class="fw-bold fs-6">{{ auth.creditScore || 0 }}점</span>
         </div>
 
         <div v-else class="mt-3">
           <div
             class="data-box rounded-3 px-3 py-3 d-flex justify-content-between align-items-center mb-3 edit-input-wrapper"
           >
-            <span class="text-secondary fw-semibold">현재 설정 점수</span>
+            <span class="text-secondary fw-semibold flex-shrink-0 text-nowrap"
+              >현재 설정 점수</span
+            >
             <div class="text-end">
               <div class="d-flex align-items-center justify-content-end">
                 <input
@@ -256,11 +258,11 @@ const initialChar = computed(() => {
                   inputmode="numeric"
                   pattern="[0-9]*"
                   maxlength="4"
-                  class="form-control text-end border-0 bg-transparent fw-bold fs-5 p-0 me-1 edit-input"
+                  class="form-control text-end border-0 bg-transparent fw-bold fs-6 p-0 me-1 edit-input"
                   :value="tempCreditScore"
                   @input="handleCreditScoreInput"
                 />
-                <span class="fw-bold fs-5">점</span>
+                <span class="fw-bold fs-6">점</span>
               </div>
               <div
                 v-if="creditScoreError"
@@ -313,7 +315,7 @@ const initialChar = computed(() => {
         >
           <span class="text-secondary fw-semibold">현재 설정 금액</span>
           <div class="text-end">
-            <div class="fw-bold fs-5">
+            <div class="fw-bold fs-6">
               {{ (auth.maxMonthlyPayment || 0).toLocaleString() }}
               <span class="text-secondary fs-6">원</span>
             </div>
@@ -336,11 +338,11 @@ const initialChar = computed(() => {
                   type="text"
                   inputmode="numeric"
                   pattern="[0-9]*"
-                  class="form-control text-end border-0 bg-transparent fw-bold fs-5 p-0 me-1 edit-input amount-edit-input"
+                  class="form-control text-end border-0 bg-transparent fw-bold fs-6 p-0 me-1 edit-input amount-edit-input"
                   :value="formatDigitString(tempMaxPayment)"
                   @input="handleMaxPaymentInput"
                 />
-                <span class="fw-bold fs-5">원</span>
+                <span class="fw-bold fs-6">원</span>
               </div>
               <div
                 class="mt-1"
