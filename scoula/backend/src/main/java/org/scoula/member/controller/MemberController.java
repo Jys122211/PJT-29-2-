@@ -69,29 +69,6 @@ public class MemberController {
     }
 
     /**
-<<<<<<< HEAD
-     * 유저 아바타 이미지 조회
-     */
-    @GetMapping("/{email}/avatar")
-    public void getAvatar(@PathVariable String email, HttpServletResponse response) {
-        String avatarPath = "c:/upload/avatar/" + email + ".png";
-        File file = new File(avatarPath);
-
-        // 아바타 이미지가 없을 경우 디폴트 이미지 제공
-        if (!file.exists()) {
-            file = new File("C:/upload/avatar/unknown.png");
-        }
-        UploadFiles.downloadImage(response, file);
-=======
-     * 회원 가입
-     */
-    @PostMapping("")
-    public ResponseEntity<MemberDTO> join(MemberJoinDTO member) {
-        return ResponseEntity.ok(service.join(member));
->>>>>>> origin/main
-    }
-
-    /**
      * 프로필 전체 수정 (PUT)
      */
     @PutMapping("/me")
