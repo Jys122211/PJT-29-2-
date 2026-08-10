@@ -135,6 +135,14 @@ async function continueToNextStep() {
       profitLossStore.requestPayload,
     );
 
+    if (comparisonResult?.feasible === false) {
+      openErrorModal(
+        NEXT_STEP_GUIDE[comparisonResult.reason] ?? '잠시 후 다시 시도해 주세요.',
+        true,
+      );
+      return;
+    }
+
     const comparisonId =
       comparisonResult?.comparisonId ??
       comparisonResult?.id ??
