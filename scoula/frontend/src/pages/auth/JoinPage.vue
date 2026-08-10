@@ -15,6 +15,7 @@ const form = reactive({
   name: '',
   emailLocal: '',
   emailDomain: 'naver.com',
+  customEmailDomain: '',
   password: '',
 });
 
@@ -37,9 +38,10 @@ const emailLocalPattern = /^[^\s@]+$/;
 const PASSWORD_MAX_LENGTH = 16;
 
 // 사용자가 선택한 이메일 아이디와 도메인을 하나의 이메일 주소로 합친다.
-const email = computed(
-  () => `${form.emailLocal.trim()}@${form.emailDomain}`,
-);
+const email = computed(() => {
+  const domain = form.emailDomain === '직접입력' ? form.customEmailDomain.trim() : form.emailDomain;
+  return `${form.emailLocal.trim()}@${domain}`;
+});
 
 // 필수값이 비어 있을 때 "다음" 버튼을 비활성 색상으로 표시한다.
 const isFormIncomplete = computed(() => {
@@ -64,6 +66,8 @@ const validateForm = () => {
     fieldErrors.email = '이메일을 입력해 주세요.';
   } else if (!emailLocalPattern.test(form.emailLocal.trim())) {
     fieldErrors.email = '올바른 이메일 형식으로 입력해 주세요.';
+  } else if (form.emailDomain === '직접입력' && !form.customEmailDomain.trim()) {
+    fieldErrors.email = '이메일 도메인을 입력해 주세요.';
   }
 
   if (!form.password) {
@@ -163,7 +167,7 @@ const join = async () => {
           <span>이메일</span>
           <div
             class="email-input-row"
-            :class="{ 'has-error': fieldErrors.email }"
+            :class="{ 'has-error': fieldErrors.email, 'has-custom': form.emailDomain === '직접입력' }"
           >
             <input
               v-model="form.emailLocal"
@@ -174,6 +178,13 @@ const join = async () => {
               @input="clearFieldError('email')"
             />
             <span class="email-at">@</span>
+            <input
+              v-if="form.emailDomain === '직접입력'"
+              v-model="form.customEmailDomain"
+              type="text"
+              placeholder="직접입력"
+              @input="clearFieldError('email')"
+            />
             <EmailDomainSelect
               v-model="form.emailDomain"
               :options="EMAIL_DOMAINS"
@@ -331,6 +342,10 @@ const join = async () => {
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1.15fr);
   align-items: center;
   gap: 8px;
+}
+
+.email-input-row.has-custom {
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1.2fr) minmax(0, 0.85fr);
 }
 
 .email-at {
