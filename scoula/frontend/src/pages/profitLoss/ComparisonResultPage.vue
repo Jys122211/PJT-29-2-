@@ -341,7 +341,7 @@ const closeDoneModal = () => {
       <!-- 손실경고 모달 -->
       <div v-if="showLossModal" class="modal-overlay" @click.self="cancelModal">
         <section class="modal-card">
-          <h2><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> 손실 경고</h2>
+          <h2><i class="fa-solid fa-triangle-exclamation modal-icon-warn" aria-hidden="true"></i> 손실 경고</h2>
           <p>{{ won(comparison.savingAmount) }}원 손해를 보는 선택입니다. 진행하시겠습니까?</p>
           <div class="modal-actions">
             <button type="button" class="modal-cancel" @click="cancelModal">취소</button>
@@ -353,10 +353,10 @@ const closeDoneModal = () => {
       <!-- 완료 안내 모달 -->
       <div v-if="showDoneModal" class="modal-overlay" @click.self="closeDoneModal">
         <section class="modal-card">
-          <h2><i class="fa-solid fa-circle-check" aria-hidden="true"></i> 신청 완료</h2>
+          <h2><i class="fa-solid fa-circle-check modal-icon-done" aria-hidden="true"></i> 신청 완료</h2>
           <p>{{ actionLabel(doneAction) }}(으)로 진행합니다.</p>
           <div class="modal-actions">
-            <button type="button" class="modal-confirm" @click="closeDoneModal">확인</button>
+            <button type="button" class="modal-confirm modal-done" @click="closeDoneModal">확인</button>
           </div>
         </section>
       </div>
@@ -804,7 +804,15 @@ button {
   margin: 0;
   font-size: 17px;
   font-weight: 700;
+  color: var(--gs-text);
+}
+
+.modal-icon-warn {
   color: var(--gs-warn-strong);
+}
+
+.modal-icon-done {
+  color: var(--gs-gold);
 }
 
 .modal-card p {
@@ -837,6 +845,12 @@ button {
   border: 0;
   color: #fff;
   background: var(--gs-warn-strong);
+}
+
+/* 완료 모달 확인 버튼 — 손실 경고(빨강)와 구분되는 KB 골드 */
+.modal-done {
+  color: #212121;
+  background: #f3c13a;
 }
 
 /* 로딩 / 에러 */
