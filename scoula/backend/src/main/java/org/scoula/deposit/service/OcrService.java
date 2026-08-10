@@ -173,9 +173,45 @@ public class OcrService {
                 throw new IllegalStateException("Gemini OCR 결과에 텍스트가 없습니다.");
             }
 
-            return objectMapper.readValue(textNode.asText(), OcrDepositResponseDTO.class);
+            OcrDepositResponseDTO result =
+                    objectMapper.readValue(textNode.asText(), OcrDepositResponseDTO.class);
+
+            requireDepositImage(result);
+
+            return result;
         } catch (IOException e) {
             throw new IllegalStateException("Gemini OCR 결과를 해석하지 못했습니다.", e);
         }
+    }
+
+    /**
+     * 예금 화면이 아닌 이미지를 걸러낸다.
+     * Gemini 는 값을 못 찾아도 전 필드를 null 로 채운 정상 응답을 돌려주므로,
+     * 예금을 식별할 만큼 값이 채워졌는지 여기서 판단한다.
+     */
+    private void requireDepositImage(OcrDepositResponseDTO r) {
+        int filled = 0;
+        if (isPresent(r.getBankName())) filled++;
+        if (isPresent(r.getProductName())) filled++;
+        if (isPresent(r.getAccountNumber())) filled++;
+        if (isPresent(r.getJoinDate())) filled++;
+        if (isPresent(r.getMaturityDate())) filled++;
+        if (r.getPrincipalAmount() != null && r.getPrincipalAmount() > 0) filled++;
+        if (r.getBaseRate() != null) filled++;
+        if (r.getAppliedRate() != null) filled++;
+
+        boolean hasCore =
+                (r.getPrincipalAmount() != null && r.getPrincipalAmount() > 0)
+                        || r.getAppliedRate() != null
+                        || isPresent(r.getMaturityDate());
+
+        if (filled < 3 || !hasCore) {
+            throw new IllegalStateException(
+                    "예금 정보를 찾을 수 없는 이미지입니다.\n은행 앱의 예금 상세 화면을 올려주세요.");
+        }
+    }
+
+    private boolean isPresent(String v) {
+        return v != null && !v.isBlank();
     }
 }
