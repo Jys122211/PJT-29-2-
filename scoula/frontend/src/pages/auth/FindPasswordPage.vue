@@ -333,7 +333,7 @@ const submit = () => {
             type="email"
             inputmode="email"
             autocomplete="username"
-            placeholder="example@kb.co.kr"
+            placeholder="이메일 입력"
             :readonly="step === 2"
             :class="{ 'input-error': fieldErrors.email }"
             @input="clearFieldError('email')"
