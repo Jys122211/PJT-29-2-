@@ -34,7 +34,7 @@ export function parseNumber(text) {
   return digits === '' ? null : Number(digits);
 }
 
-/** 금리 입력 정리. "2.15%" -> "2.15" (소수점 3자리까지) */
+/** 금리 입력 정리. "2.15%" -> "2.15" (소수점 2자리까지) */
 export function sanitizeRate(text) {
   let cleaned = String(text ?? '').replace(/[^0-9.]/g, '');
 
@@ -50,7 +50,7 @@ export function sanitizeRate(text) {
   if (Number(w) > 20) return '20';
 
   if (decimal === undefined) return w;
-  return `${w}.${decimal.slice(0, 3)}`;
+  return `${w}.${decimal.slice(0, 2)}`;
 }
 
 /**
