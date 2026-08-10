@@ -5,6 +5,7 @@ import { useAuthStore } from '@/stores/auth';
 import api from '@/api';
 import BottomNav from '@/components/mobile/BottomNav.vue';
 import ConfirmModal from '@/components/ConfirmModal.vue';
+import { useLogout } from '@/composables/useLogout';
 
 const router = useRouter();
 const auth = useAuthStore();
@@ -15,10 +16,10 @@ onMounted(() => {
 
 // --- 상태 관리 ---
 const isEditingCreditScore = ref(false); // 신용점수 수정 모드 여부
-const isEditingMaxPayment = ref(false);  // 월 상환 금액 수정 모드 여부
+const isEditingMaxPayment = ref(false); // 월 상환 금액 수정 모드 여부
 
 const tempCreditScore = ref(''); // 편집 중에는 앞자리 삭제 상태를 보존
-const tempMaxPayment = ref('');  // 편집 중에는 앞자리 삭제 상태를 보존
+const tempMaxPayment = ref(''); // 편집 중에는 앞자리 삭제 상태를 보존
 const creditScoreError = ref('');
 const maxPaymentError = ref('');
 
@@ -145,7 +146,9 @@ const cancelMaxPayment = () => {
 const saveMaxPayment = async () => {
   try {
     const actualAmount = Number(tempMaxPayment.value || 0);
-    await api.patch('/api/users/me/max-monthly-payment', { maxMonthlyPayment: actualAmount });
+    await api.patch('/api/users/me/max-monthly-payment', {
+      maxMonthlyPayment: actualAmount,
+    });
     auth.state.user.maxMonthlyPayment = actualAmount;
     isEditingMaxPayment.value = false;
   } catch (error) {
@@ -155,22 +158,8 @@ const saveMaxPayment = async () => {
 };
 
 // --- 로그아웃 및 기타 유틸 ---
-const showLogoutModal = ref(false);
-
-const handleLogoutClick = () => {
-  showLogoutModal.value = true;
-};
-
-const confirmLogout = () => {
-  showLogoutModal.value = false;
-  auth.logout();
-  alert('로그아웃 되었습니다.');
-  router.push('/login');
-};
-
-const cancelLogout = () => {
-  showLogoutModal.value = false;
-};
+const { isConfirmLogout, requestLogout, cancelLogout, confirmLogout } =
+  useLogout();
 
 const formatKoreanAmount = (amount, emptyMessage = '금액을 입력해주세요') => {
   const numericAmount = Number(amount);
@@ -216,7 +205,9 @@ const initialChar = computed(() => {
     <!-- Profile Card -->
     <div class="card profile-card border-0 shadow-sm mb-4 rounded-4">
       <div class="card-body d-flex align-items-center">
-        <div class="avatar-circle me-3 fw-bold d-flex align-items-center justify-content-center">
+        <div
+          class="avatar-circle me-3 fw-bold d-flex align-items-center justify-content-center"
+        >
           {{ initialChar }}
         </div>
         <div>
@@ -234,16 +225,29 @@ const initialChar = computed(() => {
             <h5 class="fw-bold mb-1">내 신용점수</h5>
             <small class="text-muted">KCB에서 직접 조회 후 입력합니다</small>
           </div>
-          <button v-if="!isEditingCreditScore" class="btn btn-outline-warning edit-btn fw-bold rounded-pill px-3 py-1" @click="editCreditScore">수정</button>
+          <button
+            v-if="!isEditingCreditScore"
+            class="btn btn-outline-warning edit-btn fw-bold rounded-pill px-3 py-1"
+            @click="editCreditScore"
+          >
+            수정
+          </button>
         </div>
-        
-        <div v-if="!isEditingCreditScore" class="data-box rounded-3 px-3 py-3 mt-3 d-flex justify-content-between align-items-center">
-          <span class="text-secondary fw-semibold">KCB {{ getCreditGrade(auth.creditScore) }}</span>
+
+        <div
+          v-if="!isEditingCreditScore"
+          class="data-box rounded-3 px-3 py-3 mt-3 d-flex justify-content-between align-items-center"
+        >
+          <span class="text-secondary fw-semibold"
+            >KCB {{ getCreditGrade(auth.creditScore) }}</span
+          >
           <span class="fw-bold fs-5">{{ auth.creditScore || 0 }}점</span>
         </div>
 
         <div v-else class="mt-3">
-          <div class="data-box rounded-3 px-3 py-3 d-flex justify-content-between align-items-center mb-3 edit-input-wrapper">
+          <div
+            class="data-box rounded-3 px-3 py-3 d-flex justify-content-between align-items-center mb-3 edit-input-wrapper"
+          >
             <span class="text-secondary fw-semibold">현재 설정 점수</span>
             <div class="text-end">
               <div class="d-flex align-items-center justify-content-end">
@@ -267,8 +271,18 @@ const initialChar = computed(() => {
             </div>
           </div>
           <div class="d-flex gap-2">
-            <button class="btn btn-warning fw-bold flex-grow-1 text-white save-btn rounded-3 py-2" @click="saveCreditScore">저장</button>
-            <button class="btn btn-outline-secondary fw-bold flex-grow-1 cancel-btn rounded-3 bg-white py-2" @click="cancelCreditScore">취소</button>
+            <button
+              class="btn btn-warning fw-bold flex-grow-1 text-white save-btn rounded-3 py-2"
+              @click="saveCreditScore"
+            >
+              저장
+            </button>
+            <button
+              class="btn btn-outline-secondary fw-bold flex-grow-1 cancel-btn rounded-3 bg-white py-2"
+              @click="cancelCreditScore"
+            >
+              취소
+            </button>
           </div>
         </div>
       </div>
@@ -280,24 +294,42 @@ const initialChar = computed(() => {
         <div class="d-flex justify-content-between align-items-start mb-2">
           <div>
             <h5 class="fw-bold mb-1">월 상환 가능 금액</h5>
-            <small class="text-muted">매월 부담할 수 있는 최대 상환 금액입니다.</small>
+            <small class="text-muted"
+              >매월 부담할 수 있는 최대 상환 금액입니다.</small
+            >
           </div>
-          <button v-if="!isEditingMaxPayment" class="btn btn-outline-warning edit-btn fw-bold rounded-pill px-3 py-1" @click="editMaxPayment">수정</button>
+          <button
+            v-if="!isEditingMaxPayment"
+            class="btn btn-outline-warning edit-btn fw-bold rounded-pill px-3 py-1"
+            @click="editMaxPayment"
+          >
+            수정
+          </button>
         </div>
-        
-        <div v-if="!isEditingMaxPayment" class="data-box rounded-3 px-3 py-3 mt-3 d-flex justify-content-between align-items-center">
+
+        <div
+          v-if="!isEditingMaxPayment"
+          class="data-box rounded-3 px-3 py-3 mt-3 d-flex justify-content-between align-items-center"
+        >
           <span class="text-secondary fw-semibold">현재 설정 금액</span>
           <div class="text-end">
-            <div class="fw-bold fs-5">{{ (auth.maxMonthlyPayment || 0).toLocaleString() }} <span class="text-secondary fs-6">원</span></div>
-            <div class="text-secondary mt-1" style="font-size: 0.9rem;">
+            <div class="fw-bold fs-5">
+              {{ (auth.maxMonthlyPayment || 0).toLocaleString() }}
+              <span class="text-secondary fs-6">원</span>
+            </div>
+            <div class="text-secondary mt-1" style="font-size: 0.9rem">
               {{ formatKoreanAmount(auth.maxMonthlyPayment, '0원') }}
             </div>
           </div>
         </div>
 
         <div v-else class="mt-3">
-          <div class="data-box rounded-3 px-3 py-3 d-flex justify-content-between align-items-center gap-3 mb-3 edit-input-wrapper">
-            <span class="text-secondary fw-semibold flex-shrink-0">현재 설정 금액</span>
+          <div
+            class="data-box rounded-3 px-3 py-3 d-flex justify-content-between align-items-center gap-3 mb-3 edit-input-wrapper"
+          >
+            <span class="text-secondary fw-semibold flex-shrink-0"
+              >현재 설정 금액</span
+            >
             <div class="text-end monthly-edit-value">
               <div class="d-flex align-items-center justify-content-end">
                 <input
@@ -313,30 +345,40 @@ const initialChar = computed(() => {
               <div
                 class="mt-1"
                 :class="maxPaymentError ? 'text-danger' : 'text-secondary'"
-                style="font-size: 0.9rem;"
+                style="font-size: 0.9rem"
               >
-                {{
-                  maxPaymentError ||
-                  formatKoreanAmount(tempMaxPayment)
-                }}
+                {{ maxPaymentError || formatKoreanAmount(tempMaxPayment) }}
               </div>
             </div>
           </div>
           <div class="d-flex gap-2">
-            <button class="btn btn-warning fw-bold flex-grow-1 text-white save-btn rounded-3 py-2" @click="saveMaxPayment">저장</button>
-            <button class="btn btn-outline-secondary fw-bold flex-grow-1 cancel-btn rounded-3 bg-white py-2" @click="cancelMaxPayment">취소</button>
+            <button
+              class="btn btn-warning fw-bold flex-grow-1 text-white save-btn rounded-3 py-2"
+              @click="saveMaxPayment"
+            >
+              저장
+            </button>
+            <button
+              class="btn btn-outline-secondary fw-bold flex-grow-1 cancel-btn rounded-3 bg-white py-2"
+              @click="cancelMaxPayment"
+            >
+              취소
+            </button>
           </div>
         </div>
       </div>
     </div>
 
     <!-- Logout Button -->
-    <button class="btn logout-btn w-100 fw-bold py-3 mt-3 rounded-4" @click="handleLogoutClick">
+    <button
+      class="btn logout-btn w-100 fw-bold py-3 mt-3 rounded-4"
+      @click="requestLogout"
+    >
       로그아웃
     </button>
-    
+
     <ConfirmModal
-      :visible="showLogoutModal"
+      :visible="isConfirmLogout"
       title="로그아웃"
       message="정말 로그아웃 하시겠습니까?"
       cancel-text="취소"
@@ -344,14 +386,16 @@ const initialChar = computed(() => {
       @cancel="cancelLogout"
       @confirm="confirmLogout"
     />
-    
+
     <!-- Toast Message Placeholder (Based on UI image) -->
-    <div v-if="false" class="toast-overlay mt-3 py-3 text-center text-white rounded-3 fw-bold">
+    <div
+      v-if="false"
+      class="toast-overlay mt-3 py-3 text-center text-white rounded-3 fw-bold"
+    >
       로그아웃 되었습니다 &rarr; 01 로그인
     </div>
 
     <BottomNav active="profile" />
-
   </main>
 </template>
 
