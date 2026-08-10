@@ -1,4 +1,5 @@
 export const EMAIL_DOMAINS = [
+  '직접입력',
   // 국내에서 자주 사용하는 이메일 도메인
   'naver.com',
   'kakao.com',
