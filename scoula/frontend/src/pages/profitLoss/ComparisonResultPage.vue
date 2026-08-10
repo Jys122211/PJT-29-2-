@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useComparison } from '@/composables/useComparison';
+import { toDisplayKbAccount } from '@/util/depositFormat';
 import ConfirmModal from '@/components/ConfirmModal.vue';
 
 const route = useRoute();
@@ -102,6 +103,10 @@ const depositBarWidth = computed(() => {
 const showLossModal = ref(false);
 const pendingAction = ref(null); // 'LOAN' | 'WITHDRAWAL'
 
+// 진행이 확정되면 완료 모달을 띄운다.
+const showDoneModal = ref(false);
+const doneAction = ref(null);
+
 const actionLabel = (action) => (action === 'LOAN' ? '대출' : '예금 중도해지');
 
 const proceed = (action) => {
@@ -116,12 +121,18 @@ const proceed = (action) => {
 const confirmProceed = (action) => {
   showLossModal.value = false;
   // TODO(5단계): 실제 진행 로직(다음 화면 이동 등) 연결
-  alert(`${actionLabel(action)}(으)로 진행합니다.`);
+  doneAction.value = action;
+  showDoneModal.value = true;
 };
 
 const cancelModal = () => {
   showLossModal.value = false;
   pendingAction.value = null;
+};
+
+const closeDoneModal = () => {
+  showDoneModal.value = false;
+  doneAction.value = null;
 };
 </script>
 
@@ -185,9 +196,9 @@ const cancelModal = () => {
           <p
             v-if="comparison.deposit.accountNumber"
             class="compare-account"
-            :title="comparison.deposit.accountNumber"
+            :title="toDisplayKbAccount(comparison.deposit.accountNumber)"
           >
-            {{ comparison.deposit.accountNumber }}
+            {{ toDisplayKbAccount(comparison.deposit.accountNumber) }}
           </p>
           <p class="compare-amount">{{ won(comparison.deposit.finalBalance) }}원</p>
 
@@ -338,6 +349,17 @@ const cancelModal = () => {
         @cancel="cancelModal"
         @confirm="confirmProceed(pendingAction)"
       />
+
+      <!-- 완료 안내 모달 -->
+      <div v-if="showDoneModal" class="done-overlay" @click.self="closeDoneModal">
+        <section class="done-card">
+          <h2><i class="fa-solid fa-circle-check" aria-hidden="true"></i> 신청 완료</h2>
+          <p>{{ actionLabel(doneAction) }}(으)로 진행합니다.</p>
+          <div class="done-actions">
+            <button type="button" class="done-confirm" @click="closeDoneModal">확인</button>
+          </div>
+        </section>
+      </div>
     </div>
 
     <div v-else-if="loading" class="state-view">
@@ -755,6 +777,64 @@ button {
   background: #fff;
 }
 
+/* 완료 안내 모달 — ConfirmModal과 카드 치수를 맞추되(크기가 이어져도 튀지 않게),
+   손실 경고(빨강)와 구분되는 골드 팔레트를 쓴다. ConfirmModal은 버튼이 항상
+   둘이고 색이 --gs-warn-strong 고정이라 이 용도로 재사용할 수 없다. */
+.done-overlay {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  padding: 24px;
+  background: rgb(0 0 0 / 50%);
+  place-items: center;
+}
+
+.done-card {
+  width: 100%;
+  max-width: 320px;
+  padding: 24px 20px 16px;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 16px 40px rgb(0 0 0 / 18%);
+}
+
+.done-card h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--gs-text);
+}
+
+.done-card h2 i {
+  color: var(--gs-gold);
+}
+
+.done-card p {
+  margin: 12px 0 20px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--gs-text);
+}
+
+.done-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.done-confirm {
+  height: 44px;
+  border-radius: 11px;
+  flex: 1;
+  font-weight: 700;
+  font-size: 14px;
+  border: 0;
+  color: #212121;
+  background: #f3c13a;
+}
 
 /* 로딩 / 에러 */
 .state-view {

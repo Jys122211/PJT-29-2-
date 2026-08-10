@@ -23,6 +23,11 @@ public class ComparisonResponse {
     private Long monthlyPayment;
     private LocalDateTime createdAt;
 
+    // 비교가 성립했는지. false면 계산 자체가 불가능했던 것(PAYMENT_TOO_LOW, EXCEED_LOAN_LIMIT)이라
+    // winner/savingAmount/loan/deposit이 채워지지 않는다.
+    private Boolean feasible;
+    private String reason;
+
     private Badges badges;
     private Warning warning;
     private LoanInfo loan;

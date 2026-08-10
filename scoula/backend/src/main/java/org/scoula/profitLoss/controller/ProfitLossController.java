@@ -6,10 +6,8 @@ import org.scoula.profitLoss.dto.*;
 import org.scoula.profitLoss.service.JeonseLoanService;
 import org.scoula.profitLoss.service.ComparisonNotFoundException;
 import org.scoula.profitLoss.service.DepositNotFoundException;
-import org.scoula.profitLoss.service.ExceedLoanLimitException;
 import org.scoula.profitLoss.service.GradeRateUnavailableException;
 import org.scoula.profitLoss.service.ProfitLossService;
-import org.scoula.profitLoss.service.calculator.PaymentTooLowException;
 import org.scoula.security.account.domain.CustomUser;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -115,7 +113,9 @@ public class ProfitLossController {
             Authentication authentication
     ) {
         ComparisonResponse response = service.compare(currentUserId(authentication), request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        // 비교 불가(feasible=false)는 이력이 생기지 않은 정상 응답이라 201이 아니라 200으로 내린다.
+        HttpStatus status = Boolean.TRUE.equals(response.getFeasible()) ? HttpStatus.CREATED : HttpStatus.OK;
+        return ResponseEntity.status(status).body(response);
     }
 
     // 히스토리
@@ -130,16 +130,6 @@ public class ProfitLossController {
             Authentication authentication
     ) {
         return ResponseEntity.ok(service.getComparison(currentUserId(authentication), comparisonId));
-    }
-
-    @ExceptionHandler(PaymentTooLowException.class)
-    public ResponseEntity<Map<String, String>> handlePaymentTooLow(PaymentTooLowException e) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorBody("PAYMENT_TOO_LOW", e.getMessage()));
-    }
-
-    @ExceptionHandler(ExceedLoanLimitException.class)
-    public ResponseEntity<Map<String, String>> handleExceedLoanLimit(ExceedLoanLimitException e) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorBody("EXCEED_LOAN_LIMIT", e.getMessage()));
     }
 
     @ExceptionHandler(GradeRateUnavailableException.class)
