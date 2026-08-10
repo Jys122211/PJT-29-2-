@@ -84,6 +84,15 @@ public class DepositRequestDTO {
                     "적용금리는 0~20% 사이로 입력해주세요");
         }
 
+        if (baseRate.scale() > 2) {
+            throw new ValidationException("INVALID_RATE", "baseRate",
+                    "기본금리는 소수점 둘째 자리까지 입력해주세요");
+        }
+        if (appliedRate.scale() > 2) {
+            throw new ValidationException("INVALID_RATE", "appliedRate",
+                    "적용금리는 소수점 둘째 자리까지 입력해주세요");
+        }
+
         // BigDecimal 비교는 compareTo 사용
         if (appliedRate.compareTo(baseRate) < 0) {
             throw new ValidationException("INVALID_RATE", "appliedRate",

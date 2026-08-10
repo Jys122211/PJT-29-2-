@@ -71,6 +71,7 @@ const errors = reactive({
   appliedRate: '',
 });
 
+
 // ------------------------------------------------------------ 입력 핸들러
 function onAccountInput(event) {
   const input = event.target;
@@ -119,13 +120,16 @@ function applyFormattedValue(input, formattedValue, digitsBeforeCaret) {
     input.setSelectionRange(position, position);
   });
 }
+/** 가입금액 상한. DepositRequestDTO 의 10_000_000_000L 과 같아야 한다. */
+const MAX_PRINCIPAL = 10_000_000_000;
 
 function onAmountInput(event) {
   const input = event.target;
   const previousDigits =
     form.principalAmount === '' ? '' : String(form.principalAmount);
   const digitsBeforeCaret = countDigitsBeforeCaret(input);
-const digits = String(input.value).replace(/[^0-9]/g, '').slice(0, 11);
+const raw = String(input.value).replace(/[^0-9]/g, '');
+  const digits = raw.length > 11 ? raw.slice(0, 11) : raw;
 
   if (digits === '') {
     principalAmountDraft.value = '';
@@ -141,8 +145,14 @@ const digits = String(input.value).replace(/[^0-9]/g, '').slice(0, 11);
   principalAmountDraft.value = digits;
   form.principalAmount = Number(digits);
   applyFormattedValue(input, formatDigitString(digits), digitsBeforeCaret);
+
   if (digits !== previousDigits) {
     markEdited('principalAmount');
+  }
+
+  if (Number(digits) > MAX_PRINCIPAL) {
+    errors.principalAmount = '가입금액은 최대 100억원까지 입력할 수 있습니다';
+  } else {
     errors.principalAmount = '';
   }
 }
@@ -234,19 +244,33 @@ function validateDateFields() {
   });
 }
 
+/** 은행명·상품명 길이 기준. warn 을 넘으면 경고, max 에서 입력을 멈춘다. */
+const NAME_RULES = {
+  bankName: { warn: 12, label: '은행명' },
+  productName: { warn: 25, label: '상품명' },
+};
+
 /** 은행명은 문자만, 상품명은 숫자까지 허용한다. */
 function onTextInput(field, event) {
+  const rule = NAME_RULES[field];
   const raw = event.target.value;
 
-  const cleaned =
+  const filtered =
     field === 'bankName'
-      ? raw.replace(/[^가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z ]/g, '').slice(0, 30)
-      : raw.replace(/[^가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z0-9 ()\-.]/g, '').slice(0, 50);
+      ? raw.replace(/[^가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z ]/g, '')
+      : raw.replace(/[^가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z0-9 ()\-.]/g, '');
+
+const cleaned = filtered.slice(0, rule.warn);
 
   form[field] = cleaned;
   event.target.value = cleaned;
   markEdited(field);
-  errors[field] = '';
+
+if (filtered.length > rule.warn) {
+    errors[field] = `${rule.label}은 ${rule.warn}자 이내로 입력해주세요`;
+  } else {
+    errors[field] = '';
+  }
 }
 
 function markEdited(field) {
@@ -268,12 +292,15 @@ function fieldClass(field) {
 const isComplete = computed(
   () =>
     form.bankName.trim() !== '' &&
+    form.bankName.trim().length <= NAME_RULES.bankName.warn &&
     form.productName.trim() !== '' &&
+    form.productName.trim().length <= NAME_RULES.productName.warn &&
     form.accountNumber.length === 14 &&
     form.joinDate.length === 8 &&
     form.maturityDate.length === 8 &&
     form.principalAmount !== '' &&
     Number(form.principalAmount) > 0 &&
+    Number(form.principalAmount) <= MAX_PRINCIPAL &&
     form.baseRate !== '' &&
     form.appliedRate !== '',
 );
@@ -327,6 +354,14 @@ function validate() {
   require('maturityDate', '만기일을 입력해주세요');
   require('baseRate', '기본금리를 입력해주세요');
   require('appliedRate', '적용금리를 입력해주세요');
+
+  ['bankName', 'productName'].forEach((field) => {
+    const rule = NAME_RULES[field];
+    if (form[field].trim().length > rule.warn) {
+      errors[field] = `${rule.label}은 ${rule.warn}자 이내로 입력해주세요`;
+      firstInvalid = firstInvalid ?? field;
+    }
+  });
 
   if (form.accountNumber !== '' && form.accountNumber.length !== 14) {
     errors.accountNumber = 'KB 계좌번호 숫자 14자리를 입력해주세요';
@@ -609,6 +644,7 @@ onMounted(async () => {
           :value="form.bankName"
           placeholder="은행명"
           aria-label="은행명"
+          maxlength="12"
           @input="onTextInput('bankName', $event)"
         />
       </div>
@@ -621,6 +657,7 @@ onMounted(async () => {
           :value="form.productName"
           placeholder="상품명"
           aria-label="상품명"
+          maxlength="25"
           @input="onTextInput('productName', $event)"
         />
       </div>
@@ -666,7 +703,7 @@ onMounted(async () => {
         />
       </div>
       <p v-if="errors.joinDate" class="err-msg">! {{ errors.joinDate }}</p>
-      <p v-if="errors.maturityDate" class="err-msg">
+      <p v-else-if="errors.maturityDate" class="err-msg">
         ! {{ errors.maturityDate }}
       </p>
 
@@ -1029,6 +1066,12 @@ onMounted(async () => {
 
 .err-msg.center {
   text-align: center;
+}
+.warn-msg {
+  margin: -4px 2px 10px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--kb-deep, #8a6d1f);
 }
 
 /* ---------- 버튼 ---------- */

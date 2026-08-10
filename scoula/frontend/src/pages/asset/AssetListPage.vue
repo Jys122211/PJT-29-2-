@@ -112,7 +112,7 @@ onMounted(load);
                 {{ formatNumber(deposit.principalAmount) }}원 · 연
                 {{ deposit.appliedRate }}%
               </small>
-              <small class="acct">
+              <small v-if="deposit.accountNumber" class="acct">
                 계좌번호 : {{ toDisplayKbAccount(deposit.accountNumber) }}</small
               >
             </div>

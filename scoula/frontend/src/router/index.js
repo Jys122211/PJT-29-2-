@@ -36,7 +36,7 @@ const router = createRouter({
       path: '/:pathMatch(.*)*',
       name: 'notFound',
       component: () => import('../pages/NotFoundPage.vue'),
-      meta: { layout: 'blank' },
+      meta: { layout: 'blank', requiresAuth: true },
     },
   ],
 });
@@ -53,7 +53,7 @@ router.beforeEach((to) => {
     };
   }
 
- if (to.meta.requiresAuth && !auth.hasValidSession()) {
+  if (to.meta.requiresAuth && !auth.hasValidSession()) {
     return {
       name: 'login',
       replace: true,

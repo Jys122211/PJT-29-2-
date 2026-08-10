@@ -32,8 +32,8 @@ import org.springframework.web.filter.CorsFilter;
 
 @Configuration
 @EnableWebSecurity
-@MapperScan(basePackages = { "org.scoula.security.account.mapper" })
-@ComponentScan(basePackages = { "org.scoula.security" })
+@MapperScan(basePackages = {"org.scoula.security.account.mapper"})
+@ComponentScan(basePackages = {"org.scoula.security"})
 @RequiredArgsConstructor
 @Log4j2
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
@@ -102,6 +102,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.POST, "/api/credit-loans/preferential-rate").authenticated()
                 .antMatchers(HttpMethod.POST, "/api/comparisons").authenticated()
                 .antMatchers(HttpMethod.GET, "/api/comparisons/**").authenticated()
+                .antMatchers(HttpMethod.POST, "/api/ocr/extract").authenticated()
+                .antMatchers("/jeonse-loans/**").authenticated()
                 .anyRequest().permitAll(); // 나머지는 로그인 된 경우 모두 허용
 
     }

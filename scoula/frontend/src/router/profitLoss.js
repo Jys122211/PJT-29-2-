@@ -71,6 +71,7 @@ export default [
     component: () => import('@/pages/profitLoss/JeonseEligibility.vue'),
     meta: {
       layout: 'mobile',
+      requiresAuth: true,
     },
     beforeEnter: () => {
       const profitLossStore = useProfitLossStore();
@@ -101,6 +102,7 @@ export default [
     component: () => import('@/pages/profitLoss/JeonsePreferential.vue'),
     meta: {
       layout: 'mobile',
+      requiresAuth: true,
     },
     beforeEnter: () => {
       const profitLossStore = useProfitLossStore();

@@ -89,19 +89,36 @@ async function load() {
 }
 
 // ------------------------------------------------------------ 입력
+/** 은행명·상품명 길이 기준. 이 자수에서 입력이 멈춘다. */
+const NAME_RULES = {
+  bankName: { warn: 12, label: '은행명' },
+  productName: { warn: 25, label: '상품명' },
+};
+
+/** 가입금액 상한. DepositRequestDTO 의 10_000_000_000L 과 같아야 한다. */
+const MAX_PRINCIPAL = 10_000_000_000;
+
+/** 은행명은 문자만, 상품명은 숫자까지 허용한다. */
 function onTextInput(field, event) {
+  const rule = NAME_RULES[field];
   const raw = event.target.value;
 
-  const cleaned =
+  const filtered =
     field === 'bankName'
-      ? raw.replace(/[^가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z ]/g, '').slice(0, 30)
-      : raw.replace(/[^가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z0-9 ()\-.]/g, '').slice(0, 50);
+      ? raw.replace(/[^가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z ]/g, '')
+      : raw.replace(/[^가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z0-9 ()\-.]/g, '');
+
+  const cleaned = filtered.slice(0, rule.warn);
 
   form[field] = cleaned;
   event.target.value = cleaned;
-  errors[field] = '';
-}
 
+  if (filtered.length > rule.warn) {
+    errors[field] = `${rule.label}은 ${rule.warn}자까지 입력할 수 있습니다`;
+  } else {
+    errors[field] = '';
+  }
+}
 /**
  * 포맷된 값을 INPUT에 써넣고 커서를 원래 자리로 되돌린다.
  * 값을 다시 대입하면 브라우저가 커서를 맨 뒤로 보내기 때문에 필요하다.
@@ -158,7 +175,12 @@ function onAmountInput(event) {
   const parsed = digits === '' ? null : Number(digits);
   form.principalAmount = parsed === null ? '' : parsed;
   applyFormattedValue(input, formatNumber(parsed), digitsBeforeCaret);
-  errors.principalAmount = '';
+
+  if (parsed !== null && parsed > MAX_PRINCIPAL) {
+    errors.principalAmount = '가입금액은 최대 100억원까지 입력할 수 있습니다';
+  } else {
+    errors.principalAmount = '';
+  }
 }
 
 function onAccountInput(event) {
@@ -227,12 +249,15 @@ function fieldClass(field) {
 const isComplete = computed(
   () =>
     form.bankName.trim() !== '' &&
+    form.bankName.trim().length <= NAME_RULES.bankName.warn &&
     form.productName.trim() !== '' &&
+    form.productName.trim().length <= NAME_RULES.productName.warn &&
     form.accountNumber.length === 14 &&
     form.joinDate.length === 8 &&
     form.maturityDate.length === 8 &&
     form.principalAmount !== '' &&
     Number(form.principalAmount) > 0 &&
+    Number(form.principalAmount) <= MAX_PRINCIPAL &&
     form.baseRate !== '' &&
     form.appliedRate !== '',
 );
@@ -293,6 +318,14 @@ function validate() {
   require('baseRate', '기본금리를 입력해주세요');
   require('appliedRate', '적용금리를 입력해주세요');
 
+  ['bankName', 'productName'].forEach((field) => {
+    const rule = NAME_RULES[field];
+    if (form[field].trim().length > rule.warn) {
+      errors[field] = `${rule.label}은 ${rule.warn}자 이내로 입력해주세요`;
+      ok = false;
+    }
+  });
+
   if (form.accountNumber !== '' && form.accountNumber.length !== 14) {
     errors.accountNumber = 'KB 계좌번호 숫자 14자리를 입력해주세요';
     ok = false;
@@ -304,8 +337,8 @@ function validate() {
   } else if (Number(form.principalAmount) < 10000) {
     errors.principalAmount = '가입금액은 1만원 이상 입력해주세요';
     ok = false;
-  } else if (Number(form.principalAmount) > 10000000000) {
-    errors.principalAmount = '가입금액은 100억원 이하로 입력해주세요';
+  } else if (Number(form.principalAmount) > MAX_PRINCIPAL) {
+    errors.principalAmount = '가입금액은 최대 100억원까지 입력할 수 있습니다';
     ok = false;
   }
 
@@ -428,7 +461,7 @@ onMounted(load);
             :value="form.bankName"
             placeholder="은행명"
             aria-label="은행명"
-            maxlength="50"
+            maxlength="12"
             @input="onTextInput('bankName', $event)"
           />
         </div>
@@ -441,7 +474,7 @@ onMounted(load);
             :value="form.productName"
             placeholder="상품명"
             aria-label="상품명"
-            maxlength="50"
+            maxlength="25"
             @input="onTextInput('productName', $event)"
           />
         </div>
@@ -484,7 +517,7 @@ onMounted(load);
           />
         </div>
         <p v-if="errors.joinDate" class="err-msg">! {{ errors.joinDate }}</p>
-        <p v-if="errors.maturityDate" class="err-msg">! {{ errors.maturityDate }}</p>
+        <p v-else-if="errors.maturityDate" class="err-msg">! {{ errors.maturityDate }}</p>
 
         <div class="form-row two-column-row amount-rate-row">
           <div class="field-with-guide">

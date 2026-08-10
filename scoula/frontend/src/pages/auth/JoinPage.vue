@@ -15,11 +15,18 @@ const form = reactive({
   name: '',
   emailLocal: '',
   emailDomain: 'naver.com',
+  customEmailDomain: '',
   password: '',
 });
 
 // 중복 이메일 외의 서버 오류를 표시할 때 사용한다.
 const errorMessage = ref('');
+
+// 비밀번호 표시 여부를 관리한다.
+const showPassword = ref(false);
+const togglePasswordVisibility = () => {
+  showPassword.value = !showPassword.value;
+};
 
 // 회원가입과 자동 로그인 요청이 진행 중인지 나타낸다.
 const isSubmitting = ref(false);
@@ -32,14 +39,17 @@ const fieldErrors = reactive({
 });
 
 const emailLocalPattern = /^[^\s@]+$/;
+const domainPattern = /^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
-// 비밀번호 최대 자릿수. 백엔드 SignupServiceImpl의 PASSWORD_MAX_LENGTH와 같은 값이어야 한다.
+// 비밀번호 최소/최대 자릿수. 백엔드 SignupServiceImpl과 같은 값이어야 한다.
+const PASSWORD_MIN_LENGTH = 4;
 const PASSWORD_MAX_LENGTH = 16;
 
 // 사용자가 선택한 이메일 아이디와 도메인을 하나의 이메일 주소로 합친다.
-const email = computed(
-  () => `${form.emailLocal.trim()}@${form.emailDomain}`,
-);
+const email = computed(() => {
+  const domain = form.emailDomain === '직접입력' ? form.customEmailDomain.trim() : form.emailDomain;
+  return `${form.emailLocal.trim()}@${domain}`;
+});
 
 // 필수값이 비어 있을 때 "다음" 버튼을 비활성 색상으로 표시한다.
 const isFormIncomplete = computed(() => {
@@ -63,11 +73,19 @@ const validateForm = () => {
   if (!form.emailLocal.trim()) {
     fieldErrors.email = '이메일을 입력해 주세요.';
   } else if (!emailLocalPattern.test(form.emailLocal.trim())) {
-    fieldErrors.email = '올바른 이메일 형식으로 입력해 주세요.';
+    fieldErrors.email = '올바른 아이디 형식을 입력해 주세요.';
+  } else if (form.emailDomain === '직접입력' && !form.customEmailDomain.trim()) {
+    fieldErrors.email = '이메일 도메인을 입력해 주세요.';
+  } else if (form.emailDomain === '직접입력' && !domainPattern.test(form.customEmailDomain.trim())) {
+    fieldErrors.email = '올바른 도메인 형식을 입력해 주세요. (예: example.com)';
+  } else if (email.value.length > 50) {
+    fieldErrors.email = '이메일 주소는 최대 50자까지 입력할 수 있습니다.';
   }
 
   if (!form.password) {
     fieldErrors.password = '비밀번호를 입력해 주세요.';
+  } else if (form.password.length < PASSWORD_MIN_LENGTH) {
+    fieldErrors.password = `비밀번호는 최소 ${PASSWORD_MIN_LENGTH}자 이상 입력해야 합니다.`;
   } else if (form.password.length > PASSWORD_MAX_LENGTH) {
     fieldErrors.password = `비밀번호는 최대 ${PASSWORD_MAX_LENGTH}자까지 입력할 수 있습니다.`;
   }
@@ -117,8 +135,12 @@ const join = async () => {
       return;
     }
 
-    errorMessage.value =
-      error.response?.data || '회원가입 처리 중 오류가 발생했습니다.';
+    const responseData = error.response?.data;
+    if (typeof responseData === 'string' && responseData.trim().startsWith('<')) {
+      errorMessage.value = '서버와 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.';
+    } else {
+      errorMessage.value = responseData || '회원가입 처리 중 오류가 발생했습니다.';
+    }
   } finally {
     isSubmitting.value = false;
   }
@@ -163,7 +185,7 @@ const join = async () => {
           <span>이메일</span>
           <div
             class="email-input-row"
-            :class="{ 'has-error': fieldErrors.email }"
+            :class="{ 'has-error': fieldErrors.email, 'has-custom': form.emailDomain === '직접입력' }"
           >
             <input
               v-model="form.emailLocal"
@@ -174,6 +196,13 @@ const join = async () => {
               @input="clearFieldError('email')"
             />
             <span class="email-at">@</span>
+            <input
+              v-if="form.emailDomain === '직접입력'"
+              v-model="form.customEmailDomain"
+              type="text"
+              placeholder="직접입력"
+              @input="clearFieldError('email')"
+            />
             <EmailDomainSelect
               v-model="form.emailDomain"
               :options="EMAIL_DOMAINS"
@@ -188,15 +217,32 @@ const join = async () => {
 
         <label class="field">
           <span>비밀번호</span>
-          <input
-            v-model="form.password"
-            type="password"
-            autocomplete="new-password"
-            :maxlength="PASSWORD_MAX_LENGTH"
-            :placeholder="`비밀번호 입력 (최대 ${PASSWORD_MAX_LENGTH}자)`"
-            :class="{ 'input-error': fieldErrors.password }"
-            @input="clearFieldError('password')"
-          />
+          <div class="password-wrapper">
+            <input
+              v-model="form.password"
+              :type="showPassword ? 'text' : 'password'"
+              autocomplete="new-password"
+              :maxlength="PASSWORD_MAX_LENGTH"
+              :placeholder="`비밀번호 입력 (${PASSWORD_MIN_LENGTH}~${PASSWORD_MAX_LENGTH}자)`"
+              :class="{ 'input-error': fieldErrors.password }"
+              @input="clearFieldError('password')"
+            />
+            <button
+              type="button"
+              class="toggle-password"
+              @click="togglePasswordVisibility"
+              :aria-label="showPassword ? '비밀번호 숨기기' : '비밀번호 표시'"
+            >
+              <svg v-if="!showPassword" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+              <svg v-else viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                <line x1="1" y1="1" x2="23" y2="23"></line>
+              </svg>
+            </button>
+          </div>
           <p v-if="fieldErrors.password" class="field-error">
             {{ fieldErrors.password }}
           </p>
@@ -333,10 +379,48 @@ const join = async () => {
   gap: 8px;
 }
 
+.email-input-row.has-custom {
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1.2fr) minmax(0, 0.85fr);
+}
+
 .email-at {
   color: #9a948a;
   font-size: 14px;
   font-weight: 700;
+}
+
+.password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-wrapper input {
+  padding-right: 42px;
+}
+
+/* Edge 브라우저 기본 눈 모양 아이콘 숨기기 */
+.password-wrapper input::-ms-reveal,
+.password-wrapper input::-ms-clear {
+  display: none;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 12px;
+  background: transparent;
+  border: none;
+  padding: 4px;
+  color: #a49e95;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease;
+}
+
+.toggle-password:hover {
+  color: #555;
 }
 
 .error-message,

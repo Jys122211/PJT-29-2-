@@ -21,38 +21,48 @@ const formatManwon = (value) => {
   const eok = Math.floor(man / 10000);
   const remainder = man % 10000;
   if (eok > 0) {
-    return remainder > 0 ? `${eok}억 ${remainder.toLocaleString('ko-KR')}만원` : `${eok}억원`;
+    return remainder > 0
+      ? `${eok}억 ${remainder.toLocaleString('ko-KR')}만원`
+      : `${eok}억원`;
   }
   return `${man.toLocaleString('ko-KR')}만원`;
 };
 
 const isLoanWinner = computed(() => comparison.value?.winner === 'LOAN');
-const isDepositWinner = computed(() => comparison.value?.winner === 'WITHDRAWAL');
+const isDepositWinner = computed(
+  () => comparison.value?.winner === 'WITHDRAWAL',
+);
 const isTie = computed(() => comparison.value?.winner === 'TIE');
 
 const loanTypeLabel = computed(() =>
-  comparison.value?.loan.type === 'CREDIT' ? '신용대출' : '전세자금대출'
+  comparison.value?.loan.type === 'CREDIT' ? '신용대출' : '전세자금대출',
 );
 
 // 배너 둘째 줄(결론)용 — 대출 승이면 종류명, 예금 승이면 고정 문구.
 const winnerTypeLabel = computed(() =>
-  isLoanWinner.value ? loanTypeLabel.value : '중도해지'
+  isLoanWinner.value ? loanTypeLabel.value : '중도해지',
 );
 
 // 배너 첫 줄(무엇을 비교했는지)용 — 실제 상품명. 동점은 승자가 없어 표시하지 않는다.
 const winnerProductName = computed(() =>
-  isLoanWinner.value ? comparison.value?.loan.name : comparison.value?.deposit.name
+  isLoanWinner.value
+    ? comparison.value?.loan.name
+    : comparison.value?.deposit.name,
 );
 
 const partialAllowedText = computed(() =>
-  comparison.value?.badges.isPartialAllowed ? '부분해지 가능' : '부분해지 불가'
+  comparison.value?.badges.isPartialAllowed ? '부분해지 가능' : '부분해지 불가',
 );
 const lumpSumText = computed(() =>
-  comparison.value?.badges.isLumpSum ? '예금 만기에 일시 상환' : '월 납입으로만 상환'
+  comparison.value?.badges.isLumpSum
+    ? '예금 만기에 일시 상환'
+    : '월 납입으로만 상환',
 );
 
 // 부분해지·상환방식은 사용자가 고른 조건, 이 배지는 계산의 전제라 줄을 나눈다.
-const urgentAmountBadgeText = computed(() => `${formatManwon(comparison.value?.urgentAmount)} 필요할때`);
+const urgentAmountBadgeText = computed(
+  () => `${formatManwon(comparison.value?.urgentAmount)} 필요할때`,
+);
 
 // 서버 메시지는 숫자 없이 고정 문구라 앞에 실제 차액/최저임금 금액을 붙여준다.
 const warningMessage = computed(() => {
@@ -61,9 +71,12 @@ const warningMessage = computed(() => {
   if (/\d/.test(w.message)) return w.message;
 
   const amountPrefix = `이 차액(${won(comparison.value.savingAmount)}원)은 최저임금 하루치(${won(
-    w.minimumWageDaily
+    w.minimumWageDaily,
   )}원)보다 적어요.`;
-  const rest = w.message.replace(/^이 차액은 최저임금 하루치보다 적어요\.\s*/, '');
+  const rest = w.message.replace(
+    /^이 차액은 최저임금 하루치보다 적어요\.\s*/,
+    '',
+  );
   return `${amountPrefix} ${rest}`.trim();
 });
 
@@ -75,16 +88,22 @@ const depositDetailOpen = ref(false);
 // finalBalance - withdrawalProfit = 예금 원금(둘 다 aFinalBalance에서 역산되는 값이라 항상 같다).
 const depositMaturityAmount = computed(() => {
   if (!comparison.value) return 0;
-  const principal = comparison.value.deposit.finalBalance - comparison.value.deposit.withdrawalProfit;
+  const principal =
+    comparison.value.deposit.finalBalance -
+    comparison.value.deposit.withdrawalProfit;
   return principal + comparison.value.deposit.maintainInterest;
 });
 
 const depositLoss = computed(() =>
-  comparison.value ? depositMaturityAmount.value - comparison.value.deposit.finalBalance : 0
+  comparison.value
+    ? depositMaturityAmount.value - comparison.value.deposit.finalBalance
+    : 0,
 );
 
 const loanLoss = computed(() =>
-  comparison.value ? depositMaturityAmount.value - comparison.value.loan.finalBalance : 0
+  comparison.value
+    ? depositMaturityAmount.value - comparison.value.loan.finalBalance
+    : 0,
 );
 
 const maxLoss = computed(() => Math.max(depositLoss.value, loanLoss.value));
@@ -147,11 +166,15 @@ const closeDoneModal = () => {
           aria-label="이전 화면으로 이동"
           @click="router.back()"
         >
-          ‹
+          <i class="fa-solid fa-chevron-left"></i>
         </button>
         <h1>득실 비교 결과</h1>
         <span class="header-hint">만기 기준</span>
-        <router-link to="/" class="header-home-link" aria-label="홈 화면으로 이동">
+        <router-link
+          to="/"
+          class="header-home-link"
+          aria-label="홈 화면으로 이동"
+        >
           <i class="fa-solid fa-house" aria-hidden="true"></i>
         </router-link>
       </header>
@@ -181,7 +204,10 @@ const closeDoneModal = () => {
 
       <!-- 3. 최저임금 경고 박스 -->
       <section v-if="comparison.warning.isBelowMinimumWage" class="warning-box">
-        <i class="fa-solid fa-triangle-exclamation warning-icon" aria-hidden="true"></i>
+        <i
+          class="fa-solid fa-triangle-exclamation warning-icon"
+          aria-hidden="true"
+        ></i>
         <p>{{ warningMessage }}</p>
       </section>
 
@@ -189,8 +215,14 @@ const closeDoneModal = () => {
       <section class="compare-grid">
         <div class="card compare-card" :class="{ winner: isDepositWinner }">
           <span v-if="isDepositWinner" class="winner-tag">추천</span>
-          <p class="compare-title">① 중도 또는 부분해지 <span class="info-icon">ⓘ</span></p>
-          <p v-if="comparison.deposit.name" class="compare-product" :title="comparison.deposit.name">
+          <p class="compare-title">
+            ① 중도 또는 부분해지 <span class="info-icon">ⓘ</span>
+          </p>
+          <p
+            v-if="comparison.deposit.name"
+            class="compare-product"
+            :title="comparison.deposit.name"
+          >
             {{ comparison.deposit.name }}
           </p>
           <p
@@ -200,7 +232,9 @@ const closeDoneModal = () => {
           >
             {{ toDisplayKbAccount(comparison.deposit.accountNumber) }}
           </p>
-          <p class="compare-amount">{{ won(comparison.deposit.finalBalance) }}원</p>
+          <p class="compare-amount">
+            {{ won(comparison.deposit.finalBalance) }}원
+          </p>
 
           <div class="compare-divider"></div>
 
@@ -216,11 +250,15 @@ const closeDoneModal = () => {
             <div v-show="depositDetailOpen" class="detail-table">
               <div class="detail-row">
                 <span>중도해지이율</span>
-                <span class="detail-value">연 {{ comparison.deposit.cancelInterestRate }}%</span>
+                <span class="detail-value"
+                  >연 {{ comparison.deposit.cancelInterestRate }}%</span
+                >
               </div>
               <div class="detail-row">
                 <span>해지수익</span>
-                <span class="detail-value strong">{{ won(comparison.deposit.withdrawalProfit) }}원</span>
+                <span class="detail-value strong"
+                  >{{ won(comparison.deposit.withdrawalProfit) }}원</span
+                >
               </div>
             </div>
           </div>
@@ -229,10 +267,16 @@ const closeDoneModal = () => {
         <div class="card compare-card" :class="{ winner: isLoanWinner }">
           <span v-if="isLoanWinner" class="winner-tag">추천</span>
           <p class="compare-title">② {{ loanTypeLabel }} · 예금 유지</p>
-          <p v-if="comparison.loan.name" class="compare-product" :title="comparison.loan.name">
+          <p
+            v-if="comparison.loan.name"
+            class="compare-product"
+            :title="comparison.loan.name"
+          >
             {{ comparison.loan.name }}
           </p>
-          <p class="compare-amount">{{ won(comparison.loan.finalBalance) }}원</p>
+          <p class="compare-amount">
+            {{ won(comparison.loan.finalBalance) }}원
+          </p>
 
           <div class="compare-divider"></div>
 
@@ -250,16 +294,23 @@ const closeDoneModal = () => {
                 <span>비용 (이자+수수료)</span>
                 <span class="detail-value">
                   {{ won(comparison.loan.cost) }}원
-                  <small>(이자 {{ won(comparison.loan.interest) }} + 수수료 {{ won(comparison.loan.penalty) }})</small>
+                  <small
+                    >(이자 {{ won(comparison.loan.interest) }} + 수수료
+                    {{ won(comparison.loan.penalty) }})</small
+                  >
                 </span>
               </div>
               <div class="detail-row">
                 <span>만기이자</span>
-                <span class="detail-value">{{ won(comparison.deposit.maintainInterest) }}원</span>
+                <span class="detail-value"
+                  >{{ won(comparison.deposit.maintainInterest) }}원</span
+                >
               </div>
               <div class="detail-row">
                 <span>총 이득</span>
-                <span class="detail-value strong">{{ won(comparison.loan.netProfit) }}원</span>
+                <span class="detail-value strong"
+                  >{{ won(comparison.loan.netProfit) }}원</span
+                >
               </div>
               <p v-if="comparison.loan.isRateEstimated" class="detail-note">
                 ※ 추정치이며 실제 심사금리와 다를 수 있습니다
@@ -309,14 +360,17 @@ const closeDoneModal = () => {
       <section class="card monthly-card">
         <div class="detail-row">
           <span>월 예상 상환액</span>
-          <span class="detail-value strong">{{ won(comparison.monthlyPayment) }}원</span>
+          <span class="detail-value strong"
+            >{{ won(comparison.monthlyPayment) }}원</span
+          >
         </div>
       </section>
 
       <!-- 7. 하단 안내 문구 -->
       <p class="footnote">
-        ※ 본 결과는 [득실]만의 계산기로 산출한 참고용 예상값이며, 실제 적용금리와 대출한도는
-        개인의 신용조건 및 금융기관 심사 결과에 따라 달라질 수 있습니다.
+        ※ 본 결과는 [득실]만의 계산기로 산출한 참고용 예상값이며, 실제
+        적용금리와 대출한도는 개인의 신용조건 및 금융기관 심사 결과에 따라
+        달라질 수 있습니다.
       </p>
 
       <!-- 8. 진행 버튼 -->
@@ -351,12 +405,21 @@ const closeDoneModal = () => {
       />
 
       <!-- 완료 안내 모달 -->
-      <div v-if="showDoneModal" class="done-overlay" @click.self="closeDoneModal">
+      <div
+        v-if="showDoneModal"
+        class="done-overlay"
+        @click.self="closeDoneModal"
+      >
         <section class="done-card">
-          <h2><i class="fa-solid fa-circle-check" aria-hidden="true"></i> 신청 완료</h2>
+          <h2>
+            <i class="fa-solid fa-circle-check" aria-hidden="true"></i> 신청
+            완료
+          </h2>
           <p>{{ actionLabel(doneAction) }}(으)로 진행합니다.</p>
           <div class="done-actions">
-            <button type="button" class="done-confirm" @click="closeDoneModal">확인</button>
+            <button type="button" class="done-confirm" @click="closeDoneModal">
+              확인
+            </button>
           </div>
         </section>
       </div>
@@ -435,18 +498,15 @@ button {
 }
 
 .back-button {
-  display: grid;
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  border: 1px solid var(--gs-line);
-  border-radius: 9px;
-  flex-shrink: 0;
-  font-size: 23px;
-  line-height: 1;
-  color: #716a62;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  flex: none;
+  border: 1.5px solid var(--kb-border);
+  border-radius: 12px;
   background: #fff;
-  place-items: center;
 }
 
 .page-header h1 {
