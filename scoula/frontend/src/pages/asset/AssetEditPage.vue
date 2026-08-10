@@ -186,7 +186,7 @@ function onAmountInput(event) {
 function onAccountInput(event) {
   const input = event.target;
   const digitsBeforeCaret = countDigitsBeforeCaret(input);
-  const digits = toCompactAccount(input.value).slice(0, 14);
+  const digits = toCompactAccount(input.value).slice(0, 16);
   form.accountNumber = digits;
   applyFormattedValue(input, toDisplayKbAccount(digits), digitsBeforeCaret);
   errors.accountNumber = '';
@@ -194,7 +194,7 @@ function onAccountInput(event) {
 
 function validateAccountNumber() {
   if (form.accountNumber !== '' && form.accountNumber.length !== 14) {
-    errors.accountNumber = 'KB 계좌번호 숫자 14자리를 입력해주세요';
+    errors.accountNumber = '계좌번호 숫자 14자리를 입력해주세요';
   }
 }
 
@@ -327,7 +327,7 @@ function validate() {
   });
 
   if (form.accountNumber !== '' && form.accountNumber.length !== 14) {
-    errors.accountNumber = 'KB 계좌번호 숫자 14자리를 입력해주세요';
+    errors.accountNumber = '계좌번호 숫자 14자리를 입력해주세요';
     ok = false;
   }
 
