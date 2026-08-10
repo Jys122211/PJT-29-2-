@@ -72,14 +72,6 @@ public class MemberController {
     }
 
     /**
-     * 회원 가입
-     */
-    @PostMapping("")
-    public ResponseEntity<MemberDTO> join(MemberJoinDTO member) {
-        return ResponseEntity.ok(service.join(member));
-    }
-
-    /**
      * 유저 아바타 이미지 조회
      */
     @GetMapping("/{email}/avatar")
