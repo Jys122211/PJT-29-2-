@@ -5,6 +5,7 @@ import { useAuthStore } from '@/stores/auth';
 import api from '@/api';
 import BottomNav from '@/components/mobile/BottomNav.vue';
 import ConfirmModal from '@/components/ConfirmModal.vue';
+import { useLogout } from '@/composables/useLogout';
 import { EMAIL_DOMAINS } from '@/constants/emailDomains';
 import EmailDomainSelect from '@/components/auth/EmailDomainSelect.vue';
 
@@ -18,7 +19,7 @@ onMounted(() => {
 // --- 상태 관리 ---
 const isEditingProfile = ref(false);
 const isEditingCreditScore = ref(false); // 신용점수 수정 모드 여부
-const isEditingMaxPayment = ref(false);  // 월 상환 금액 수정 모드 여부
+const isEditingMaxPayment = ref(false); // 월 상환 금액 수정 모드 여부
 
 const tempName = ref('');
 const form = reactive({
@@ -203,9 +204,7 @@ const saveProfile = async () => {
     }
 
     if (emailChanged) {
-      alert('이메일이 변경되어 로그아웃 됩니다. 변경된 이메일로 다시 로그인해 주세요.');
-      auth.logout();
-      router.push('/login');
+      showEmailChangeModal.value = true;
     } else {
       isEditingProfile.value = false;
     }
@@ -260,7 +259,9 @@ const cancelMaxPayment = () => {
 const saveMaxPayment = async () => {
   try {
     const actualAmount = Number(tempMaxPayment.value || 0);
-    await api.patch('/api/users/me/max-monthly-payment', { maxMonthlyPayment: actualAmount });
+    await api.patch('/api/users/me/max-monthly-payment', {
+      maxMonthlyPayment: actualAmount,
+    });
     auth.state.user.maxMonthlyPayment = actualAmount;
     isEditingMaxPayment.value = false;
   } catch (error) {
@@ -270,21 +271,15 @@ const saveMaxPayment = async () => {
 };
 
 // --- 로그아웃 및 기타 유틸 ---
-const showLogoutModal = ref(false);
+const { isConfirmLogout, requestLogout, cancelLogout, confirmLogout } =
+  useLogout();
 
-const handleLogoutClick = () => {
-  showLogoutModal.value = true;
-};
+const showEmailChangeModal = ref(false);
 
-const confirmLogout = () => {
-  showLogoutModal.value = false;
+const handleEmailChangeLogout = () => {
+  showEmailChangeModal.value = false;
   auth.logout();
-  alert('로그아웃 되었습니다.');
   router.push('/login');
-};
-
-const cancelLogout = () => {
-  showLogoutModal.value = false;
 };
 
 const formatKoreanAmount = (amount, emptyMessage = '금액을 입력해주세요') => {
@@ -410,7 +405,13 @@ const initialChar = computed(() => {
             <h5 class="fw-bold mb-1">내 신용점수</h5>
             <small class="text-muted">KCB에서 직접 조회 후 입력합니다</small>
           </div>
-          <button v-if="!isEditingCreditScore" class="btn btn-outline-warning edit-btn fw-bold rounded-pill px-3 py-1" @click="editCreditScore">수정</button>
+          <button
+            v-if="!isEditingCreditScore"
+            class="btn btn-outline-warning edit-btn fw-bold rounded-pill px-3 py-1"
+            @click="editCreditScore"
+          >
+            수정
+          </button>
         </div>
         
         <transition name="fade-slide" mode="out-in">
@@ -451,9 +452,17 @@ const initialChar = computed(() => {
         <div class="d-flex justify-content-between align-items-start mb-2">
           <div>
             <h5 class="fw-bold mb-1">월 상환 가능 금액</h5>
-            <small class="text-muted">매월 부담할 수 있는 최대 상환 금액입니다.</small>
+            <small class="text-muted"
+              >매월 부담할 수 있는 최대 상환 금액입니다.</small
+            >
           </div>
-          <button v-if="!isEditingMaxPayment" class="btn btn-outline-warning edit-btn fw-bold rounded-pill px-3 py-1" @click="editMaxPayment">수정</button>
+          <button
+            v-if="!isEditingMaxPayment"
+            class="btn btn-outline-warning edit-btn fw-bold rounded-pill px-3 py-1"
+            @click="editMaxPayment"
+          >
+            수정
+          </button>
         </div>
         
         <transition name="fade-slide" mode="out-in">
@@ -496,12 +505,15 @@ const initialChar = computed(() => {
     </div>
 
     <!-- Logout Button -->
-    <button class="btn logout-btn w-100 fw-bold py-3 mt-3 rounded-4" @click="handleLogoutClick">
+    <button
+      class="btn logout-btn w-100 fw-bold py-3 mt-3 rounded-4"
+      @click="requestLogout"
+    >
       로그아웃
     </button>
-    
+
     <ConfirmModal
-      :visible="showLogoutModal"
+      :visible="isConfirmLogout"
       title="로그아웃"
       message="정말 로그아웃 하시겠습니까?"
       cancel-text="취소"
@@ -509,14 +521,28 @@ const initialChar = computed(() => {
       @cancel="cancelLogout"
       @confirm="confirmLogout"
     />
-    
+
     <!-- Toast Message Placeholder (Based on UI image) -->
-    <div v-if="false" class="toast-overlay mt-3 py-3 text-center text-white rounded-3 fw-bold">
+    <div
+      v-if="false"
+      class="toast-overlay mt-3 py-3 text-center text-white rounded-3 fw-bold"
+    >
       로그아웃 되었습니다 &rarr; 01 로그인
     </div>
 
-    <BottomNav active="profile" />
+    <!-- Email Changed Modal -->
+    <ConfirmModal
+      :visible="showEmailChangeModal"
+      title="안내"
+      message="이메일이 변경되어 로그아웃 됩니다. 변경된 이메일로 다시 로그인해 주세요."
+      confirm-text="확인"
+      icon-class="fa-solid fa-circle-check"
+      :hide-cancel="true"
+      @confirm="handleEmailChangeLogout"
+      @cancel="handleEmailChangeLogout"
+    />
 
+    <BottomNav active="profile" />
   </main>
 </template>
 

@@ -33,6 +33,8 @@ public class ComparisonVO {
     // comparisons 컬럼이 아니다 — selectComparisonById가 user_deposits와 LEFT JOIN해서 채우거나
     // (GET), 서비스가 조회해둔 UserDepositVO에서 그대로 옮겨 담는다(POST). insertComparison에는 쓰지 않는다.
     private String depositAccountNumber;
+    // depositAccountNumber와 같은 패턴 — 적용금리 표시용, comparisons 컬럼 아님.
+    private BigDecimal depositAppliedRate;
     private Long depositMaintainInterest;
     private BigDecimal depositCancelInterestRate;
     private Long depositCancelInterest;
