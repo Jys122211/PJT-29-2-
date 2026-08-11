@@ -102,4 +102,42 @@ function move(tab) {
   color: #292725;
   background: #ffbc00;
 }
+.bottom-nav button {
+  transition:
+    color 0.14s ease,
+    transform 0.14s ease;
+}
+
+.dot {
+  transition:
+    background 0.14s ease,
+    color 0.14s ease,
+    transform 0.14s ease;
+}
+
+@media (hover: hover) {
+  .bottom-nav button:hover {
+    color: #292725;
+  }
+
+  .bottom-nav button:hover .dot {
+    transform: translateY(-2px);
+    color: #292725;
+    background: #ffe9a8;
+  }
+
+  .bottom-nav button.active:hover .dot {
+    background: #ffbc00;
+  }
+}
+
+.bottom-nav button:active .dot {
+  transform: scale(0.92);
+}
+
+.bottom-nav button:focus-visible {
+  outline: 2px solid #ffbc00;
+  outline-offset: -3px;
+  border-radius: 8px;
+}
 </style>
