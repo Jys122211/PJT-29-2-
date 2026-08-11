@@ -178,6 +178,12 @@ public class ProfitLossServiceImpl implements ProfitLossService {
         LoanProductRateVO bestProduct = null;
 
         for (Map.Entry<Long, List<LoanProductRateVO>> entry : ratesByProduct.entrySet()) {
+            // maxLoanLimit 게이트는 "전체 거절"만 판단한다 — 일부 상품만 한도 미달인 경우는
+            // 여기서 걸러야 최적 상품 선정에서 빠진다.
+            if (entry.getValue().get(0).getLoanLimit() < urgentAmount) {
+                continue;
+            }
+
             Map<Integer, BigDecimal> ratesByPeriod = entry.getValue().stream()
                     .collect(Collectors.toMap(LoanProductRateVO::getRatePeriodMonths,
                             rate -> resolveFinalRate(rate, totalDiscountRate)));
@@ -260,6 +266,12 @@ public class ProfitLossServiceImpl implements ProfitLossService {
         JeonseLoanProductVO bestProduct = null;
 
         for (Map.Entry<Long, List<JeonseLoanProductVO>> entry : ratesByProduct.entrySet()) {
+            // maxLoanLimit 게이트는 "전체 거절"만 판단한다 — 일부 상품만 한도 미달인 경우는
+            // 여기서 걸러야 최적 상품 선정에서 빠진다.
+            if (entry.getValue().get(0).getMaxLoanLimit() < urgentAmount) {
+                continue;
+            }
+
             List<JeonseLoanCalculator.RateOption> rateOptions = entry.getValue().stream()
                     .map(rate -> new JeonseLoanCalculator.RateOption(rate.getBaseRate(), rate.getSpreadRate()))
                     .toList();
