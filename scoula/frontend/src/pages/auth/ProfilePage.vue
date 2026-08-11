@@ -183,8 +183,8 @@ const saveProfile = async () => {
   } else if (form.emailDomain === '직접입력' && !domainPattern.test(form.customEmailDomain.trim())) {
     emailError.value = '올바른 도메인 형식을 입력해 주세요. (예: example.com)';
     hasError = true;
-  } else if (newEmail.length > 50) {
-    emailError.value = '이메일 주소는 최대 50자까지 입력할 수 있습니다.';
+  } else if (newEmail.length > 30) {
+    emailError.value = '이메일 주소는 최대 30자까지 입력할 수 있습니다.';
     hasError = true;
   }
 
@@ -327,7 +327,7 @@ const initialChar = computed(() => {
     <div class="card profile-card border-0 shadow-sm mb-4 rounded-4">
       <div class="card-body">
         <div class="d-flex justify-content-between align-items-start">
-          <div class="d-flex align-items-center flex-grow-1">
+          <div class="d-flex align-items-center flex-grow-1" style="min-width: 0;">
             <div class="avatar-circle me-3 fw-bold d-flex align-items-center justify-content-center flex-shrink-0">
               {{ initialChar }}
             </div>
@@ -344,7 +344,7 @@ const initialChar = computed(() => {
                 <div v-else key="edit" class="premium-edit-form w-100 mt-2">
                   <div class="field-group">
                     <label class="field-label">이름</label>
-                    <input type="text" class="premium-input" v-model="tempName" placeholder="이름 입력" />
+                    <input type="text" class="premium-input" v-model="tempName" placeholder="이름 입력" maxlength="15" />
                     <div v-if="nameError" class="field-error mt-1">{{ nameError }}</div>
                   </div>
                   
@@ -358,6 +358,7 @@ const initialChar = computed(() => {
                           inputmode="email"
                           autocomplete="off"
                           placeholder="아이디"
+                          maxlength="15"
                           class="premium-input flex-grow-1"
                           style="min-width: 0;"
                         />
@@ -375,6 +376,7 @@ const initialChar = computed(() => {
                         v-model="form.customEmailDomain"
                         type="text"
                         placeholder="이메일 도메인 입력"
+                        maxlength="14"
                         class="premium-input w-100"
                       />
                     </div>

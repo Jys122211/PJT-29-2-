@@ -86,8 +86,8 @@ const validateForm = () => {
     fieldErrors.email = '이메일 도메인을 입력해주세요.';
   } else if (form.emailDomain === '직접입력' && !domainPattern.test(form.customEmailDomain.trim())) {
     fieldErrors.email = '올바른 도메인 형식을 입력해 주세요. (예: example.com)';
-  } else if (email.value.length > 50) {
-    fieldErrors.email = '이메일 주소는 최대 50자까지 입력할 수 있습니다.';
+  } else if (email.value.length > 30) {
+    fieldErrors.email = '이메일 주소는 최대 30자까지 입력할 수 있습니다.';
   }
 
   if (!form.password) {
@@ -204,6 +204,7 @@ const login = async () => {
               inputmode="email"
               autocomplete="username"
               placeholder="아이디 입력"
+              maxlength="15"
               @input="clearFieldError('email')"
             />
             <span class="email-at">@</span>
@@ -212,6 +213,7 @@ const login = async () => {
               v-model="form.customEmailDomain"
               type="text"
               placeholder="직접입력"
+              maxlength="14"
               @input="clearFieldError('email')"
             />
             <EmailDomainSelect
