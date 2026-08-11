@@ -17,6 +17,9 @@ const step = ref(1);
 // 백엔드 PasswordResetServiceImpl의 CODE_EXPIRE_MINUTES와 같은 값이어야 한다.
 const CODE_EXPIRE_SECONDS = 180;
 
+// 재발송 최소 간격. 백엔드 RESEND_COOLDOWN_SECONDS와 같은 값이어야 한다.
+const RESEND_COOLDOWN_SECONDS = 30;
+
 // 백엔드 PasswordPolicy, 프론트 JoinPage.vue와 같은 값이어야 한다.
 const PASSWORD_MIN_LENGTH = 4;
 const PASSWORD_MAX_LENGTH = 16;
@@ -72,6 +75,10 @@ const resetToken = ref('');
 
 // 인증번호 남은 시간(초)과 setInterval 핸들
 const remainingSeconds = ref(0);
+
+// 재발송 버튼이 다시 눌릴 때까지 남은 초
+const resendCooldown = ref(0);
+
 let timerId = null;
 
 const stopTimer = () => {
@@ -85,9 +92,15 @@ const stopTimer = () => {
 const startTimer = () => {
   stopTimer();
   remainingSeconds.value = CODE_EXPIRE_SECONDS;
+  resendCooldown.value = RESEND_COOLDOWN_SECONDS;
 
   timerId = window.setInterval(() => {
     remainingSeconds.value -= 1;
+
+    // 재발송 대기 시간도 같은 인터벌에서 함께 줄인다.
+    if (resendCooldown.value > 0) {
+      resendCooldown.value -= 1;
+    }
 
     if (remainingSeconds.value <= 0) {
       stopTimer();
@@ -276,6 +289,11 @@ const verifyCode = async () => {
 
 /** 2단계 - 인증번호 다시 보내기 */
 const resendCode = async () => {
+  // 버튼이 잠겨 있어도 엔터나 스크립트로 호출될 수 있어 한 번 더 막는다.
+  if (resendCooldown.value > 0) {
+    return;
+  }
+
   fieldErrors.code = '';
   alertMessage.value = '';
   isSubmitting.value = true;
@@ -453,10 +471,14 @@ const submit = () => {
           <button
             class="resend-button"
             type="button"
-            :disabled="isSubmitting"
+            :disabled="isSubmitting || resendCooldown > 0"
             @click="resendCode"
           >
-            인증번호 다시 보내기
+            {{
+              resendCooldown > 0
+                ? `인증번호 다시 보내기 (${resendCooldown}초)`
+                : '인증번호 다시 보내기'
+            }}
           </button>
         </template>
 

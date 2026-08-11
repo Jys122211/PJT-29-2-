@@ -34,6 +34,10 @@ public class PasswordResetServiceImpl implements PasswordResetService {
     // 6자리 숫자는 100만 분의 1이라 시도 횟수를 막지 않으면 무차별 대입에 뚫린다.
     private static final int MAX_ATTEMPTS = 5;
 
+    // 재발송 최소 간격. 프론트 FindPasswordPage.vue의 RESEND_COOLDOWN_SECONDS와 같은 값이어야 한다.
+    // Gmail은 계정 하나당 하루 500통 제한이 있어, 연타로 한도를 소진하면 서비스 전체가 막힌다.
+    private static final int RESEND_COOLDOWN_SECONDS = 30;
+
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final PasswordResetCodeStore codeStore;
@@ -55,6 +59,17 @@ public class PasswordResetServiceImpl implements PasswordResetService {
         if (user == null) {
             throw new EmailNotFoundException();
         }
+
+        // 직전 발급 후 일정 시간이 지나야 다시 보낼 수 있다.
+        // 화면에서 버튼을 잠그지만, API를 직접 호출하는 경우를 대비해 서버에서도 확인한다.
+        codeStore.find(email).ifPresent(entry -> {
+            LocalDateTime issuedAt = entry.getCodeExpiresAt().minusMinutes(CODE_EXPIRE_MINUTES);
+            LocalDateTime canResendAt = issuedAt.plusSeconds(RESEND_COOLDOWN_SECONDS);
+            if (LocalDateTime.now().isBefore(canResendAt)) {
+                throw new InvalidPasswordResetException(
+                        "인증번호는 " + RESEND_COOLDOWN_SECONDS + "초 후에 다시 요청할 수 있습니다.");
+            }
+        });
 
         String code = generateCode();
 
