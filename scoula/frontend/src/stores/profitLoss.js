@@ -302,18 +302,23 @@ export const useProfitLossStore = defineStore('profitLoss', () => {
   const setDeposits = (deposits) => {
     state.deposits = Array.isArray(deposits) ? deposits : [];
 
-    // 만기 지난 예금은 목록에는 남지만 선택 대상이 아니다 — 이미 선택된 상태로 만기가
-    // 지나 목록을 다시 불러오면 선택을 풀어야 다음 단계에서 막히지 않는다.
-    const selectedDepositExists = state.deposits.some(
-      (deposit) => deposit.id === state.deposit.userDepositId && !deposit.expired,
+    const selected = state.deposits.find(
+      (deposit) => deposit.id === state.deposit.userDepositId,
     );
 
-    if (!selectedDepositExists) {
-      state.deposit.userDepositId = state.deposits[0]?.id ?? null;
+    // 선택된 예금이 목록에 없거나 만기가 지났으면 다시 고른다 — 목록 첫 번째를
+    // 무조건 잡으면 그게 만기 예금일 때 사용자가 고르지 않은 예금이 선택돼버린다.
+    if (!selected || selected.expired) {
+      state.deposit.userDepositId =
+        state.deposits.find((deposit) => !deposit.expired)?.id ?? null;
     }
   };
 
   const selectDeposit = (userDepositId) => {
+    const deposit = state.deposits.find((d) => d.id === userDepositId);
+    if (deposit?.expired) {
+      return;
+    }
     state.deposit.userDepositId = userDepositId;
   };
 
