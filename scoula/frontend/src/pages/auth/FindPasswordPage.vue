@@ -42,6 +42,16 @@ const alertMessage = ref('');
 // API 요청 중 중복 클릭을 막는다.
 const isSubmitting = ref(false);
 
+// 비밀번호 표시 여부를 관리한다. LoginPage.vue와 같은 방식이며 입력칸마다 따로 토글한다.
+const showPassword = reactive({
+  newPassword: false,
+  newPasswordConfirm: false,
+});
+
+const togglePasswordVisibility = (field) => {
+  showPassword[field] = !showPassword[field];
+};
+
 // 2단계에서 검증에 성공하면 받는 1회용 토큰. 3단계 요청에만 쓰고 저장하지 않는다.
 const resetToken = ref('');
 
@@ -382,15 +392,34 @@ const submit = () => {
         <template v-if="step === 3">
           <label class="field">
             <span>새 비밀번호</span>
-            <input
-              v-model="form.newPassword"
-              type="password"
-              autocomplete="new-password"
-              :maxlength="PASSWORD_MAX_LENGTH"
-              placeholder="새 비밀번호 입력"
-              :class="{ 'input-error': fieldErrors.newPassword }"
-              @input="clearFieldError('newPassword')"
-            />
+            <div class="password-wrapper">
+              <input
+                v-model="form.newPassword"
+                :type="showPassword.newPassword ? 'text' : 'password'"
+                autocomplete="new-password"
+                :maxlength="PASSWORD_MAX_LENGTH"
+                placeholder="새 비밀번호 입력"
+                :class="{ 'input-error': fieldErrors.newPassword }"
+                @input="clearFieldError('newPassword')"
+              />
+              <button
+                type="button"
+                class="toggle-password"
+                :aria-label="
+                  showPassword.newPassword ? '비밀번호 숨기기' : '비밀번호 표시'
+                "
+                @click="togglePasswordVisibility('newPassword')"
+              >
+                <svg v-if="!showPassword.newPassword" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+                <svg v-else viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                  <line x1="1" y1="1" x2="23" y2="23"></line>
+                </svg>
+              </button>
+            </div>
             <p v-if="fieldErrors.newPassword" class="field-error">
               <span
                 v-for="(line, index) in toLines(fieldErrors.newPassword)"
@@ -403,15 +432,36 @@ const submit = () => {
 
           <label class="field">
             <span>새 비밀번호 확인</span>
-            <input
-              v-model="form.newPasswordConfirm"
-              type="password"
-              autocomplete="new-password"
-              :maxlength="PASSWORD_MAX_LENGTH"
-              placeholder="새 비밀번호 다시 입력"
-              :class="{ 'input-error': fieldErrors.newPasswordConfirm }"
-              @input="clearFieldError('newPasswordConfirm')"
-            />
+            <div class="password-wrapper">
+              <input
+                v-model="form.newPasswordConfirm"
+                :type="showPassword.newPasswordConfirm ? 'text' : 'password'"
+                autocomplete="new-password"
+                :maxlength="PASSWORD_MAX_LENGTH"
+                placeholder="새 비밀번호 다시 입력"
+                :class="{ 'input-error': fieldErrors.newPasswordConfirm }"
+                @input="clearFieldError('newPasswordConfirm')"
+              />
+              <button
+                type="button"
+                class="toggle-password"
+                :aria-label="
+                  showPassword.newPasswordConfirm
+                    ? '비밀번호 숨기기'
+                    : '비밀번호 표시'
+                "
+                @click="togglePasswordVisibility('newPasswordConfirm')"
+              >
+                <svg v-if="!showPassword.newPasswordConfirm" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+                <svg v-else viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                  <line x1="1" y1="1" x2="23" y2="23"></line>
+                </svg>
+              </button>
+            </div>
             <p v-if="fieldErrors.newPasswordConfirm" class="field-error">
               {{ fieldErrors.newPasswordConfirm }}
             </p>
@@ -594,6 +644,41 @@ const submit = () => {
 
 .field input.input-error {
   border-color: #ef7772;
+}
+
+/* 비밀번호 표시 토글. LoginPage.vue와 동일한 스타일을 사용한다. */
+.password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-wrapper input {
+  padding-right: 42px;
+}
+
+/* 엣지·IE가 자체 눈 아이콘을 겹쳐 그리지 않게 막는다. */
+.password-wrapper input::-ms-reveal,
+.password-wrapper input::-ms-clear {
+  display: none;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 12px;
+  background: transparent;
+  border: none;
+  padding: 4px;
+  color: #a49e95;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease;
+}
+
+.toggle-password:hover {
+  color: #555;
 }
 
 .field-error {
