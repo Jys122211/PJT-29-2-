@@ -202,7 +202,7 @@ function onAccountBlur() {
   validateAccountNumber();
 }
 
-function formatKoreanAmount(amount, emptyMessage = '가입금액을 입력해주세요') {
+function formatKoreanAmount(amount, emptyMessage = '') {
   if (amount === null || amount === '' || Number(amount) === 0) {
     return emptyMessage;
   }
