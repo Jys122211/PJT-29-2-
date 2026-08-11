@@ -47,17 +47,16 @@ const PASSWORD_MAX_LENGTH = 16;
 
 // 사용자가 선택한 이메일 아이디와 도메인을 하나의 이메일 주소로 합친다.
 const email = computed(() => {
-  const domain = form.emailDomain === '직접입력' ? form.customEmailDomain.trim() : form.emailDomain;
+  const domain =
+    form.emailDomain === '직접입력'
+      ? form.customEmailDomain.trim()
+      : form.emailDomain;
   return `${form.emailLocal.trim()}@${domain}`;
 });
 
 // 필수값이 비어 있을 때 "다음" 버튼을 비활성 색상으로 표시한다.
 const isFormIncomplete = computed(() => {
-  return (
-    !form.name.trim() ||
-    !form.emailLocal.trim() ||
-    !form.password
-  );
+  return !form.name.trim() || !form.emailLocal.trim() || !form.password;
 });
 
 // 백엔드 호출 전에 필수값과 이메일 아이디 형식을 검사한다.
@@ -74,9 +73,15 @@ const validateForm = () => {
     fieldErrors.email = '이메일을 입력해 주세요.';
   } else if (!emailLocalPattern.test(form.emailLocal.trim())) {
     fieldErrors.email = '올바른 아이디 형식을 입력해 주세요.';
-  } else if (form.emailDomain === '직접입력' && !form.customEmailDomain.trim()) {
+  } else if (
+    form.emailDomain === '직접입력' &&
+    !form.customEmailDomain.trim()
+  ) {
     fieldErrors.email = '이메일 도메인을 입력해 주세요.';
-  } else if (form.emailDomain === '직접입력' && !domainPattern.test(form.customEmailDomain.trim())) {
+  } else if (
+    form.emailDomain === '직접입력' &&
+    !domainPattern.test(form.customEmailDomain.trim())
+  ) {
     fieldErrors.email = '올바른 도메인 형식을 입력해 주세요. (예: example.com)';
   } else if (email.value.length > 30) {
     fieldErrors.email = '이메일 주소는 최대 30자까지 입력할 수 있습니다.';
@@ -130,16 +135,20 @@ const join = async () => {
   } catch (error) {
     // 백엔드가 중복 이메일을 409로 응답하면 이메일 입력창 아래에 안내한다.
     if (error.response?.status === 409) {
-      fieldErrors.email =
-        '중복된 이메일이 존재합니다. 다시 입력해주세요.';
+      fieldErrors.email = '중복된 이메일이 존재합니다. 다시 입력해주세요.';
       return;
     }
 
     const responseData = error.response?.data;
-    if (typeof responseData === 'string' && responseData.trim().startsWith('<')) {
-      errorMessage.value = '서버와 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.';
+    if (
+      typeof responseData === 'string' &&
+      responseData.trim().startsWith('<')
+    ) {
+      errorMessage.value =
+        '서버와 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.';
     } else {
-      errorMessage.value = responseData || '회원가입 처리 중 오류가 발생했습니다.';
+      errorMessage.value =
+        responseData || '회원가입 처리 중 오류가 발생했습니다.';
     }
   } finally {
     isSubmitting.value = false;
@@ -186,7 +195,10 @@ const join = async () => {
           <span>이메일</span>
           <div
             class="email-input-row"
-            :class="{ 'has-error': fieldErrors.email, 'has-custom': form.emailDomain === '직접입력' }"
+            :class="{
+              'has-error': fieldErrors.email,
+              'has-custom': form.emailDomain === '직접입력',
+            }"
           >
             <input
               v-model="form.emailLocal"
@@ -236,12 +248,34 @@ const join = async () => {
               @click="togglePasswordVisibility"
               :aria-label="showPassword ? '비밀번호 숨기기' : '비밀번호 표시'"
             >
-              <svg v-if="!showPassword" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+              <svg
+                v-if="!showPassword"
+                viewBox="0 0 24 24"
+                width="20"
+                height="20"
+                stroke="currentColor"
+                stroke-width="2"
+                fill="none"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                 <circle cx="12" cy="12" r="3"></circle>
               </svg>
-              <svg v-else viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+              <svg
+                v-else
+                viewBox="0 0 24 24"
+                width="20"
+                height="20"
+                stroke="currentColor"
+                stroke-width="2"
+                fill="none"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+                ></path>
                 <line x1="1" y1="1" x2="23" y2="23"></line>
               </svg>
             </button>
