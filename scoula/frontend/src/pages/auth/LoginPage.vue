@@ -103,6 +103,20 @@ const clearFieldError = (field) => {
   loginError.value = null;
 };
 
+const handleEmailLocalInput = (event) => {
+  const filtered = event.target.value.replace(/[^a-zA-Z0-9]/g, '');
+  form.emailLocal = filtered;
+  event.target.value = filtered;
+  clearFieldError('email');
+};
+
+const handleCustomEmailDomainInput = (event) => {
+  const filtered = event.target.value.replace(/[^a-zA-Z0-9.]/g, '');
+  form.customEmailDomain = filtered;
+  event.target.value = filtered;
+  clearFieldError('email');
+};
+
 // 성공 안내를 사용자가 읽을 수 있도록 지정한 시간만큼 기다린다.
 const wait = (milliseconds) =>
   new Promise((resolve) => window.setTimeout(resolve, milliseconds));
@@ -205,7 +219,7 @@ const login = async () => {
               autocomplete="username"
               placeholder="아이디 입력"
               maxlength="15"
-              @input="clearFieldError('email')"
+              @input="handleEmailLocalInput"
             />
             <span class="email-at">@</span>
             <input
@@ -214,7 +228,7 @@ const login = async () => {
               type="text"
               placeholder="직접입력"
               maxlength="14"
-              @input="clearFieldError('email')"
+              @input="handleCustomEmailDomainInput"
             />
             <EmailDomainSelect
               v-model="form.emailDomain"
