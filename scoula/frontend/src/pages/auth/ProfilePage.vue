@@ -125,19 +125,22 @@ const emailLocalPattern = /^[^\s@]+$/;
 const domainPattern = /^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
 const handleNameInput = (event) => {
-  const filtered = event.target.value.replace(/[^a-zA-Z0-9ㄱ-ㅎㅏ-ㅣ가-힣]/g, '');
+  let filtered = event.target.value.replace(/[^a-zA-Z0-9ㄱ-ㅎㅏ-ㅣ가-힣]/g, '');
+  filtered = filtered.slice(0, 15);
   tempName.value = filtered;
   event.target.value = filtered;
 };
 
 const handleEmailLocalInput = (event) => {
-  const filtered = event.target.value.replace(/[^a-zA-Z0-9]/g, '');
+  let filtered = event.target.value.replace(/[^a-zA-Z0-9]/g, '');
+  filtered = filtered.slice(0, 15);
   form.emailLocal = filtered;
   event.target.value = filtered;
 };
 
 const handleCustomEmailDomainInput = (event) => {
-  const filtered = event.target.value.replace(/[^a-zA-Z0-9.]/g, '');
+  let filtered = event.target.value.replace(/[^a-zA-Z0-9.]/g, '');
+  filtered = filtered.slice(0, 14);
   form.customEmailDomain = filtered;
   event.target.value = filtered;
 };
