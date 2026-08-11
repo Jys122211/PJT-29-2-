@@ -104,6 +104,27 @@ const clearFieldError = (field) => {
   errorMessage.value = '';
 };
 
+const handleNameInput = (event) => {
+  const filtered = event.target.value.replace(/[^a-zA-Z0-9ㄱ-ㅎㅏ-ㅣ가-힣]/g, '');
+  form.name = filtered;
+  event.target.value = filtered;
+  clearFieldError('name');
+};
+
+const handleEmailLocalInput = (event) => {
+  const filtered = event.target.value.replace(/[^a-zA-Z0-9]/g, '');
+  form.emailLocal = filtered;
+  event.target.value = filtered;
+  clearFieldError('email');
+};
+
+const handleCustomEmailDomainInput = (event) => {
+  const filtered = event.target.value.replace(/[^a-zA-Z0-9.]/g, '');
+  form.customEmailDomain = filtered;
+  event.target.value = filtered;
+  clearFieldError('email');
+};
+
 /**
  * 회원가입 버튼 클릭 흐름
  * 1. 입력값 검증 → 2. users 저장 → 3. 자동 로그인 → 4. 가입 완료 화면 이동
@@ -184,7 +205,7 @@ const join = async () => {
             placeholder="이름 입력"
             maxlength="15"
             :class="{ 'input-error': fieldErrors.name }"
-            @input="clearFieldError('name')"
+            @input="handleNameInput"
           />
           <p v-if="fieldErrors.name" class="field-error">
             {{ fieldErrors.name }}
@@ -207,7 +228,7 @@ const join = async () => {
               autocomplete="off"
               placeholder="아이디 입력"
               maxlength="15"
-              @input="clearFieldError('email')"
+              @input="handleEmailLocalInput"
             />
             <span class="email-at">@</span>
             <input
@@ -216,7 +237,7 @@ const join = async () => {
               type="text"
               placeholder="직접입력"
               maxlength="14"
-              @input="clearFieldError('email')"
+              @input="handleCustomEmailDomainInput"
             />
             <EmailDomainSelect
               v-model="form.emailDomain"
