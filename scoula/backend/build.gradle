@@ -81,6 +81,13 @@ dependencies {
     implementation 'org.mybatis:mybatis:3.4.6'
     implementation 'org.mybatis:mybatis-spring:1.3.2'
 
+    // 메일 발송 - 비밀번호 찾기 인증번호 (Gmail SMTP)
+    implementation "org.springframework:spring-context-support:${springVersion}"
+    implementation 'com.sun.mail:javax.mail:1.6.2'
+    // JavaBeans Activation Framework. JDK 9부터 JDK에서 제외되어 별도로 추가해야 한다.
+    // JavaMailSenderImpl이 내부에서 javax.activation.FileTypeMap을 사용한다.
+    implementation 'com.sun.activation:javax.activation:1.2.0'
+
     // swagger
     implementation 'io.springfox:springfox-swagger2:2.9.2'
     implementation 'io.springfox:springfox-swagger-ui:2.9.2'

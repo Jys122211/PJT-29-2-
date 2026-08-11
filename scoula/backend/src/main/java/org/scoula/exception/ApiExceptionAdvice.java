@@ -2,7 +2,10 @@ package org.scoula.exception;
 
 import lombok.extern.log4j.Log4j2;
 import org.scoula.member.exception.DuplicateEmailException;
+import org.scoula.member.exception.EmailNotFoundException;
+import org.scoula.member.exception.InvalidPasswordResetException;
 import org.scoula.member.exception.InvalidSignupRequestException;
+import org.scoula.member.exception.MailSendFailedException;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,6 +33,34 @@ public class ApiExceptionAdvice {
     protected ResponseEntity<String> handleDuplicateEmail(DuplicateEmailException e) {
         return ResponseEntity
                 .status(HttpStatus.CONFLICT)
+                .header("Content-Type", "text/plain;charset=UTF-8")
+                .body(e.getMessage());
+    }
+
+    // 비밀번호 찾기에서 가입되지 않은 이메일이면 404를 반환한다.
+    @ExceptionHandler(EmailNotFoundException.class)
+    protected ResponseEntity<String> handleEmailNotFound(EmailNotFoundException e) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .header("Content-Type", "text/plain;charset=UTF-8")
+                .body(e.getMessage());
+    }
+
+    // 인증번호가 틀렸거나 만료된 경우, 새 비밀번호가 규칙에 맞지 않는 경우 400을 반환한다.
+    @ExceptionHandler(InvalidPasswordResetException.class)
+    protected ResponseEntity<String> handleInvalidPasswordReset(InvalidPasswordResetException e) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .header("Content-Type", "text/plain;charset=UTF-8")
+                .body(e.getMessage());
+    }
+
+    // SMTP 발송 실패는 사용자 잘못이 아니므로 500으로 처리한다.
+    @ExceptionHandler(MailSendFailedException.class)
+    protected ResponseEntity<String> handleMailSendFailed(MailSendFailedException e) {
+        log.error("메일 발송 실패", e);
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .header("Content-Type", "text/plain;charset=UTF-8")
                 .body(e.getMessage());
     }

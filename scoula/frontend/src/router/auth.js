@@ -13,6 +13,13 @@ export default [
     meta: { layout: 'blank' },
   },
   {
+    // 비밀번호 찾기는 로그인하지 못한 사용자가 쓰는 화면이라 인증을 요구하지 않는다.
+    path: '/password/find',
+    name: 'findPassword',
+    component: () => import('../pages/auth/FindPasswordPage.vue'),
+    meta: { layout: 'blank' },
+  },
+  {
     path: '/signup/complete',
     name: 'signupComplete',
     component: () => import('../pages/auth/SignupCompletePage.vue'),

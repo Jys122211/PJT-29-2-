@@ -17,15 +17,20 @@ const form = reactive({
   emailDomain: 'naver.com',
   customEmailDomain: '',
   password: '',
+  passwordConfirm: '',
 });
 
 // 중복 이메일 외의 서버 오류를 표시할 때 사용한다.
 const errorMessage = ref('');
 
-// 비밀번호 표시 여부를 관리한다.
-const showPassword = ref(false);
-const togglePasswordVisibility = () => {
-  showPassword.value = !showPassword.value;
+// 비밀번호 표시 여부를 관리한다. 입력칸마다 따로 토글한다.
+const showPassword = reactive({
+  password: false,
+  passwordConfirm: false,
+});
+
+const togglePasswordVisibility = (field) => {
+  showPassword[field] = !showPassword[field];
 };
 
 // 회원가입과 자동 로그인 요청이 진행 중인지 나타낸다.
@@ -36,6 +41,7 @@ const fieldErrors = reactive({
   name: '',
   email: '',
   password: '',
+  passwordConfirm: '',
 });
 
 const emailLocalPattern = /^[^\s@]+$/;
@@ -56,7 +62,12 @@ const email = computed(() => {
 
 // 필수값이 비어 있을 때 "다음" 버튼을 비활성 색상으로 표시한다.
 const isFormIncomplete = computed(() => {
-  return !form.name.trim() || !form.emailLocal.trim() || !form.password;
+  return (
+    !form.name.trim() ||
+    !form.emailLocal.trim() ||
+    !form.password ||
+    !form.passwordConfirm
+  );
 });
 
 // 백엔드 호출 전에 필수값과 이메일 아이디 형식을 검사한다.
@@ -64,6 +75,7 @@ const validateForm = () => {
   fieldErrors.name = '';
   fieldErrors.email = '';
   fieldErrors.password = '';
+  fieldErrors.passwordConfirm = '';
 
   if (!form.name.trim()) {
     fieldErrors.name = '이름을 입력해 주세요.';
@@ -95,7 +107,18 @@ const validateForm = () => {
     fieldErrors.password = `비밀번호는 최대 ${PASSWORD_MAX_LENGTH}자까지 입력할 수 있습니다.`;
   }
 
-  return !fieldErrors.name && !fieldErrors.email && !fieldErrors.password;
+  if (!form.passwordConfirm) {
+    fieldErrors.passwordConfirm = '비밀번호를 한 번 더 입력해 주세요.';
+  } else if (form.password !== form.passwordConfirm) {
+    fieldErrors.passwordConfirm = '비밀번호가 일치하지 않습니다.';
+  }
+
+  return (
+    !fieldErrors.name &&
+    !fieldErrors.email &&
+    !fieldErrors.password &&
+    !fieldErrors.passwordConfirm
+  );
 };
 
 // 사용자가 값을 다시 입력하면 해당 입력창의 이전 오류를 지운다.
@@ -256,7 +279,7 @@ const join = async () => {
           <div class="password-wrapper">
             <input
               v-model="form.password"
-              :type="showPassword ? 'text' : 'password'"
+              :type="showPassword.password ? 'text' : 'password'"
               autocomplete="new-password"
               :maxlength="PASSWORD_MAX_LENGTH"
               :placeholder="`비밀번호 입력 (${PASSWORD_MIN_LENGTH}~${PASSWORD_MAX_LENGTH}자)`"
@@ -266,11 +289,11 @@ const join = async () => {
             <button
               type="button"
               class="toggle-password"
-              @click="togglePasswordVisibility"
-              :aria-label="showPassword ? '비밀번호 숨기기' : '비밀번호 표시'"
+              @click="togglePasswordVisibility('password')"
+              :aria-label="showPassword.password ? '비밀번호 숨기기' : '비밀번호 표시'"
             >
               <svg
-                v-if="!showPassword"
+                v-if="!showPassword.password"
                 viewBox="0 0 24 24"
                 width="20"
                 height="20"
@@ -303,6 +326,39 @@ const join = async () => {
           </div>
           <p v-if="fieldErrors.password" class="field-error">
             {{ fieldErrors.password }}
+          </p>
+        </label>
+
+        <label class="field">
+          <span>비밀번호 확인</span>
+          <div class="password-wrapper">
+            <input
+              v-model="form.passwordConfirm"
+              :type="showPassword.passwordConfirm ? 'text' : 'password'"
+              autocomplete="new-password"
+              :maxlength="PASSWORD_MAX_LENGTH"
+              placeholder="비밀번호 다시 입력"
+              :class="{ 'input-error': fieldErrors.passwordConfirm }"
+              @input="clearFieldError('passwordConfirm')"
+            />
+            <button
+              type="button"
+              class="toggle-password"
+              @click="togglePasswordVisibility('passwordConfirm')"
+              :aria-label="showPassword.passwordConfirm ? '비밀번호 숨기기' : '비밀번호 표시'"
+            >
+              <svg v-if="!showPassword.passwordConfirm" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+              <svg v-else viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                <line x1="1" y1="1" x2="23" y2="23"></line>
+              </svg>
+            </button>
+          </div>
+          <p v-if="fieldErrors.passwordConfirm" class="field-error">
+            {{ fieldErrors.passwordConfirm }}
           </p>
         </label>
 
@@ -373,7 +429,7 @@ const join = async () => {
 
 .progress-bar {
   height: 4px;
-  margin: 30px 0 60px;
+  margin: 30px 0 40px;
   overflow: hidden;
   border-radius: 999px;
   background: #ece8df;
@@ -381,7 +437,7 @@ const join = async () => {
 
 .progress-bar span {
   display: block;
-  width: 50%;
+  width: 100%;
   height: 100%;
   background: #ffbd00;
 }
