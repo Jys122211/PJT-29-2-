@@ -34,6 +34,7 @@ const submitError = ref('');
 const showDeleteModal = ref(false);
 const deleting = ref(false);
 const showUpdateDone = ref(false);
+const showDeleteDone = ref(false);
 let doneTimer = null;
 
 const form = reactive({
@@ -391,7 +392,7 @@ async function submit() {
     });
 
     showUpdateDone.value = true;
-    doneTimer = setTimeout(goToList, 900);
+    doneTimer = setTimeout(goToList, 1000);
   } catch (error) {
     const { field, message } = extractApiError(error);
     if (field && field in errors) {
@@ -411,6 +412,7 @@ function goToList() {
     doneTimer = null;
   }
   showUpdateDone.value = false;
+  showDeleteDone.value = false;
   router.push({ name: 'assetList' });
 }
 
@@ -422,7 +424,8 @@ async function confirmDelete() {
   try {
     await depositApi.remove(userDepositId);
     showDeleteModal.value = false;
-    router.push({ name: 'assetList' });
+    showDeleteDone.value = true;
+    doneTimer = setTimeout(goToList, 1400);
   } catch (error) {
     showDeleteModal.value = false;
     submitError.value = extractApiError(error).message;
@@ -613,6 +616,25 @@ onUnmounted(() => {
           </svg>
         </div>
         <strong id="doneTitle">수정이 완료되었어요</strong>
+      </div>
+    </div>
+
+<!-- 삭제 완료 -->
+    <div v-if="showDeleteDone" class="modal-host">
+      <div class="dimmer" @click="goToList"></div>
+
+      <div
+        class="delete-modal"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="delDoneTitle"
+      >
+        <div class="check danger">
+          <svg viewBox="0 0 32 32" aria-hidden="true">
+            <path d="M8 17 l6 6 l11 -13" />
+          </svg>
+        </div>
+        <strong id="delDoneTitle">삭제가 완료되었어요</strong>
       </div>
     </div>
 
@@ -982,6 +1004,14 @@ onUnmounted(() => {
   stroke-dasharray: 26;
   stroke-dashoffset: 26;
   animation: check-draw 0.32s 0.16s ease-out forwards;
+}
+
+.check.danger {
+  background: var(--kb-red);
+}
+
+.check.danger path {
+  stroke: #fff;
 }
 
 @keyframes check-pop {
