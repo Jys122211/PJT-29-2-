@@ -2,6 +2,7 @@ package org.scoula.profitLoss.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.scoula.profitLoss.constant.DepositTimeConstants;
 import org.scoula.profitLoss.constant.MinimumWageConstants;
 import org.scoula.profitLoss.domain.UserDepositVO;
 import org.scoula.profitLoss.dto.ComparisonRequest;
@@ -37,7 +38,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ProfitLossServiceImpl implements ProfitLossService {
 
-    private static final ZoneId DEPOSIT_TIMEZONE = ZoneId.of("Asia/Seoul");
+    private static final ZoneId DEPOSIT_TIMEZONE = DepositTimeConstants.DEPOSIT_TIMEZONE;
     private static final String MINIMUM_WAGE_WARNING_MESSAGE =
             "이 차액은 최저임금 하루치보다 적어요. 인지세, 보증료, 서류발급비, 교통비 등 부대비용까지 따져보면 실질적인 이득은 적을 수 있어요.";
 
@@ -112,6 +113,12 @@ public class ProfitLossServiceImpl implements ProfitLossService {
         UserDepositVO deposit = mapper.selectUserDeposit(request.getDeposit().getUserDepositId(), userId);
         if (deposit == null) {
             throw new DepositNotFoundException("예금을 찾을 수 없거나 본인 소유가 아닙니다.");
+        }
+        // 만기 지난 예금은 중도해지할 대상이 없어 비교가 성립하지 않는다. 목록 화면은 선택을
+        // 막아두지만 API를 직접 호출하는 경로까지 막으려면 여기서도 확인해야 한다. 당일은
+        // isAfter가 false를 반환해 제외 대상에 포함된다 — 의도한 동작이다.
+        if (!deposit.getMaturityDate().isAfter(LocalDate.now(DEPOSIT_TIMEZONE))) {
+            throw new DepositNotFoundException("만기가 지난 예금은 비교할 수 없습니다.");
         }
 
         // domain/UserDepositVO에는 contractMonths 컬럼이 없어 join_date~maturity_date로 파생시킨다.
