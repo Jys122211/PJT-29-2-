@@ -353,7 +353,7 @@ const closeDoneModal = () => {
 
         <div class="chart-row">
           <div class="chart-row-label">
-            <span>신용대출</span>
+            <span>{{ loanTypeLabel }}</span>
             <strong>{{ won(loanLoss) }}원</strong>
           </div>
           <div class="chart-bar-track">
