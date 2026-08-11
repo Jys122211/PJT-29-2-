@@ -6,7 +6,11 @@ import org.scoula.deposit.dto.OcrDepositResponseDTO;
 import org.scoula.deposit.service.OcrService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.multipart.MultipartFile;
@@ -32,6 +36,9 @@ public class OcrController {
         } catch (ResourceAccessException e) {
             log.error("Gemini OCR 호출 시간 초과", e);
             return error(HttpStatus.GATEWAY_TIMEOUT, "OCR_TIMEOUT", "이미지 분석 시간이 초과되었습니다.");
+        } catch (HttpClientErrorException.TooManyRequests e) {
+            log.error("Gemini TooManyRequests: status={}", e.getStatusCode(), e);
+            return error(HttpStatus.TOO_MANY_REQUESTS, "OCR_TOO_MANY_REQUESTS", "단시간에 너무 많은 양의 OCR 서비스를 호출했습니다.");
         } catch (HttpStatusCodeException e) {
             log.error("Gemini OCR 호출 실패: status={}", e.getStatusCode(), e);
             return error(HttpStatus.BAD_GATEWAY, "OCR_PROVIDER_ERROR", "이미지 분석 서비스 호출에 실패했습니다.");

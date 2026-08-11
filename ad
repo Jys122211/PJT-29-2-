@@ -1,0 +1,174 @@
+ba68364 | Mon Aug 10 16:35:25 2026 | 다시 덮어야됌
+1888a5b | Mon Aug 10 16:32:23 2026 | 프로필쪽 글자 크기 수정
+8e4f457 | Mon Aug 10 16:31:30 2026 | Merge pull request #87 from Jys122211/fix/bug
+aa8b010 | Mon Aug 10 16:28:37 2026 | main과 merge
+60f7898 | Mon Aug 10 16:08:20 2026 | 내 정보 이메일 및 이름 수정 기능 추가
+4e92c40 | Mon Aug 10 16:01:27 2026 | Merge pull request #86 from Jys122211/feature/comparison-calculator
+a954fd4 | Mon Aug 10 15:59:08 2026 | 빌드 산출물 갱신
+458c8cb | Mon Aug 10 15:48:27 2026 | Merge branch 'main' of https://github.com/Jys122211/PJT-29-2- into feature/comparison-calculator
+c179c7e | Mon Aug 10 15:42:16 2026 | fix: 대출 상세 「총비용」 줄바꿈 정리, 내역을 값 아래 줄로 이동
+c4f65b8 | Mon Aug 10 15:26:27 2026 | feat: 결과 화면에 금액 라벨·금리 표시 추가, 중도해지이율 표시 정리
+c18b38e | Mon Aug 10 15:23:25 2026 | Merge pull request #85 from Jys122211/feature/comparison/input
+37cb268 | Mon Aug 10 15:22:53 2026 | 홈페이지 햄버거 로그아웃에 모달창 삽입
+f43e682 | Mon Aug 10 15:08:38 2026 | 빌드 파일
+da6aeea | Mon Aug 10 14:48:19 2026 | Merge pull request #84 from Jys122211/fix/bug
+41aaf5a | Mon Aug 10 14:47:13 2026 | 비밀번호 입력 수정 및 이메일 직접입력 버그 수정
+353f004 | Mon Aug 10 14:31:34 2026 | Merge pull request #83 from Jys122211/feature/home-dashboard
+008e361 | Mon Aug 10 14:30:02 2026 | Merge pull request #82 from Jys122211/feature/assetRegister
+4fd807a | Mon Aug 10 14:29:47 2026 | 홈대시보드 로고 2군데 수정
+96ce521 | Mon Aug 10 14:24:26 2026 | Merge branch 'main' into feature/assetRegister
+a70e471 | Mon Aug 10 14:21:04 2026 | 자산등록_프론트 수정_금리 제약조건 수정
+cbde7e7 | Mon Aug 10 14:20:44 2026 | 자산등록_백 수정_금리 제약조건 설정
+1100ed2 | Mon Aug 10 14:05:14 2026 | Merge pull request #81 from Jys122211/feature/assetRegister
+d2c1380 | Mon Aug 10 14:04:06 2026 | 자산등록_프론트 수정_ 2
+0d087c7 | Mon Aug 10 14:03:04 2026 | Merge pull request #80 from Jys122211/feature/assetRegister
+b67676d | Mon Aug 10 13:57:20 2026 | Merge branch 'main' into feature/assetRegister
+f5e29ed | Mon Aug 10 13:56:31 2026 | 자산등록_프론트 수정_예금등록 부분
+cd19ca2 | Mon Aug 10 13:44:15 2026 | Merge pull request #79 from Jys122211/feature/comparison/input
+85c187d | Mon Aug 10 13:42:12 2026 | 득실 비교 결과화면 백버튼 통일 수정
+767af3a | Mon Aug 10 13:36:12 2026 | Merge pull request #78 from Jys122211/feature/comparison/input
+0051087 | Mon Aug 10 13:35:19 2026 | 프론트엔드 로그인 안한 사용자가 없는 페이지 접근시, 개발자 모드에서 404 에러를 띄운후 로그인화면으로 push되는 현상, 로그인 화면으로 바로 push 되도록 수정
+6cf6dfc | Mon Aug 10 13:33:22 2026 | Merge remote-tracking branch 'origin/main' into feature/comparison/input
+9a2bac7 | Mon Aug 10 13:33:12 2026 | Merge pull request #76 from Jys122211/fix/bug
+c37aa25 | Mon Aug 10 13:26:28 2026 | 회원가입 직접입력 추가 및 이메일 중복 버그 수정
+744afc5 | Mon Aug 10 13:25:56 2026 | Merge remote-tracking branch 'origin/main' into feature/comparison/input
+3159a55 | Mon Aug 10 13:25:38 2026 | Merge pull request #75 from Jys122211/feature/assetRegister
+57249af | Mon Aug 10 13:24:06 2026 | Merge branch 'main' into feature/assetRegister
+541a911 | Mon Aug 10 13:23:16 2026 | 자산등록_프론트 수정_예금등록 제약조건
+2077059 | Mon Aug 10 13:02:31 2026 | Merge pull request #74 from Jys122211/feature/auth
+2e4da19 | Mon Aug 10 12:58:14 2026 | fix: 머지 충돌 마커 제거 및 POST /api/users 삭제 반영
+6823b91 | Mon Aug 10 12:55:21 2026 | Merge remote-tracking branch 'origin/main' into feature/auth
+b169432 | Mon Aug 10 11:25:59 2026 | refactor: 미사용 회원가입 엔드포인트 POST /api/users 제거
+b0780ba | Mon Aug 10 11:19:56 2026 | Merge remote-tracking branch 'origin/main' into feature/comparison/input
+5909b83 | Mon Aug 10 11:19:39 2026 | Merge pull request #72 from Jys122211/feature/assetRegister
+1c779cd | Mon Aug 10 11:03:56 2026 | 전세대출쪽 프론트엔드 라우터 가드 및 백엔드 비 로그인시에도 접근가능하는 현상 수정
+45d632d | Mon Aug 10 11:03:28 2026 | 자산등록_프론트 수정_계좌반호 암복호화
+9764a79 | Mon Aug 10 11:02:43 2026 | 자산등록_백 수정_계좌번호 암복호화
+8155510 | Mon Aug 10 10:47:29 2026 | Merge pull request #71 from Jys122211/feature/comparison-calculator
+621e9fc | Mon Aug 10 10:43:10 2026 | 빌드
+309d245 | Mon Aug 10 10:41:45 2026 | 결과 화면 완료 모달 및 계좌번호 포맷 적용
+17d1398 | Mon Aug 10 10:38:21 2026 | Merge branch 'main' of https://github.com/Jys122211/PJT-29-2- into feature/comparison-calculator
+3d3b6c4 | Mon Aug 10 10:38:13 2026 | fix: 결과 화면 머지 충돌 해결(완료 모달 + ConfirmModal 손실 경고)
+df09993 | Mon Aug 10 10:32:40 2026 | Merge pull request #70 from Jys122211/feature/auth
+5cfa46b | Mon Aug 10 10:23:44 2026 | feat: 회원가입 비밀번호 최대 16자 제한
+7ed82e8 | Mon Aug 10 10:12:49 2026 | fix: 득실 비교 불가를 400 에러가 아닌 200 정상 응답으로 처리
+82a6dca | Mon Aug 10 10:07:46 2026 | Merge pull request #69 from Jys122211/fix/bug
+441c4d9 | Mon Aug 10 10:04:14 2026 | 로그아웃 모달 대출비교 모달과 통일
+e75927e | Mon Aug 10 09:41:56 2026 | style: 완료 모달 확인 버튼을 KB 골드로 손실 경고와 구분
+52229a7 | Mon Aug 10 09:37:05 2026 | feat: 진행 완료 안내를 alert에서 모달로 변경
+41e05db | Mon Aug 10 09:35:01 2026 | Merge branch 'main' of https://github.com/Jys122211/PJT-29-2- into feature/comparison-calculator
+466005c | Mon Aug 10 09:34:35 2026 | Merge pull request #68 from Jys122211/feature/assetRegister
+473ca4b | Mon Aug 10 09:23:11 2026 | 자산등록_백 수정_3차 피드백 반영2
+ef6d039 | Mon Aug 10 09:19:25 2026 | Merge branch 'main' of https://github.com/Jys122211/PJT-29-2- into feature/comparison-calculator
+634acfc | Sun Aug 9 15:53:24 2026 | 자산등록_백 수정_3차 피드백 반영
+169f9ef | Sun Aug 9 15:52:37 2026 | 자산등록_프론트 수정_3차 피드백 반영
+bf8afbd | Fri Aug 7 17:14:37 2026 | fix: 결과 화면·이력 화면 계좌번호 표시를 다른 화면과 통일
+3ae2d76 | Fri Aug 7 17:00:52 2026 | Merge pull request #67 from Jys122211/feature/deleteSomePage
+5503770 | Fri Aug 7 16:52:29 2026 | 홈과 예금 리스트 날짜 통일화
+d48ada0 | Fri Aug 7 16:43:01 2026 | Merge branch 'main' of https://github.com/Jys122211/PJT-29-2- into feature/comparison-calculator
+f4cb62e | Fri Aug 7 16:37:01 2026 | 수정
+b67ca69 | Fri Aug 7 16:35:26 2026 | Merge pull request #66 from Jys122211/feature/deleteSomePage
+4dcdaad | Fri Aug 7 16:32:26 2026 | 쓸모없는 부분 지움
+38a7b5d | Fri Aug 7 13:26:10 2026 | Merge pull request #65 from Jys122211/feature/comparison/input
+dd65c04 | Fri Aug 7 13:25:39 2026 | 홈화면과 비교의 계좌 번호 출력 똑같이 수정
+e3ac4af | Fri Aug 7 11:21:26 2026 | 만기일, 가입일자 없는날자 deny 및 오늘이랑 비교하여 가입일자가 오늘 이후인 경우 알려주는 에러처리, 만기일도 마찬가지로 오늘보다 전인경우 알려주는 오류처리
+e8830bc | Fri Aug 7 11:05:09 2026 | Merge pull request #64 from Jys122211/feature/comparison-calculator
+40a0896 | Fri Aug 7 10:49:16 2026 | PWA 아이콘 및 manifest 추가
+9138d32 | Fri Aug 7 09:40:35 2026 | Merge branch 'main' of https://github.com/Jys122211/PJT-29-2- into feature/comparison-calculator
+c6e167e | Fri Aug 7 09:39:39 2026 | Merge pull request #63 from Jys122211/feature/comparison/input
+376ec5a | Fri Aug 7 09:38:56 2026 | 예금 삽입 날짜및 예금 편집 날짜 요소 한개 삭제시 커서가 뒤로 이동하는 오류 수정
+c295ad4 | Fri Aug 7 09:31:25 2026 | Merge pull request #62 from Jys122211/feature/comparison/input
+be5963d | Fri Aug 7 09:30:39 2026 | 전세, 신용대출 질문 많으면 자동 포커싱 되는 기능 개선
+53bb05f | Thu Aug 6 16:10:34 2026 | Merge branch 'main' of https://github.com/Jys122211/PJT-29-2- into feature/comparison-calculator
+a0a97cf | Thu Aug 6 16:10:12 2026 | 아이콘 수정
+60202a1 | Thu Aug 6 16:09:28 2026 | Merge pull request #61 from Jys122211/feature/comparison/input
+0a5bb6c | Thu Aug 6 16:09:12 2026 | 아이콘 추가 및 수정
+b1b88f3 | Thu Aug 6 16:08:21 2026 | 예금 편집, 예금 입력 부분 통일화
+ee79d85 | Thu Aug 6 15:19:25 2026 | Merge pull request #60 from Jys122211/feature/comparison/input
+d393402 | Thu Aug 6 15:17:58 2026 | Merge remote-tracking branch 'origin/main' into feature/comparison/input
+97b87fe | Thu Aug 6 15:17:42 2026 | Merge pull request #59 from Jys122211/feature/comparison-calculator
+d2e6992 | Thu Aug 6 15:17:23 2026 | 예금 리스트, 예금 edit 페이지 하이푼 6 - 2 - 6 으로 수정
+4d00713 | Thu Aug 6 14:56:48 2026 | Merge branch 'main' of https://github.com/Jys122211/PJT-29-2- into feature/comparison-calculator
+c8f9933 | Thu Aug 6 14:47:02 2026 | fix: 결과 화면 계산 조건 카드를 월 예상 상환액 카드로 되돌림
+6875578 | Thu Aug 6 14:40:54 2026 | 결과페이지 멘트 수정
+ebaab26 | Thu Aug 6 14:14:50 2026 | Merge pull request #58 from Jys122211/feature/comparison/input
+9c3df26 | Thu Aug 6 14:14:02 2026 | 홈화면 계좌번호 하이푼 수정
+5234dcc | Thu Aug 6 14:12:20 2026 | Merge pull request #57 from Jys122211/feature/comparison/input
+a693481 | Thu Aug 6 14:10:23 2026 | 예금 등록 부분 하이푼 수정
+3315951 | Thu Aug 6 13:30:16 2026 | Merge pull request #56 from Jys122211/refactor/codebase
+c009d53 | Thu Aug 6 13:28:20 2026 | 오류 수정
+7a3e037 | Thu Aug 6 13:23:31 2026 | 질문 양식 수정
+be2d687 | Thu Aug 6 13:14:12 2026 | Merge pull request #55 from Jys122211/feature/comparison/input
+0f72b11 | Thu Aug 6 13:13:31 2026 | 사용자 페이지 90만원 입력후 9를 7로 바꾸면 7월으로 입력되는 현상 수정
+c5ded59 | Thu Aug 6 11:49:32 2026 | jeonsepreferential.vue 충돌 해결 커밋2
+c350a47 | Thu Aug 6 11:46:38 2026 | jeonsepreferential.vue 충돌 해결 커밋
+e7b6f06 | Thu Aug 6 11:33:24 2026 | 용진님 데이터 베이스 업데이트 충돌 커밋
+64cc060 | Thu Aug 6 11:32:50 2026 | 용진님 데이터베이스 업데이트 머지전 커밋
+2928a1d | Thu Aug 6 11:32:01 2026 | Merge pull request #54 from Jys122211/refactor/codebase
+8ae85f0 | Thu Aug 6 11:30:17 2026 | Merge branch 'main' of https://github.com/Jys122211/PJT-29-2- into refactor/codebase
+c218101 | Thu Aug 6 11:29:39 2026 | Merge pull request #52 from Jys122211/feature/home-dashboard
+1bd1339 | Thu Aug 6 11:26:50 2026 | ProfitLossMapper.xml 중복 코드 수정
+2aa9cfe | Thu Aug 6 11:25:44 2026 | 전세대출 양식 신용대출과 통일
+3f7f01f | Thu Aug 6 10:25:49 2026 | Merge remote-tracking branch 'origin/main' into feature/comparison/input
+cddf941 | Thu Aug 6 10:25:31 2026 | 패치전 커밋
+0f57f25 | Thu Aug 6 10:22:09 2026 | Merge pull request #51 from Jys122211/feature/comparison-calculator
+261ed47 | Thu Aug 6 10:07:30 2026 | 결과페이지 배너 문장 수정
+2ae7016 | Thu Aug 6 09:46:29 2026 | fix: 결과 화면 배너 위계를 상품명 우선으로 재조정
+626adae | Thu Aug 6 09:44:18 2026 | Merge pull request #50 from Jys122211/feature/comparison/input
+5b69949 | Thu Aug 6 09:43:31 2026 | 신용대출 피드백 반영본
+17923e0 | Thu Aug 6 09:37:02 2026 | feat: 결과 화면 배너에 필요 금액 배지 추가
+57ee2ce | Thu Aug 6 09:16:44 2026 | xml 머지 커밋
+a55d9a2 | Thu Aug 6 09:15:17 2026 | 머지 커밋
+0952cd2 | Wed Aug 5 18:35:54 2026 | 신용대출 백버튼 모양 통일 및 사용자가 디폴트로 해야될부분 제시
+f09c2ec | Wed Aug 5 17:51:21 2026 | style: 결과 화면 배너 줄바꿈·타이포·여백·색상 변수 정리
+85dba38 | Wed Aug 5 17:27:42 2026 | feat: 결과 화면 배너 구조와 차트 기준을 손실 중심으로 변경
+78cc722 | Wed Aug 5 17:25:37 2026 | 패치 받기전 커밋
+5867862 | Wed Aug 5 17:24:47 2026 | 패치 받기전 커밋
+ffe4daa | Wed Aug 5 17:15:48 2026 | 문구 수정
+66c422c | Wed Aug 5 17:14:09 2026 | 만기 시에 문구 수정
+23ab548 | Wed Aug 5 17:02:56 2026 | fix: 결과 화면 줄바꿈·굵기·문구 조정
+aaeb2d8 | Wed Aug 5 16:50:03 2026 | merge 충돌 해결 커밋
+3f54550 | Wed Aug 5 16:48:26 2026 | 우대조건, 자격조건 쉽게 풀어쓰기 커밋
+1a1d265 | Wed Aug 5 16:47:42 2026 | Merge pull request #49 from Jys122211/refactor/codebase
+8e9ed69 | Wed Aug 5 16:46:45 2026 | feat: 결과 화면 배너·배지·계산 조건 카드를 강사 피드백에 맞춰 수정
+6eb0ae3 | Wed Aug 5 16:44:29 2026 | 기존 샘플 코드 삭제
+f5a8e43 | Wed Aug 5 16:32:42 2026 | Merge pull request #48 from Jys122211/feature/home-dashboard
+0076fce | Wed Aug 5 16:27:03 2026 | Merge pull request #47 from Jys122211/feature/style
+d172762 | Wed Aug 5 16:25:53 2026 | Merge remote-tracking branch 'origin/main' into feature/home-dashboard
+95ac721 | Wed Aug 5 16:25:43 2026 | 홈 수정 - 계좌번호 추가
+41af5fb | Wed Aug 5 16:24:09 2026 | 계좌번호 수정
+8626de0 | Wed Aug 5 16:14:12 2026 | 머지 충돌 해결
+f6dd533 | Wed Aug 5 16:10:09 2026 | 2026 0805 피드백 1차 반영
+c50eabc | Wed Aug 5 15:59:44 2026 | Merge branch 'main' of https://github.com/Jys122211/PJT-29-2- into feature/comparison-calculator
+680ea5c | Wed Aug 5 15:35:30 2026 | Merge branch 'main' of https://github.com/Jys122211/PJT-29-2-
+b4a7571 | Wed Aug 5 15:34:59 2026 | 버그 수정
+b70a9f9 | Wed Aug 5 15:27:52 2026 | Merge pull request #46 from Jys122211/feature/style
+fe16863 | Wed Aug 5 15:24:23 2026 | 대출 질문 문구 수정
+a7b22f3 | Wed Aug 5 15:15:09 2026 | fix: 결과 화면 비교 카드 내부 요소를 subgrid로 정렬
+76fc58f | Wed Aug 5 13:27:16 2026 | Merge branch 'main' of https://github.com/Jys122211/PJT-29-2- into feature/comparison-calculator
+5a22191 | Wed Aug 5 13:24:07 2026 | fix: 결과 화면 두 카드 금액 시작 위치 정렬
+c6c21ca | Wed Aug 5 13:17:14 2026 | fix: 결과 화면 비교 카드 상품명-계좌번호 사이 빈 줄 제거
+40c63a1 | Wed Aug 5 13:12:17 2026 | Merge remote-tracking branch 'origin/main' into feature/comparison/input
+febcaaf | Wed Aug 5 13:11:54 2026 | Merge pull request #45 from Jys122211/feature/assetRegister
+fa6b682 | Wed Aug 5 13:11:21 2026 | Delete scoula/frontend/src/pages/asset/IntroPage.vue
+6fe9e3e | Wed Aug 5 13:09:18 2026 | 자산등록_프론트 수정_3.4
+41da29e | Wed Aug 5 13:07:07 2026 | 자산등록_프론트 수정_3.3
+c36064a | Wed Aug 5 13:05:20 2026 | Merge branch 'main' of https://github.com/Jys122211/PJT-29-2- into feature/comparison-calculator
+e27101a | Wed Aug 5 11:59:49 2026 | feat: 예금 계좌번호를 결과 화면에 표시
+d1efddb | Wed Aug 5 11:42:04 2026 | 자산등록_프론트 수정_3.2
+0cbe84e | Wed Aug 5 11:28:01 2026 | 자산등록_프론트 수정_3.1
+6ce7b2b | Wed Aug 5 10:29:50 2026 | 자산등록_프론트 수정_3
+4fb1d75 | Wed Aug 5 10:28:27 2026 | 자산등록_백 수정_2
+bc087c3 | Tue Aug 4 16:49:47 2026 | 입력 부분 0 유지되게 설정
+257676f | Tue Aug 4 15:07:17 2026 | Merge remote-tracking branch 'origin/main' into feature/comparison/input
+67904fa | Tue Aug 4 15:07:13 2026 | delete database.sql
+43ce3d9 | Tue Aug 4 15:05:56 2026 | Merge pull request #43 from Jys122211/feature/comparison-calculator
+f29521c | Tue Aug 4 14:56:13 2026 | Merge branch 'main' of https://github.com/Jys122211/PJT-29-2- into feature/comparison-calculator
+fed851c | Tue Aug 4 14:35:46 2026 | fix: 최저임금 경고를 대출이 승리할 때만 표시
+15085cc | Tue Aug 4 14:35:39 2026 | fix: 만기목돈상환 시 예금 만기 전 조기완납 반영
+8bd7c69 | Tue Aug 4 14:14:29 2026 | Merge remote-tracking branch 'origin/main' into feature/comparison/input
+4a5edc8 | Tue Aug 4 14:14:14 2026 | Merge pull request #42 from Jys122211/feature/assetRegister
+ba49cc0 | Tue Aug 4 14:09:09 2026 | 자산등록_프론트 수정_2.2
+80febd7 | Tue Aug 4 13:43:54 2026 | Merge branch 'main' of https://github.com/Jys122211/PJT-29-2- into feature/comparison-calculator
+dd270b5 | Tue Aug 4 13:42:57 2026 | Merge pull request #41 from Jys122211/feature/auth
+d96a31d | Tue Aug 4 13:40:36 2026 | Merge branch 'main' of https://github.com/Jys122211/PJT-29-2- into feature/comparison-calculator
