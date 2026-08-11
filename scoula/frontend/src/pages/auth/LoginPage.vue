@@ -288,6 +288,8 @@ const login = async () => {
 
       <div class="login-links">
         <RouterLink to="/signup">회원가입</RouterLink>
+        <span class="link-divider" aria-hidden="true"></span>
+        <RouterLink to="/password/find">비밀번호 찾기</RouterLink>
       </div>
 
       <Transition name="success-toast">

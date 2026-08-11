@@ -17,15 +17,20 @@ const form = reactive({
   emailDomain: 'naver.com',
   customEmailDomain: '',
   password: '',
+  passwordConfirm: '',
 });
 
 // 중복 이메일 외의 서버 오류를 표시할 때 사용한다.
 const errorMessage = ref('');
 
-// 비밀번호 표시 여부를 관리한다.
-const showPassword = ref(false);
-const togglePasswordVisibility = () => {
-  showPassword.value = !showPassword.value;
+// 비밀번호 표시 여부를 관리한다. 입력칸마다 따로 토글한다.
+const showPassword = reactive({
+  password: false,
+  passwordConfirm: false,
+});
+
+const togglePasswordVisibility = (field) => {
+  showPassword[field] = !showPassword[field];
 };
 
 // 회원가입과 자동 로그인 요청이 진행 중인지 나타낸다.
@@ -36,6 +41,7 @@ const fieldErrors = reactive({
   name: '',
   email: '',
   password: '',
+  passwordConfirm: '',
 });
 
 const emailLocalPattern = /^[^\s@]+$/;
@@ -47,7 +53,10 @@ const PASSWORD_MAX_LENGTH = 16;
 
 // 사용자가 선택한 이메일 아이디와 도메인을 하나의 이메일 주소로 합친다.
 const email = computed(() => {
-  const domain = form.emailDomain === '직접입력' ? form.customEmailDomain.trim() : form.emailDomain;
+  const domain =
+    form.emailDomain === '직접입력'
+      ? form.customEmailDomain.trim()
+      : form.emailDomain;
   return `${form.emailLocal.trim()}@${domain}`;
 });
 
@@ -56,7 +65,8 @@ const isFormIncomplete = computed(() => {
   return (
     !form.name.trim() ||
     !form.emailLocal.trim() ||
-    !form.password
+    !form.password ||
+    !form.passwordConfirm
   );
 });
 
@@ -65,6 +75,7 @@ const validateForm = () => {
   fieldErrors.name = '';
   fieldErrors.email = '';
   fieldErrors.password = '';
+  fieldErrors.passwordConfirm = '';
 
   if (!form.name.trim()) {
     fieldErrors.name = '이름을 입력해 주세요.';
@@ -74,9 +85,15 @@ const validateForm = () => {
     fieldErrors.email = '이메일을 입력해 주세요.';
   } else if (!emailLocalPattern.test(form.emailLocal.trim())) {
     fieldErrors.email = '올바른 아이디 형식을 입력해 주세요.';
-  } else if (form.emailDomain === '직접입력' && !form.customEmailDomain.trim()) {
+  } else if (
+    form.emailDomain === '직접입력' &&
+    !form.customEmailDomain.trim()
+  ) {
     fieldErrors.email = '이메일 도메인을 입력해 주세요.';
-  } else if (form.emailDomain === '직접입력' && !domainPattern.test(form.customEmailDomain.trim())) {
+  } else if (
+    form.emailDomain === '직접입력' &&
+    !domainPattern.test(form.customEmailDomain.trim())
+  ) {
     fieldErrors.email = '올바른 도메인 형식을 입력해 주세요. (예: example.com)';
   } else if (email.value.length > 30) {
     fieldErrors.email = '이메일 주소는 최대 30자까지 입력할 수 있습니다.';
@@ -90,7 +107,18 @@ const validateForm = () => {
     fieldErrors.password = `비밀번호는 최대 ${PASSWORD_MAX_LENGTH}자까지 입력할 수 있습니다.`;
   }
 
-  return !fieldErrors.name && !fieldErrors.email && !fieldErrors.password;
+  if (!form.passwordConfirm) {
+    fieldErrors.passwordConfirm = '비밀번호를 한 번 더 입력해 주세요.';
+  } else if (form.password !== form.passwordConfirm) {
+    fieldErrors.passwordConfirm = '비밀번호가 일치하지 않습니다.';
+  }
+
+  return (
+    !fieldErrors.name &&
+    !fieldErrors.email &&
+    !fieldErrors.password &&
+    !fieldErrors.passwordConfirm
+  );
 };
 
 // 사용자가 값을 다시 입력하면 해당 입력창의 이전 오류를 지운다.
@@ -154,16 +182,20 @@ const join = async () => {
   } catch (error) {
     // 백엔드가 중복 이메일을 409로 응답하면 이메일 입력창 아래에 안내한다.
     if (error.response?.status === 409) {
-      fieldErrors.email =
-        '중복된 이메일이 존재합니다. 다시 입력해주세요.';
+      fieldErrors.email = '중복된 이메일이 존재합니다. 다시 입력해주세요.';
       return;
     }
 
     const responseData = error.response?.data;
-    if (typeof responseData === 'string' && responseData.trim().startsWith('<')) {
-      errorMessage.value = '서버와 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.';
+    if (
+      typeof responseData === 'string' &&
+      responseData.trim().startsWith('<')
+    ) {
+      errorMessage.value =
+        '서버와 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.';
     } else {
-      errorMessage.value = responseData || '회원가입 처리 중 오류가 발생했습니다.';
+      errorMessage.value =
+        responseData || '회원가입 처리 중 오류가 발생했습니다.';
     }
   } finally {
     isSubmitting.value = false;
@@ -210,7 +242,10 @@ const join = async () => {
           <span>이메일</span>
           <div
             class="email-input-row"
-            :class="{ 'has-error': fieldErrors.email, 'has-custom': form.emailDomain === '직접입력' }"
+            :class="{
+              'has-error': fieldErrors.email,
+              'has-custom': form.emailDomain === '직접입력',
+            }"
           >
             <input
               v-model="form.emailLocal"
@@ -247,7 +282,7 @@ const join = async () => {
           <div class="password-wrapper">
             <input
               v-model="form.password"
-              :type="showPassword ? 'text' : 'password'"
+              :type="showPassword.password ? 'text' : 'password'"
               autocomplete="new-password"
               :maxlength="PASSWORD_MAX_LENGTH"
               :placeholder="`비밀번호 입력 (${PASSWORD_MIN_LENGTH}~${PASSWORD_MAX_LENGTH}자)`"
@@ -257,10 +292,65 @@ const join = async () => {
             <button
               type="button"
               class="toggle-password"
-              @click="togglePasswordVisibility"
-              :aria-label="showPassword ? '비밀번호 숨기기' : '비밀번호 표시'"
+              @click="togglePasswordVisibility('password')"
+              :aria-label="showPassword.password ? '비밀번호 숨기기' : '비밀번호 표시'"
             >
-              <svg v-if="!showPassword" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+              <svg
+                v-if="!showPassword.password"
+                viewBox="0 0 24 24"
+                width="20"
+                height="20"
+                stroke="currentColor"
+                stroke-width="2"
+                fill="none"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+              <svg
+                v-else
+                viewBox="0 0 24 24"
+                width="20"
+                height="20"
+                stroke="currentColor"
+                stroke-width="2"
+                fill="none"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+                ></path>
+                <line x1="1" y1="1" x2="23" y2="23"></line>
+              </svg>
+            </button>
+          </div>
+          <p v-if="fieldErrors.password" class="field-error">
+            {{ fieldErrors.password }}
+          </p>
+        </label>
+
+        <label class="field">
+          <span>비밀번호 확인</span>
+          <div class="password-wrapper">
+            <input
+              v-model="form.passwordConfirm"
+              :type="showPassword.passwordConfirm ? 'text' : 'password'"
+              autocomplete="new-password"
+              :maxlength="PASSWORD_MAX_LENGTH"
+              placeholder="비밀번호 다시 입력"
+              :class="{ 'input-error': fieldErrors.passwordConfirm }"
+              @input="clearFieldError('passwordConfirm')"
+            />
+            <button
+              type="button"
+              class="toggle-password"
+              @click="togglePasswordVisibility('passwordConfirm')"
+              :aria-label="showPassword.passwordConfirm ? '비밀번호 숨기기' : '비밀번호 표시'"
+            >
+              <svg v-if="!showPassword.passwordConfirm" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                 <circle cx="12" cy="12" r="3"></circle>
               </svg>
@@ -270,8 +360,8 @@ const join = async () => {
               </svg>
             </button>
           </div>
-          <p v-if="fieldErrors.password" class="field-error">
-            {{ fieldErrors.password }}
+          <p v-if="fieldErrors.passwordConfirm" class="field-error">
+            {{ fieldErrors.passwordConfirm }}
           </p>
         </label>
 
@@ -342,7 +432,7 @@ const join = async () => {
 
 .progress-bar {
   height: 4px;
-  margin: 30px 0 60px;
+  margin: 30px 0 40px;
   overflow: hidden;
   border-radius: 999px;
   background: #ece8df;
@@ -350,7 +440,7 @@ const join = async () => {
 
 .progress-bar span {
   display: block;
-  width: 50%;
+  width: 100%;
   height: 100%;
   background: #ffbd00;
 }
