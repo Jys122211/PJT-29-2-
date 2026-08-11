@@ -124,6 +124,24 @@ const handleMaxPaymentInput = (event) => {
 const emailLocalPattern = /^[^\s@]+$/;
 const domainPattern = /^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
+const handleNameInput = (event) => {
+  const filtered = event.target.value.replace(/[^a-zA-Z0-9ㄱ-ㅎㅏ-ㅣ가-힣]/g, '');
+  tempName.value = filtered;
+  event.target.value = filtered;
+};
+
+const handleEmailLocalInput = (event) => {
+  const filtered = event.target.value.replace(/[^a-zA-Z0-9]/g, '');
+  form.emailLocal = filtered;
+  event.target.value = filtered;
+};
+
+const handleCustomEmailDomainInput = (event) => {
+  const filtered = event.target.value.replace(/[^a-zA-Z0-9.]/g, '');
+  form.customEmailDomain = filtered;
+  event.target.value = filtered;
+};
+
 const editProfile = () => {
   tempName.value = auth.name || '';
   
@@ -344,7 +362,7 @@ const initialChar = computed(() => {
                 <div v-else key="edit" class="premium-edit-form w-100 mt-2">
                   <div class="field-group">
                     <label class="field-label">이름</label>
-                    <input type="text" class="premium-input" v-model="tempName" placeholder="이름 입력" maxlength="15" />
+                    <input type="text" class="premium-input" v-model="tempName" @input="handleNameInput" placeholder="이름 입력" maxlength="15" />
                     <div v-if="nameError" class="field-error mt-1">{{ nameError }}</div>
                   </div>
                   
@@ -361,6 +379,7 @@ const initialChar = computed(() => {
                           maxlength="15"
                           class="premium-input flex-grow-1"
                           style="min-width: 0;"
+                          @input="handleEmailLocalInput"
                         />
                         <span class="email-at flex-shrink-0">@</span>
                         <EmailDomainSelect
@@ -378,6 +397,7 @@ const initialChar = computed(() => {
                         placeholder="이메일 도메인 입력"
                         maxlength="14"
                         class="premium-input w-100"
+                        @input="handleCustomEmailDomainInput"
                       />
                     </div>
                     <div v-if="emailError" class="field-error mt-1">{{ emailError }}</div>
