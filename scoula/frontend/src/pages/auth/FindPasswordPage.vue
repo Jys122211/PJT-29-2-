@@ -3,6 +3,8 @@ import { computed, onUnmounted, reactive, ref } from 'vue';
 import { RouterLink, useRouter } from 'vue-router';
 import authApi from '@/api/authApi';
 import deuksilLogo from '@/assets/images/deuksil-logo.png';
+import { EMAIL_DOMAINS } from '@/constants/emailDomains';
+import EmailDomainSelect from '@/components/auth/EmailDomainSelect.vue';
 
 const router = useRouter();
 
@@ -19,13 +21,26 @@ const CODE_EXPIRE_SECONDS = 180;
 const PASSWORD_MIN_LENGTH = 4;
 const PASSWORD_MAX_LENGTH = 16;
 
-const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// 로그인·회원가입 화면과 같은 규칙을 쓴다.
+const emailLocalPattern = /^[^\s@]+$/;
+const domainPattern = /^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
 const form = reactive({
-  email: '',
+  emailLocal: '',
+  emailDomain: 'naver.com',
+  customEmailDomain: '',
   code: '',
   newPassword: '',
   newPasswordConfirm: '',
+});
+
+// 아이디와 도메인을 하나의 이메일 주소로 합친다.
+const email = computed(() => {
+  const domain =
+    form.emailDomain === '직접입력'
+      ? form.customEmailDomain.trim()
+      : form.emailDomain;
+  return `${form.emailLocal.trim()}@${domain}`;
 });
 
 // 각 입력창 바로 아래에 표시할 오류이다.
@@ -109,7 +124,12 @@ const progressWidth = computed(() => `${(step.value / 3) * 100}%`);
 
 // 필수값이 비었으면 버튼을 비활성 색상으로 보여준다.
 const isFormIncomplete = computed(() => {
-  if (step.value === 1) return !form.email.trim();
+  if (step.value === 1) {
+    return (
+      !form.emailLocal.trim() ||
+      (form.emailDomain === '직접입력' && !form.customEmailDomain.trim())
+    );
+  }
   if (step.value === 2) return !form.code.trim();
   return !form.newPassword || !form.newPasswordConfirm;
 });
@@ -126,6 +146,21 @@ const submitLabel = computed(() => {
 const clearFieldError = (field) => {
   fieldErrors[field] = '';
   alertMessage.value = '';
+};
+
+// 로그인·회원가입 화면과 동일하게 허용 문자만 남긴다.
+const handleEmailLocalInput = (event) => {
+  const filtered = event.target.value.replace(/[^a-zA-Z0-9]/g, '');
+  form.emailLocal = filtered;
+  event.target.value = filtered;
+  clearFieldError('email');
+};
+
+const handleCustomEmailDomainInput = (event) => {
+  const filtered = event.target.value.replace(/[^a-zA-Z0-9.]/g, '');
+  form.customEmailDomain = filtered;
+  event.target.value = filtered;
+  clearFieldError('email');
 };
 
 // 인증번호 입력칸은 숫자만 받는다.
@@ -152,21 +187,30 @@ const requestCode = async () => {
   fieldErrors.email = '';
   alertMessage.value = '';
 
-  const email = form.email.trim();
-
-  if (!email) {
+  if (!form.emailLocal.trim()) {
     fieldErrors.email = '이메일을 입력해 주세요.';
     return;
   }
-  if (!emailPattern.test(email)) {
-    fieldErrors.email = '올바른 이메일 형식으로 입력해 주세요.';
+  if (!emailLocalPattern.test(form.emailLocal.trim())) {
+    fieldErrors.email = '올바른 아이디 형식을 입력해 주세요.';
+    return;
+  }
+  if (form.emailDomain === '직접입력' && !form.customEmailDomain.trim()) {
+    fieldErrors.email = '이메일 도메인을 입력해 주세요.';
+    return;
+  }
+  if (
+    form.emailDomain === '직접입력' &&
+    !domainPattern.test(form.customEmailDomain.trim())
+  ) {
+    fieldErrors.email = '올바른 도메인 형식을 입력해 주세요. (예: example.com)';
     return;
   }
 
   isSubmitting.value = true;
 
   try {
-    await authApi.sendPasswordResetCode(email);
+    await authApi.sendPasswordResetCode(email.value);
 
     form.code = '';
     fieldErrors.code = '';
@@ -215,7 +259,7 @@ const verifyCode = async () => {
   isSubmitting.value = true;
 
   try {
-    const data = await authApi.verifyPasswordResetCode(form.email.trim(), code);
+    const data = await authApi.verifyPasswordResetCode(email.value, code);
 
     resetToken.value = data.resetToken;
     stopTimer();
@@ -237,7 +281,7 @@ const resendCode = async () => {
   isSubmitting.value = true;
 
   try {
-    await authApi.sendPasswordResetCode(form.email.trim());
+    await authApi.sendPasswordResetCode(email.value);
 
     form.code = '';
     startTimer();
@@ -335,25 +379,53 @@ const submit = () => {
       </p>
 
       <form class="find-password-form" @submit.prevent="submit">
-        <!-- 1단계 : 이메일 입력 / 2단계 : 확인용으로 계속 노출 -->
-        <label v-if="step <= 2" class="field">
+        <!-- 1단계 : 이메일 입력. 로그인·회원가입 화면과 같은 아이디 + 도메인 선택 구조다. -->
+        <label v-if="step === 1" class="field">
           <span>이메일</span>
-          <input
-            v-model="form.email"
-            type="email"
-            inputmode="email"
-            autocomplete="username"
-            placeholder="이메일 입력"
-            :readonly="step === 2"
-            :class="{ 'input-error': fieldErrors.email }"
-            @input="clearFieldError('email')"
-          />
+          <div
+            class="email-input-row"
+            :class="{
+              'has-error': fieldErrors.email,
+              'has-custom': form.emailDomain === '직접입력',
+            }"
+          >
+            <input
+              v-model="form.emailLocal"
+              type="text"
+              inputmode="email"
+              autocomplete="username"
+              placeholder="아이디 입력"
+              maxlength="15"
+              @input="handleEmailLocalInput"
+            />
+            <span class="email-at">@</span>
+            <input
+              v-if="form.emailDomain === '직접입력'"
+              v-model="form.customEmailDomain"
+              type="text"
+              placeholder="직접입력"
+              maxlength="14"
+              @input="handleCustomEmailDomainInput"
+            />
+            <EmailDomainSelect
+              v-model="form.emailDomain"
+              :options="EMAIL_DOMAINS"
+              :invalid="Boolean(fieldErrors.email)"
+              @change="clearFieldError('email')"
+            />
+          </div>
           <p v-if="fieldErrors.email" class="field-error">
             {{ fieldErrors.email }}
           </p>
-          <p v-else-if="step === 1" class="field-hint">
+          <p v-else class="field-hint">
             입력한 이메일로 인증번호를 보내드립니다.
           </p>
+        </label>
+
+        <!-- 2단계 : 어느 주소로 보냈는지 확인만 할 수 있게 합친 주소를 보여준다. -->
+        <label v-if="step === 2" class="field">
+          <span>이메일</span>
+          <input type="text" :value="email" readonly />
         </label>
 
         <!-- 2단계 : 인증번호 입력 -->
@@ -644,6 +716,30 @@ const submit = () => {
 
 .field input.input-error {
   border-color: #ef7772;
+}
+
+/* 이메일 아이디 + @ + 도메인 선택. LoginPage.vue와 동일한 배치다. */
+.email-input-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1.15fr);
+  align-items: center;
+  gap: 8px;
+}
+
+/* 직접입력을 고르면 입력칸이 하나 늘어난다. */
+.email-input-row.has-custom {
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1.2fr) minmax(0, 0.85fr);
+}
+
+.email-input-row.has-error input,
+.email-input-row.has-error select {
+  border-color: #ef7772;
+}
+
+.email-at {
+  color: #9a948a;
+  font-size: 14px;
+  font-weight: 700;
 }
 
 /* 비밀번호 표시 토글. LoginPage.vue와 동일한 스타일을 사용한다. */
