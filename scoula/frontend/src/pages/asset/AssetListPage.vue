@@ -256,7 +256,7 @@ onMounted(load);
   display: grid;
   flex: 1;
   min-height: 0;
-  gap: 10px;
+  gap: 12px;
   align-content: start;
   overflow-y: auto;
   margin: 0;
@@ -284,8 +284,8 @@ onMounted(load);
   width: 100%;
   align-items: center;
   justify-content: space-between;
-  gap: 15px;
-  padding: 15px 17px;
+  gap: 18px;
+  padding: 19px 20px;
   border: 1.5px solid var(--kb-line);
   border-radius: 16px;
   font: inherit;
@@ -306,8 +306,10 @@ onMounted(load);
 
 @media (hover: hover) {
   .deposit-card:hover {
+    transform: translateY(-2px);
     border-color: var(--kb-yellow);
     background: #fffdf8;
+    box-shadow: 0 6px 16px rgba(214, 178, 74, 0.18);
   }
 }
 
@@ -329,21 +331,21 @@ onMounted(load);
   display: block;
   margin: 0 0 4px;
   overflow: hidden;
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 700;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .meta {
-  font-size: 12px;
+  font-size: 12.5px;
   color: var(--kb-muted);
 }
 
 .acct {
   display: block;
-  margin-top: 2px;
-  font-size: 11px;
+  margin-top: 4px;
+  font-size: 11.5px;
   letter-spacing: 0.3px;
   color: #b3aa99;
 }
@@ -390,8 +392,38 @@ onMounted(load);
   font: inherit;
   color: #fff;
   background: #26282b;
-  text-align: left;
+ text-align: left;
   cursor: pointer;
+  transition:
+    transform 0.14s ease,
+    background 0.14s ease,
+    box-shadow 0.14s ease;
+}
+
+.add-card:active {
+  transform: scale(0.98);
+  background: #1c1e21;
+}
+
+@media (hover: hover) {
+  .add-card:hover {
+    background: #303337;
+    box-shadow: 0 6px 16px rgba(38, 40, 43, 0.22);
+  }
+
+  .add-card:hover .ico {
+    transform: rotate(90deg);
+  }
+
+  .add-card:hover .chev {
+    transform: translateX(3px);
+    color: #d9d2c6;
+  }
+}
+
+.add-card:focus-visible {
+  outline: 2px solid var(--kb-yellow);
+  outline-offset: 2px;
 }
 
 .add-card .ico {
@@ -404,6 +436,7 @@ onMounted(load);
   font-size: 13px;
   color: #26282b;
   background: var(--kb-yellow);
+  transition: transform 0.18s ease;
 }
 
 .add-card .tx {
@@ -416,7 +449,12 @@ onMounted(load);
   flex: none;
   font-size: 12px;
   color: #8a8f94;
+  transition:
+    transform 0.14s ease,
+    color 0.14s ease;
 }
+
+
 
 @media (prefers-reduced-motion: reduce) {
   .deposit-card,
