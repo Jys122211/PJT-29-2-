@@ -163,14 +163,16 @@ const clearFieldError = (field) => {
 
 // 로그인·회원가입 화면과 동일하게 허용 문자만 남긴다.
 const handleEmailLocalInput = (event) => {
-  const filtered = event.target.value.replace(/[^a-zA-Z0-9]/g, '');
+  let filtered = event.target.value.replace(/[^a-zA-Z0-9]/g, '');
+  filtered = filtered.slice(0, 15);
   form.emailLocal = filtered;
   event.target.value = filtered;
   clearFieldError('email');
 };
 
 const handleCustomEmailDomainInput = (event) => {
-  const filtered = event.target.value.replace(/[^a-zA-Z0-9.]/g, '');
+  let filtered = event.target.value.replace(/[^a-zA-Z0-9.]/g, '');
+  filtered = filtered.slice(0, 14);
   form.customEmailDomain = filtered;
   event.target.value = filtered;
   clearFieldError('email');
