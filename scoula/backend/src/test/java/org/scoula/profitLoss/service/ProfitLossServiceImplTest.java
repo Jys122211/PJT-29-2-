@@ -302,6 +302,138 @@ class ProfitLossServiceImplTest {
         assertEquals(597_288L, response.getSavingAmount());
     }
 
+    // 한도 미달 상품은 목록에 남아 있어도 루프에서 continue로 제외돼야 한다 — maxLoanLimit
+    // 게이트는 "전체를 거절할지"만 판단할 뿐 개별 상품을 걸러내지 않는다.
+    @Test
+    void compareCredit_excludesUnderLimitProduct_evenIfCheaper() {
+        Long userId = 1L;
+
+        when(mapper.selectUserDeposit(10L, userId)).thenReturn(UserDepositVO.builder()
+                .userDepositId(10L).userId(userId).principalAmount(30_000_000L)
+                .appliedRate(new BigDecimal("3.2")).baseRate(new BigDecimal("2.4"))
+                .joinDate(LocalDate.now(SEOUL).minusMonths(1))
+                .maturityDate(LocalDate.now(SEOUL).minusMonths(1).plusMonths(12))
+                .build());
+
+        // 상품A(100): 한도 5천만·금리 4.81~5.71% / 상품B(200): 한도 500만(미달)·금리 1%(훨씬 저렴).
+        // 500만 한도 상품이 계산에 끼면 금리가 낮아 최적으로 뽑히므로, continue가 없으면 이 테스트가 실패한다.
+        List<LoanProductRateVO> loanRates = List.of(
+                loanRate(100L, "KB STAR 신용대출", 3, "4.81", 50_000_000L),
+                loanRate(100L, "KB STAR 신용대출", 6, "5.19", 50_000_000L),
+                loanRate(100L, "KB STAR 신용대출", 12, "5.71", 50_000_000L),
+                loanRate(200L, "KB 저금리 신용대출", 3, "1.00", 5_000_000L),
+                loanRate(200L, "KB 저금리 신용대출", 6, "1.00", 5_000_000L),
+                loanRate(200L, "KB 저금리 신용대출", 12, "1.00", 5_000_000L)
+        );
+        when(mapper.selectLoanProducts(List.of(100L, 200L), 3)).thenReturn(loanRates);
+
+        ComparisonRequest request = ComparisonRequest.builder()
+                .userFinancialInfo(ComparisonRequest.UserFinancialInfo.builder().monthlyPayment(900_000L).creditGrade(3).build())
+                .deposit(ComparisonRequest.DepositCondition.builder().userDepositId(10L).isPartialAllowed(true).build())
+                .loan(ComparisonRequest.LoanCondition.builder().loanProductId(List.of(100L, 200L)).loanType(LoanType.CREDIT).totalDiscountRate(BigDecimal.ZERO).build())
+                .comparisonCondition(ComparisonRequest.ComparisonCondition.builder().urgentAmount(10_000_000L).isLumpSum(true).build())
+                .build();
+
+        ComparisonResponse response = service.compare(userId, request);
+
+        assertEquals("KB STAR 신용대출", response.getLoan().getName());
+    }
+
+    // 둘 다 한도를 만족하면 기존 동작대로 총비용이 적은 상품이 선택돼야 한다.
+    @Test
+    void compareCredit_selectsLowestCostProduct_whenBothSatisfyLimit() {
+        Long userId = 1L;
+
+        when(mapper.selectUserDeposit(10L, userId)).thenReturn(UserDepositVO.builder()
+                .userDepositId(10L).userId(userId).principalAmount(30_000_000L)
+                .appliedRate(new BigDecimal("3.2")).baseRate(new BigDecimal("2.4"))
+                .joinDate(LocalDate.now(SEOUL).minusMonths(1))
+                .maturityDate(LocalDate.now(SEOUL).minusMonths(1).plusMonths(12))
+                .build());
+
+        List<LoanProductRateVO> loanRates = List.of(
+                loanRate(100L, "KB STAR 신용대출", 3, "4.81", 50_000_000L),
+                loanRate(100L, "KB STAR 신용대출", 6, "5.19", 50_000_000L),
+                loanRate(100L, "KB STAR 신용대출", 12, "5.71", 50_000_000L),
+                loanRate(200L, "KB 저금리 신용대출", 3, "1.00", 5_000_000L),
+                loanRate(200L, "KB 저금리 신용대출", 6, "1.00", 5_000_000L),
+                loanRate(200L, "KB 저금리 신용대출", 12, "1.00", 5_000_000L)
+        );
+        when(mapper.selectLoanProducts(List.of(100L, 200L), 3)).thenReturn(loanRates);
+
+        ComparisonRequest request = ComparisonRequest.builder()
+                .userFinancialInfo(ComparisonRequest.UserFinancialInfo.builder().monthlyPayment(900_000L).creditGrade(3).build())
+                .deposit(ComparisonRequest.DepositCondition.builder().userDepositId(10L).isPartialAllowed(true).build())
+                .loan(ComparisonRequest.LoanCondition.builder().loanProductId(List.of(100L, 200L)).loanType(LoanType.CREDIT).totalDiscountRate(BigDecimal.ZERO).build())
+                .comparisonCondition(ComparisonRequest.ComparisonCondition.builder().urgentAmount(3_000_000L).isLumpSum(true).build())
+                .build();
+
+        ComparisonResponse response = service.compare(userId, request);
+
+        assertEquals("KB 저금리 신용대출", response.getLoan().getName());
+    }
+
+    // 전세대출도 신용대출과 같은 continue 필터를 쓴다 — 한도 미달 상품 제외.
+    @Test
+    void compareJeonse_excludesUnderLimitProduct_evenIfCheaper() {
+        Long userId = 1L;
+
+        LocalDate joinDate = LocalDate.now(SEOUL).minusMonths(1);
+        when(mapper.selectUserDeposit(10L, userId)).thenReturn(UserDepositVO.builder()
+                .userDepositId(10L).userId(userId).productName("KB Star 정기예금")
+                .principalAmount(30_000_000L)
+                .appliedRate(new BigDecimal("3.2")).baseRate(new BigDecimal("2.4"))
+                .joinDate(joinDate).maturityDate(joinDate.plusMonths(12))
+                .build());
+
+        List<JeonseLoanProductVO> jeonseRates = List.of(
+                jeonseRate(200L, "KB 주택전세자금대출", "3.05", "2.16", 444_000_000L),
+                jeonseRate(300L, "KB 저금리 전세대출", "0.50", "0.50", 5_000_000L)
+        );
+        when(mapper.selectJeonseLoanProducts(List.of(200L, 300L))).thenReturn(jeonseRates);
+
+        ComparisonRequest request = ComparisonRequest.builder()
+                .userFinancialInfo(ComparisonRequest.UserFinancialInfo.builder().monthlyPayment(900_000L).creditGrade(3).build())
+                .deposit(ComparisonRequest.DepositCondition.builder().userDepositId(10L).isPartialAllowed(true).build())
+                .loan(ComparisonRequest.LoanCondition.builder().loanProductId(List.of(200L, 300L)).loanType(LoanType.JEONSE).totalDiscountRate(BigDecimal.ZERO).build())
+                .comparisonCondition(ComparisonRequest.ComparisonCondition.builder().urgentAmount(10_000_000L).isLumpSum(true).build())
+                .build();
+
+        ComparisonResponse response = service.compare(userId, request);
+
+        assertEquals("KB 주택전세자금대출", response.getLoan().getName());
+    }
+
+    @Test
+    void compareJeonse_selectsLowestCostProduct_whenBothSatisfyLimit() {
+        Long userId = 1L;
+
+        LocalDate joinDate = LocalDate.now(SEOUL).minusMonths(1);
+        when(mapper.selectUserDeposit(10L, userId)).thenReturn(UserDepositVO.builder()
+                .userDepositId(10L).userId(userId).productName("KB Star 정기예금")
+                .principalAmount(30_000_000L)
+                .appliedRate(new BigDecimal("3.2")).baseRate(new BigDecimal("2.4"))
+                .joinDate(joinDate).maturityDate(joinDate.plusMonths(12))
+                .build());
+
+        List<JeonseLoanProductVO> jeonseRates = List.of(
+                jeonseRate(200L, "KB 주택전세자금대출", "3.05", "2.16", 444_000_000L),
+                jeonseRate(300L, "KB 저금리 전세대출", "0.50", "0.50", 5_000_000L)
+        );
+        when(mapper.selectJeonseLoanProducts(List.of(200L, 300L))).thenReturn(jeonseRates);
+
+        ComparisonRequest request = ComparisonRequest.builder()
+                .userFinancialInfo(ComparisonRequest.UserFinancialInfo.builder().monthlyPayment(900_000L).creditGrade(3).build())
+                .deposit(ComparisonRequest.DepositCondition.builder().userDepositId(10L).isPartialAllowed(true).build())
+                .loan(ComparisonRequest.LoanCondition.builder().loanProductId(List.of(200L, 300L)).loanType(LoanType.JEONSE).totalDiscountRate(BigDecimal.ZERO).build())
+                .comparisonCondition(ComparisonRequest.ComparisonCondition.builder().urgentAmount(3_000_000L).isLumpSum(true).build())
+                .build();
+
+        ComparisonResponse response = service.compare(userId, request);
+
+        assertEquals("KB 저금리 전세대출", response.getLoan().getName());
+    }
+
     private static JeonseLoanProductVO jeonseRate(String baseRate, String spreadRate) {
         return JeonseLoanProductVO.builder()
                 .productId(200L)
@@ -313,6 +445,17 @@ class ProfitLossServiceImplTest {
                 .build();
     }
 
+    private static JeonseLoanProductVO jeonseRate(long productId, String productName, String baseRate, String spreadRate, long maxLoanLimit) {
+        return JeonseLoanProductVO.builder()
+                .productId(productId)
+                .productName(productName)
+                .rateType("신규COFIX6개월")
+                .baseRate(new BigDecimal(baseRate))
+                .spreadRate(new BigDecimal(spreadRate))
+                .maxLoanLimit(maxLoanLimit)
+                .build();
+    }
+
     private static LoanProductRateVO loanRate(int ratePeriodMonths, String baseRate) {
         return loanRate(ratePeriodMonths, baseRate, 50_000_000L);
     }
@@ -321,6 +464,17 @@ class ProfitLossServiceImplTest {
         return LoanProductRateVO.builder()
                 .loanProductId(100L)
                 .productName("KB STAR 신용대출")
+                .ratePeriodMonths(ratePeriodMonths)
+                .baseRate(new BigDecimal(baseRate))
+                .spreadRate(BigDecimal.ZERO)
+                .loanLimit(loanLimit)
+                .build();
+    }
+
+    private static LoanProductRateVO loanRate(long loanProductId, String productName, int ratePeriodMonths, String baseRate, long loanLimit) {
+        return LoanProductRateVO.builder()
+                .loanProductId(loanProductId)
+                .productName(productName)
                 .ratePeriodMonths(ratePeriodMonths)
                 .baseRate(new BigDecimal(baseRate))
                 .spreadRate(BigDecimal.ZERO)
