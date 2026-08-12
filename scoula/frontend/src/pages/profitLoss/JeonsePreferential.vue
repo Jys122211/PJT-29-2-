@@ -398,18 +398,15 @@ button {
   gap: 10px;
 }
 .back-button {
-  display: grid;
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  border: 1px solid var(--kb-border);
-  border-radius: 9px;
-  flex-shrink: 0;
-  font-size: 23px;
-  line-height: 1;
-  color: #716a62;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  flex: none;
+  border: 1.5px solid var(--kb-border);
+  border-radius: 12px;
   background: #fff;
-  place-items: center;
 }
 .page-header h1 {
   margin: 0;

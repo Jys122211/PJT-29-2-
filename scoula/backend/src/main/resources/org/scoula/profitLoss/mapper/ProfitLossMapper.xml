@@ -53,6 +53,14 @@
             </otherwise>
         </choose>
 
+        <!-- 판매종료된 상품은 후보에서 뺀다. JOIN 대신 IN 서브쿼리를 쓰는 이유는
+             아래 HAVING COUNT(DISTINCT ...) 가 행 수에 민감하기 때문이다. -->
+        AND c.loan_product_id IN (
+            SELECT loan_product_id
+            FROM credit_loan_products
+            WHERE is_deleted = 'N'
+        )
+
         GROUP BY c.loan_product_id
 
         HAVING COUNT(
@@ -101,6 +109,7 @@
             </choose>
 
         WHERE p.loan_product_id = #{loanProductId}
+          AND p.is_deleted = 'N'
 
         GROUP BY
             p.loan_product_id,
@@ -169,6 +178,7 @@
         JOIN credit_loan_products p
              ON p.loan_product_id = g.loan_product_id
         WHERE g.credit_grade = #{creditGrade}
+          AND p.is_deleted = 'N'
           AND g.loan_product_id IN
         <foreach collection="productIds" item="productId" open="(" separator="," close=")">
             #{productId}

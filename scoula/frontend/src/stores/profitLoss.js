@@ -16,12 +16,19 @@ const CREDIT_ELIGIBILITY_QUESTIONS = [
   },
   {
     id: 3,
+    type: 'QUALIFICATION',
+    text: 'KB 국민은행과 거래하는 STAR CLUB 베스트 등급 이상 고객이신가요?',
+    description:
+      'VVIP, VIP, 그랜드, 베스트 등급 고객은 KB국민은행과 거래하는 STAR CLUB 베스트 등급 이상 고객입니다.',
+  },
+  {
+    id: 'COMPARISON_CONDITION_1',
     type: 'COMPARISON_CONDITION',
     requestField: 'IS_PARTIAL_ALLOWED',
     text: '분할 인출이 가능하신가요? (계좌별 3회(해지 포함)이내 가능)',
   },
   {
-    id: 4,
+    id: 'COMPARISON_CONDITION_2',
     type: 'COMPARISON_CONDITION',
     requestField: 'IS_LUMP_SUM',
     text: '예금 만기 시에, 만기된 예금으로 대출을 상환하실 예정이신가요?',
