@@ -194,9 +194,11 @@ function onAccountInput(event) {
 }
 
 function validateAccountNumber() {
-  if (form.accountNumber !== '' && form.accountNumber.length !== 14) {
-    errors.accountNumber = '계좌번호 숫자 14자리를 입력해주세요';
-  }
+  if (
+    form.accountNumber !== '' &&
+    (form.accountNumber.length < 10 || form.accountNumber.length > 16)
+  ) {
+    errors.accountNumber = '계좌번호 숫자 10~16자리를 입력해주세요';
 }
 
 function onAccountBlur() {
@@ -253,7 +255,8 @@ const isComplete = computed(
     form.bankName.trim().length <= NAME_RULES.bankName.warn &&
     form.productName.trim() !== '' &&
     form.productName.trim().length <= NAME_RULES.productName.warn &&
-    form.accountNumber.length === 14 &&
+    form.accountNumber.length >= 10 &&
+    form.accountNumber.length <= 16 &&
     form.joinDate.length === 8 &&
     form.maturityDate.length === 8 &&
     form.principalAmount !== '' &&
@@ -327,9 +330,11 @@ function validate() {
     }
   });
 
-  if (form.accountNumber !== '' && form.accountNumber.length !== 14) {
-    errors.accountNumber = '계좌번호 숫자 14자리를 입력해주세요';
-    ok = false;
+  if (
+    form.accountNumber !== '' &&
+    (form.accountNumber.length < 10 || form.accountNumber.length > 16)
+  ) {
+    errors.accountNumber = '계좌번호 숫자 10~16자리를 입력해주세요';
   }
 
   if (form.principalAmount === '' || Number(form.principalAmount) <= 0) {
