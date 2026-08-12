@@ -207,6 +207,10 @@ async function continueToNextStep() {
             >
               <h3>{{ item.text }}</h3>
 
+              <div class="description" v-if="item.description">
+                {{ item.description }}
+              </div>
+
               <div class="answer-options">
                 <button
                   type="button"
@@ -259,6 +263,10 @@ async function continueToNextStep() {
               class="kb-card question-card"
             >
               <h3>{{ item.text }}</h3>
+
+              <div class="description" v-if="item.description">
+                {{ item.description }}
+              </div>
 
               <div class="answer-options">
                 <button
@@ -449,6 +457,19 @@ button {
   font-size: var(--kb-font-sm);
   font-weight: 700;
   line-height: 1.5;
+}
+
+/* CreditPreferential.vue 의 .description 과 같은 모양을 쓴다. */
+.description {
+  display: block;
+  margin: -3px 0 12px;
+  padding: 7px 9px;
+  border-radius: 7px;
+  font-size: 9px;
+  font-weight: 400;
+  line-height: 1.45;
+  color: #8d857b;
+  background: #f7f3ec;
 }
 
 .answer-options {
