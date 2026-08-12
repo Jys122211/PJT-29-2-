@@ -176,6 +176,52 @@ class ProfitLossServiceImplTest {
                 .createdAt(java.time.LocalDateTime.now(SEOUL));
     }
 
+    // 만기 지난 예금은 목록 화면의 disabled를 우회해 API를 직접 호출해도 막혀야 한다.
+    @Test
+    void compare_throwsDepositNotFound_whenDepositMaturityHasPassed() {
+        Long userId = 1L;
+
+        when(mapper.selectUserDeposit(10L, userId)).thenReturn(UserDepositVO.builder()
+                .userDepositId(10L).userId(userId).principalAmount(30_000_000L)
+                .appliedRate(new BigDecimal("3.2")).baseRate(new BigDecimal("2.4"))
+                .joinDate(LocalDate.now(SEOUL).minusMonths(13))
+                .maturityDate(LocalDate.now(SEOUL).minusDays(1))
+                .build());
+
+        ComparisonRequest request = ComparisonRequest.builder()
+                .userFinancialInfo(ComparisonRequest.UserFinancialInfo.builder().monthlyPayment(900_000L).creditGrade(3).build())
+                .deposit(ComparisonRequest.DepositCondition.builder().userDepositId(10L).isPartialAllowed(true).build())
+                .loan(ComparisonRequest.LoanCondition.builder().loanProductId(List.of(100L)).loanType(LoanType.CREDIT).totalDiscountRate(BigDecimal.ZERO).build())
+                .comparisonCondition(ComparisonRequest.ComparisonCondition.builder().urgentAmount(20_000_000L).isLumpSum(true).build())
+                .build();
+
+        org.junit.jupiter.api.Assertions.assertThrows(DepositNotFoundException.class,
+                () -> service.compare(userId, request));
+    }
+
+    // 만기 당일도 제외 대상이다 — isAfter가 당일을 false로 판정해 expired 취급돼야 한다.
+    @Test
+    void compare_throwsDepositNotFound_whenMaturityIsToday() {
+        Long userId = 1L;
+
+        when(mapper.selectUserDeposit(10L, userId)).thenReturn(UserDepositVO.builder()
+                .userDepositId(10L).userId(userId).principalAmount(30_000_000L)
+                .appliedRate(new BigDecimal("3.2")).baseRate(new BigDecimal("2.4"))
+                .joinDate(LocalDate.now(SEOUL).minusMonths(12))
+                .maturityDate(LocalDate.now(SEOUL))
+                .build());
+
+        ComparisonRequest request = ComparisonRequest.builder()
+                .userFinancialInfo(ComparisonRequest.UserFinancialInfo.builder().monthlyPayment(900_000L).creditGrade(3).build())
+                .deposit(ComparisonRequest.DepositCondition.builder().userDepositId(10L).isPartialAllowed(true).build())
+                .loan(ComparisonRequest.LoanCondition.builder().loanProductId(List.of(100L)).loanType(LoanType.CREDIT).totalDiscountRate(BigDecimal.ZERO).build())
+                .comparisonCondition(ComparisonRequest.ComparisonCondition.builder().urgentAmount(20_000_000L).isLumpSum(true).build())
+                .build();
+
+        org.junit.jupiter.api.Assertions.assertThrows(DepositNotFoundException.class,
+                () -> service.compare(userId, request));
+    }
+
     // 인터페이스 계약서 4장 EXCEED_LOAN_LIMIT: 조회된 모든 상품의 loanLimit보다 필요금액이 크면
     // 예외 대신 feasible=false 응답을 정상(200)으로 내린다 — 비교 불가는 서버 오류가 아니라 계산 결과다.
     @Test

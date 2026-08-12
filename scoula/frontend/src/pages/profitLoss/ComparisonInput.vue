@@ -410,7 +410,9 @@ onMounted(() => {
             :class="{
               selected:
                 profitLossStore.state.deposit.userDepositId === deposit.id,
+              expired: deposit.expired,
             }"
+            :disabled="deposit.expired"
             :aria-pressed="
               profitLossStore.state.deposit.userDepositId === deposit.id
             "
@@ -423,6 +425,8 @@ onMounted(() => {
                 {{ deposit.balance.toLocaleString('ko-KR') }}원 · 연
                 {{ deposit.interestRate }}% · {{ deposit.maturityText }}
               </small>
+
+              <small v-if="deposit.expired" class="expired-badge">만기 종료</small>
 
               <small class="account-number">
                 계좌번호 : {{ toDisplayKbAccount(deposit.accountNumber) || '-' }}
@@ -735,6 +739,16 @@ button {
 
 .deposit-card.selected {
   border: 2px solid var(--kb-yellow);
+}
+
+.deposit-card.expired {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.expired-badge {
+  margin-top: 2px;
+  color: var(--kb-muted);
 }
 
 .deposit-info {

@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.scoula.profitLoss.constant.DepositTimeConstants;
 import org.scoula.profitLoss.domain.UserDepositVO;
 import org.scoula.deposit.util.AccountCrypto;
 
@@ -26,6 +27,9 @@ public class UserDepositDTO {
     private BigDecimal baseRate;
     private Long balance;
     private String maturityText;
+    // 만기 당일은 제외 대상(expired=true) — isAfter가 당일을 false로 판정한다.
+    // 클라이언트 로컬 타임존으로 판단하면 자정 부근에서 어긋나므로 서버가 확정해 내려준다.
+    private Boolean expired;
 
     public static UserDepositDTO of(UserDepositVO vo) {
         return UserDepositDTO.builder()
@@ -39,6 +43,7 @@ public class UserDepositDTO {
                 .baseRate(vo.getBaseRate())
                 .balance(vo.getPrincipalAmount())
                 .maturityText(makeMaturityText(vo.getJoinDate()))
+                .expired(!vo.getMaturityDate().isAfter(LocalDate.now(DepositTimeConstants.DEPOSIT_TIMEZONE)))
                 .build();
     }
 
