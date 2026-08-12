@@ -131,4 +131,14 @@ public class MemberServiceImpl implements MemberService {
         return get(userId);
     }
 
+    /**
+     * 회원 탈퇴 (논리적 삭제)
+     * @param userId 유저 ID
+     */
+    @Transactional
+    @Override
+    public void delete(Long userId) {
+        mapper.deleteUser(userId);
+    }
+
 }

@@ -89,4 +89,9 @@
     <insert id="insertAuth">
         <!-- DB에 권한 테이블이 없으므로 빈 쿼리 또는 주석 처리 -->
     </insert>
+
+    <!-- 탈퇴 시 관련 데이터 삭제를 위한 쿼리들 -->
+    <update id="deleteUser">
+        UPDATE users SET is_deleted = 'Y', updated_at = now() WHERE user_id = #{userId}
+    </update>
 </mapper>

@@ -295,6 +295,27 @@ const saveMaxPayment = async () => {
 const { isConfirmLogout, requestLogout, cancelLogout, confirmLogout } =
   useLogout();
 
+const isConfirmDeleteAccount = ref(false);
+
+const requestDeleteAccount = () => {
+  isConfirmDeleteAccount.value = true;
+};
+
+const cancelDeleteAccount = () => {
+  isConfirmDeleteAccount.value = false;
+};
+
+const confirmDeleteAccount = async () => {
+  try {
+    await api.delete('/api/users/me');
+    isConfirmDeleteAccount.value = false;
+    auth.logout();
+    router.push('/login');
+  } catch (error) {
+    console.error('Failed to delete account', error);
+  }
+};
+
 const showEmailChangeModal = ref(false);
 
 const handleEmailChangeLogout = () => {
@@ -537,6 +558,17 @@ const initialChar = computed(() => {
       로그아웃
     </button>
 
+    <!-- Delete Account Button -->
+    <div class="text-center mt-3">
+      <button
+        class="btn btn-link text-muted text-decoration-underline"
+        style="font-size: 0.85rem;"
+        @click="requestDeleteAccount"
+      >
+        회원탈퇴
+      </button>
+    </div>
+
     <ConfirmModal
       :visible="isConfirmLogout"
       title="로그아웃"
@@ -545,6 +577,16 @@ const initialChar = computed(() => {
       confirm-text="로그아웃"
       @cancel="cancelLogout"
       @confirm="confirmLogout"
+    />
+
+    <ConfirmModal
+      :visible="isConfirmDeleteAccount"
+      title="회원 탈퇴"
+      message="정말로 탈퇴하시겠습니까?"
+      cancel-text="취소"
+      confirm-text="탈퇴"
+      @cancel="cancelDeleteAccount"
+      @confirm="confirmDeleteAccount"
     />
 
     <!-- Toast Message Placeholder (Based on UI image) -->
