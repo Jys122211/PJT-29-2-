@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.scoula.deposit.mapper.DepositHistoryMapper">
+
+    <!--
+        자바 객체를 실어 보내지 않고 user_deposits 를 그대로 SELECT 해서 넣는다.
+        서비스가 들고 있는 값이 최신인지 신경 쓸 필요가 없고,
+        account_number 도 암호문 상태로 자동 복사된다.
+    -->
+    <insert id="insertSnapshot">
+        INSERT INTO user_deposit_history (
+            deposit_global_id, user_deposit_id, user_id, bank_name, product_name,
+            account_number, join_date, maturity_date, applied_rate, base_rate,
+            principal_amount, is_deleted, created_at, created_by,
+            updated_at, updated_by, change_type, changed_at, changed_by
+        )
+        SELECT d.global_id,
+               d.user_deposit_id,
+               d.user_id,
+               d.bank_name,
+               d.product_name,
+               d.account_number,
+               d.join_date,
+               d.maturity_date,
+               d.applied_rate,
+               d.base_rate,
+               d.principal_amount,
+               d.is_deleted,
+               d.created_at,
+               d.created_by,
+               d.updated_at,
+               d.updated_by,
+               #{changeType},
+               NOW(3),
+               #{changedBy}
+        FROM user_deposits d
+        WHERE d.user_deposit_id = #{userDepositId}
+    </insert>
+
+    <select id="selectByDepositId"
+            resultType="org.scoula.deposit.domain.UserDepositHistoryVO">
+        SELECT *
+        FROM user_deposit_history
+        WHERE user_deposit_id = #{userDepositId}
+          AND user_id = #{userId}
+        ORDER BY history_id DESC
+    </select>
+</mapper>

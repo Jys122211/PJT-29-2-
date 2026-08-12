@@ -8,6 +8,8 @@ import org.scoula.deposit.dto.DepositListDTO;
 import org.scoula.deposit.dto.DepositRequestDTO;
 import org.scoula.deposit.exception.DepositNotFoundException;
 import org.scoula.deposit.mapper.DepositMapper;
+import org.scoula.deposit.mapper.DepositMapper;
+import org.scoula.deposit.mapper.DepositHistoryMapper;
 import org.scoula.deposit.util.LoginUser;
 import org.scoula.deposit.util.AccountCrypto;
 import org.springframework.stereotype.Service;
@@ -23,6 +25,7 @@ import java.util.stream.Collectors;
 public class DepositServiceImpl implements DepositService {
 
     private final DepositMapper mapper;
+    private final DepositHistoryMapper historyMapper;
 
     @Override
     public DepositListDTO getList() {
@@ -76,6 +79,10 @@ public class DepositServiceImpl implements DepositService {
         vo.setCreatedBy(userId);
 
         mapper.create(vo);
+
+        // INSERT 뒤에 기록한다 — 그 전에는 userDepositId 가 없다
+        historyMapper.insertSnapshot(vo.getUserDepositId(), "I", userId);
+
         log.info("예금 등록 완료 : userDepositId={}", vo.getUserDepositId());
 
         return vo.getUserDepositId();
@@ -94,6 +101,9 @@ public class DepositServiceImpl implements DepositService {
         vo.setUserId(userId);
         vo.setUpdatedBy(userId);
 
+        // 바뀌기 전 상태를 먼저 남긴다
+        historyMapper.insertSnapshot(userDepositId, "U", userId);
+
         // 0건이면 대상이 없거나 다른 사용자의 예금
         if (mapper.update(vo) == 0) {
             throw new DepositNotFoundException();
@@ -104,7 +114,12 @@ public class DepositServiceImpl implements DepositService {
     @Transactional
     @Override
     public void delete(Long userDepositId) {
-        if (mapper.softDelete(userDepositId, LoginUser.getUserId()) == 0) {
+        Long userId = LoginUser.getUserId();
+
+        // 지워지기 전 상태를 먼저 남긴다
+        historyMapper.insertSnapshot(userDepositId, "D", userId);
+
+        if (mapper.softDelete(userDepositId, userId) == 0) {
             throw new DepositNotFoundException();
         }
         log.info("예금 삭제 완료 : userDepositId={}", userDepositId);
