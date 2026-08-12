@@ -17,8 +17,10 @@ public final class LoanRateResolver {
     public static Resolution resolve(long loanAmount, long monthlyPayment, boolean isLumpSum,
                                       int depositRemainingMonths, long depositMaturityAmount,
                                       Map<Integer, BigDecimal> ratesByPeriod) {
-        int ratePeriod = selectInitialRatePeriod(loanAmount, monthlyPayment, isLumpSum,
-                depositRemainingMonths, depositMaturityAmount);
+        // rate_period는 대출 기간이 아니라 금리변동주기 — 짧을수록 금리가 싸므로 항상 가장
+        // 짧은 3개월부터 시작해 실제 상환개월을 담을 수 있는 최소 구간을 찾는다. 초기 구간을
+        // depositRemainingMonths 등으로 추정하면(조기 완납 시) 과대추정된 구간에 갇힌다.
+        int ratePeriod = 3;
 
         while (true) {
             BigDecimal rate = ratesByPeriod.get(ratePeriod);
@@ -42,38 +44,7 @@ public final class LoanRateResolver {
         }
     }
 
-    // STEP 3-1: 임시 상환개월(이자 무시) → STEP 3-2: rate_period 임시 선택
-    private static int selectInitialRatePeriod(long loanAmount, long monthlyPayment, boolean isLumpSum,
-                                                int depositRemainingMonths, long depositMaturityAmount) {
-        long tentativeMonths;
-        if (!isLumpSum) {
-            tentativeMonths = ceilDiv(loanAmount, monthlyPayment);
-        } else {
-            long remaining = loanAmount - depositMaturityAmount;
-            tentativeMonths = remaining <= 0 ? 0 : ceilDiv(remaining, monthlyPayment);
-            // 예금잔여기간보다 작으면(목돈만으로 만기 완납) → 예금잔여기간
-            if (tentativeMonths < depositRemainingMonths) {
-                tentativeMonths = depositRemainingMonths;
-            }
-        }
-        return toRatePeriod(tentativeMonths);
-    }
-
-    private static int toRatePeriod(long tentativeMonths) {
-        if (tentativeMonths <= 3) {
-            return 3;
-        }
-        if (tentativeMonths <= 6) {
-            return 6;
-        }
-        return 12;
-    }
-
     private static int nextRatePeriod(int ratePeriod) {
         return ratePeriod == 3 ? 6 : 12;
-    }
-
-    private static long ceilDiv(long numerator, long denominator) {
-        return (numerator + denominator - 1) / denominator;
     }
 }

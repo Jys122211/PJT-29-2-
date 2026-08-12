@@ -8,6 +8,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class LoanRateResolverTest {
 
@@ -43,6 +44,22 @@ class LoanRateResolverTest {
         assertEquals(1, resolution.repaymentMonths());
         assertEquals(19_180_167L, resolution.lumpSumPrincipal());
         assertFalse(resolution.convertedToMethod1());
+    }
+
+    // 회귀 방지: 예금잔여기간(7개월)으로 초기 구간을 추정하던 옛 로직은 12개월물에 갇혔다.
+    // 월 상환액이 커서 1개월 만에 완납되면, 가장 싼 3개월물로 확정돼야 한다.
+    @Test
+    @DisplayName("만기목돈 O · 예금잔여 7개월 · 월상환액 큼 → 1개월 완납, 3개월물 4.81% 확정")
+    void resolve_lumpSum_payoffWithinOneMonth_confirms3MonthPeriodDespiteSevenMonthRemaining() {
+        LoanRateResolver.Resolution resolution = LoanRateResolver.resolve(
+                5_000_000L, 50_000_000L, true, 7, 8_000_000L, RATES_BY_PERIOD);
+
+        assertEquals(3, resolution.ratePeriodMonths());
+        assertEquals(0, new BigDecimal("4.81").compareTo(resolution.loanRate()));
+        assertEquals(20_042L, resolution.loanInterest());
+        assertEquals(1, resolution.repaymentMonths());
+        assertEquals(0L, resolution.lumpSumPrincipal());
+        assertTrue(resolution.convertedToMethod1());
     }
 
     @Test
