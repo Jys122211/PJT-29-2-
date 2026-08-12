@@ -21,4 +21,6 @@ public interface MemberService {
 
     MemberDTO updateEmail(Long userId, String email);
 
+    void delete(Long userId);
+
 }

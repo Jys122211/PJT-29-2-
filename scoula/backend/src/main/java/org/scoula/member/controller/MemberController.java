@@ -94,4 +94,14 @@ public class MemberController {
         return ResponseEntity.ok(service.update(getAuthenticatedUserId(principal), member));
     }
 
+    /**
+     * 회원 탈퇴 (DELETE)
+     */
+    @DeleteMapping("/me")
+    public ResponseEntity<Void> deleteAccount(Principal principal) {
+        Long userId = getAuthenticatedUserId(principal);
+        service.delete(userId);
+        return ResponseEntity.ok().build();
+    }
+
 }

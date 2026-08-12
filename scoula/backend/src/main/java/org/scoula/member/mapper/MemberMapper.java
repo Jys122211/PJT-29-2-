@@ -23,4 +23,10 @@ public interface MemberMapper {
 
     int updateEmail(@Param("userId") Long userId, @Param("email") String email);
 
+    int deleteComparisons(Long userId);
+
+    int deleteUserDeposits(Long userId);
+
+    int deleteUser(Long userId);
+
 }
