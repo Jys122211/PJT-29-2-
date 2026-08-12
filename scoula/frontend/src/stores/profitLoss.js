@@ -17,7 +17,7 @@ const CREDIT_ELIGIBILITY_QUESTIONS = [
   {
     id: 3,
     type: 'QUALIFICATION',
-    text: '3, KB 국민은행과 거래하는 STAR CLUB 베스트 등급 이상 고객이신가요?',
+    text: 'KB 국민은행과 거래하는 STAR CLUB 베스트 등급 이상 고객이신가요?',
     description:
       'VVIP, VIP, 그랜드, 베스트 등급 고객은 KB국민은행과 거래하는 STAR CLUB 베스트 등급 이상 고객입니다.',
   },
