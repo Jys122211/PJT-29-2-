@@ -91,15 +91,7 @@
     </insert>
 
     <!-- 탈퇴 시 관련 데이터 삭제를 위한 쿼리들 -->
-    <delete id="deleteComparisons">
-        DELETE FROM comparisons WHERE user_id = #{userId}
-    </delete>
-
-    <delete id="deleteUserDeposits">
-        DELETE FROM user_deposits WHERE user_id = #{userId}
-    </delete>
-
-    <delete id="deleteUser">
-        DELETE FROM users WHERE user_id = #{userId}
-    </delete>
+    <update id="deleteUser">
+        UPDATE users SET is_deleted = 'Y', updated_at = now() WHERE user_id = #{userId}
+    </update>
 </mapper>

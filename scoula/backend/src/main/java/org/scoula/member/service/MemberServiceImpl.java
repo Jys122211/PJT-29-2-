@@ -132,14 +132,12 @@ public class MemberServiceImpl implements MemberService {
     }
 
     /**
-     * 회원 탈퇴 (관련 데이터 연쇄 삭제)
+     * 회원 탈퇴 (논리적 삭제)
      * @param userId 유저 ID
      */
     @Transactional
     @Override
     public void delete(Long userId) {
-        mapper.deleteComparisons(userId);
-        mapper.deleteUserDeposits(userId);
         mapper.deleteUser(userId);
     }
 
