@@ -200,7 +200,7 @@ function validateAccountNumber() {
   ) {
     errors.accountNumber = '계좌번호 숫자 10~16자리를 입력해주세요';
 }
-
+}
 function onAccountBlur() {
   validateAccountNumber();
 }
