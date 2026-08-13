@@ -191,7 +191,7 @@ export function toDisplayAccount(value) {
 export function toDisplayKbAccount(value) {
   if (value === null || value === undefined || value === '') return '';
 
-  const digits = toCompactAccount(value).slice(0, 16);
+  const digits = toCompactAccount(value).slice(0, 14);
 
   if (digits.length <= 6) return digits;
   if (digits.length <= 8) {

@@ -77,7 +77,7 @@ function onAccountInput(event) {
   const input = event.target;
   const previousValue = form.accountNumber;
   const digitsBeforeCaret = countDigitsBeforeCaret(input);
-  const digits = toCompactAccount(input.value).slice(0, 16);
+  const digits = toCompactAccount(input.value).slice(0, 14);
   form.accountNumber = digits;
   applyFormattedValue(input, toDisplayKbAccount(digits), digitsBeforeCaret);
   if (digits !== previousValue) {
@@ -87,11 +87,8 @@ function onAccountInput(event) {
 }
 
 function validateAccountNumber() {
-  if (
-    form.accountNumber !== '' &&
-    (form.accountNumber.length < 10 || form.accountNumber.length > 16)
-  ) {
-    errors.accountNumber = '계좌번호 숫자 10~16자리를 입력해주세요';
+  if (form.accountNumber !== '' && form.accountNumber.length !== 14) {
+    errors.accountNumber = 'KB 계좌번호 숫자 14자리를 입력해주세요';
   }
 }
 
@@ -298,8 +295,7 @@ const isComplete = computed(
     form.bankName.trim().length <= NAME_RULES.bankName.warn &&
     form.productName.trim() !== '' &&
     form.productName.trim().length <= NAME_RULES.productName.warn &&
-    form.accountNumber.length >= 10 &&
-    form.accountNumber.length <= 16 &&
+    form.accountNumber.length === 14 &&
     form.joinDate.length === 8 &&
     form.maturityDate.length === 8 &&
     form.principalAmount !== '' &&
@@ -368,7 +364,7 @@ function validate() {
   });
 
   if (form.accountNumber !== '' && form.accountNumber.length !== 14) {
-    errors.accountNumber = '계좌번호 숫자 14자리를 입력해주세요';
+    errors.accountNumber = 'KB 계좌번호 숫자 14자리를 입력해주세요';
     firstInvalid = firstInvalid ?? 'accountNumber';
   }
 
@@ -492,7 +488,7 @@ function applyExtracted(extracted = {}) {
   assign('productName', extracted.productName);
   assign(
     'accountNumber',
-    toCompactAccount(extracted.accountNumber).slice(0, 16),
+    toCompactAccount(extracted.accountNumber).slice(0, 14),
   );
   assign('joinDate', extracted.joinDate);
   assign('maturityDate', extracted.maturityDate);
