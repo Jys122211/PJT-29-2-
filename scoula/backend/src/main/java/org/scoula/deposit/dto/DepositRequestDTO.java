@@ -47,9 +47,9 @@ public class DepositRequestDTO {
         requireBankName(bankName);
         requireProductName(productName);
 
-        if (!accountNumber.trim().matches("\\d{10,16}")) {
-            throw new ValidationException("INVALID_ACCOUNT", "accountNumber",
-                    "계좌번호는 숫자 10~16자리로 입력해주세요");
+        if (!accountNumber.trim().matches("\\d{14}")) {
+            throw new ValidationException("INVALID_ACCOUNT_NUMBER", "accountNumber",
+                    "KB 계좌번호는 숫자 14자리로 입력해주세요");
         }
 
         if (principalAmount == null || principalAmount <= 0) {

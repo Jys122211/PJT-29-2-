@@ -187,7 +187,7 @@ function onAmountInput(event) {
 function onAccountInput(event) {
   const input = event.target;
   const digitsBeforeCaret = countDigitsBeforeCaret(input);
-  const digits = toCompactAccount(input.value).slice(0, 16);
+  const digits = toCompactAccount(input.value).slice(0, 14);
   form.accountNumber = digits;
   applyFormattedValue(input, toDisplayKbAccount(digits), digitsBeforeCaret);
   errors.accountNumber = '';
@@ -195,10 +195,9 @@ function onAccountInput(event) {
 
 function validateAccountNumber() {
   if (form.accountNumber !== '' && form.accountNumber.length !== 14) {
-    errors.accountNumber = '계좌번호 숫자 14자리를 입력해주세요';
+    errors.accountNumber = 'KB 계좌번호 숫자 14자리를 입력해주세요';
   }
 }
-
 function onAccountBlur() {
   validateAccountNumber();
 }
@@ -328,7 +327,7 @@ function validate() {
   });
 
   if (form.accountNumber !== '' && form.accountNumber.length !== 14) {
-    errors.accountNumber = '계좌번호 숫자 14자리를 입력해주세요';
+    errors.accountNumber = 'KB 계좌번호 숫자 14자리를 입력해주세요';
     ok = false;
   }
 
@@ -468,6 +467,13 @@ onUnmounted(() => {
     <template v-else>
       <h2 class="sec-label">직접 입력</h2>
 
+<p class="kb-notice">
+        <i class="fa-solid fa-circle-info"></i>
+        <span>
+          현재 <strong>KB국민은행 예금 상품</strong>만 등록할 수 있어요<br />
+        계좌번호는 숫자 14자리로 입력해주세요
+        </span>
+      </p>
       <form class="form-card" @submit.prevent="submit">
         <div class="form-row">
           <input class="fld" value="정기예금" disabled aria-label="상품 유형" />
@@ -488,7 +494,7 @@ onUnmounted(() => {
             class="fld"
             :class="fieldClass('productName')"
             :value="form.productName"
-            placeholder="상품명"
+            placeholder="KB 예금 상품명"
             aria-label="상품명"
             maxlength="25"
             @input="onTextInput('productName', $event)"
@@ -501,7 +507,7 @@ onUnmounted(() => {
             class="fld"
             :class="fieldClass('accountNumber')"
             :value="toDisplayKbAccount(form.accountNumber)"
-            placeholder="계좌번호"
+            placeholder="계좌번호 (숫자 14자리)"
             inputmode="numeric"
             maxlength="16"
             aria-label="계좌번호"
@@ -862,6 +868,36 @@ onUnmounted(() => {
 
 .fld.err {
   border: 1.6px solid var(--kb-red);
+}
+
+.kb-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin: -2px 2px 12px;
+  padding: 10px 12px;
+  border: 1px solid #e3dcc9;
+  border-radius: 10px;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: #7a7266;
+  background: #fbf8f1;
+}
+
+.kb-notice i {
+  margin-top: 1px;
+  flex: none;
+  font-size: 11px;
+  color: #c9a227;
+}
+.kb-notice span {
+  flex: 1;
+  min-width: 0;
+}
+
+.kb-notice strong {
+  font-weight: 700;
+  color: #5c554a;
 }
 
 .err-msg {
