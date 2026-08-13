@@ -15,7 +15,26 @@ public final class PasswordPolicy {
     // 비밀번호 최대 자릿수
     public static final int MAX_LENGTH = 16;
 
+    /**
+     * 허용 문자 - 공백을 제외한 아스키 출력 가능 문자.
+     * 영문 대소문자, 숫자, 특수문자가 모두 여기 들어간다.
+     * 한글·이모지·공백은 걸러진다. 프론트의 정규식과 같은 범위여야 한다.
+     */
+    private static final java.util.regex.Pattern ALLOWED_PATTERN =
+            java.util.regex.Pattern.compile("^[\\x21-\\x7E]+$");
+
     private PasswordPolicy() {
+    }
+
+    // 허용되지 않은 문자가 섞여 있는지 확인한다.
+    public static boolean hasInvalidCharacter(String rawPassword) {
+        return rawPassword != null
+                && !rawPassword.isEmpty()
+                && !ALLOWED_PATTERN.matcher(rawPassword).matches();
+    }
+
+    public static String invalidCharacterMessage() {
+        return "비밀번호는 영문, 숫자, 특수문자만 입력할 수 있습니다.";
     }
 
     // null은 여기서 판단하지 않고 호출부의 빈 값 검사에 맡긴다.

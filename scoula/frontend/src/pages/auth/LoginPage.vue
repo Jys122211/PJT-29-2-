@@ -1,5 +1,5 @@
 <script setup>
-import { computed, reactive, ref } from 'vue';
+import { computed, reactive, ref, watch } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import deuksilLogo from '@/assets/images/deuksil-logo.png';
@@ -92,6 +92,10 @@ const validateForm = () => {
 
   if (!form.password) {
     fieldErrors.password = '비밀번호를 입력해주세요.';
+  } else if (form.password.length < PASSWORD_MIN_LENGTH) {
+    fieldErrors.password = `비밀번호는 최소 ${PASSWORD_MIN_LENGTH}자 이상 입력해야 합니다.`;
+  } else if (form.password.length > PASSWORD_MAX_LENGTH) {
+    fieldErrors.password = `비밀번호는 최대 ${PASSWORD_MAX_LENGTH}자까지 입력할 수 있습니다.`;
   }
 
   return !fieldErrors.email && !fieldErrors.password;
@@ -110,6 +114,57 @@ const handleEmailLocalInput = (event) => {
   event.target.value = filtered;
   clearFieldError('email');
 };
+
+// 비밀번호 길이 제한. 백엔드 SignupServiceImpl과 같은 값이어야 한다.
+const PASSWORD_MIN_LENGTH = 4;
+const PASSWORD_MAX_LENGTH = 16;
+
+/**
+ * 비밀번호는 영문·숫자·특수문자만 받는다. 한글·이모지·공백은 걸러낸다.
+ *
+ * input 이벤트가 아니라 값 자체를 감시한다.
+ * 한글 IME는 조합이 끝나야 값이 확정되는데, input 이벤트 시점에는 아직 조합 중이라
+ * type="password"에서 걸러내지 못하는 경우가 있었다.
+ * watch는 조합이 끝나 값이 바뀐 뒤에 돌기 때문에 눈 아이콘 상태와 무관하게 동작한다.
+ */
+const PASSWORD_INVALID_MESSAGE =
+  '비밀번호는 영문, 숫자, 특수문자만 입력할 수 있습니다.';
+
+const stripPassword = (value) => value.replace(/[^\x21-\x7E]/g, '');
+
+// 한글 조합이 시작되는 순간 바로 알린다.
+// 조합 중에는 값이 확정되지 않아 watch나 input만으로는 늦게 반응한다.
+const onPasswordCompositionStart = () => {
+  fieldErrors.password = PASSWORD_INVALID_MESSAGE;
+};
+
+// 조합이 끝나면 남은 한글을 걷어낸다.
+const onPasswordCompositionEnd = (event) => {
+  const filtered = stripPassword(event.target.value);
+  form.password = filtered;
+  event.target.value = filtered;
+};
+
+// 조합 중에 들어오는 input은 무시해야 방금 띄운 문구가 지워지지 않는다.
+const onPasswordInput = (event) => {
+  if (event.isComposing) {
+    return;
+  }
+  clearFieldError('password');
+};
+
+// 붙여넣기·자동완성처럼 input을 거치지 않는 변경까지 잡는다.
+watch(
+  () => form.password,
+  (value) => {
+    const filtered = stripPassword(value);
+    if (filtered === value) {
+      return;
+    }
+    form.password = filtered;
+    fieldErrors.password = PASSWORD_INVALID_MESSAGE;
+  },
+);
 
 const handleCustomEmailDomainInput = (event) => {
   let filtered = event.target.value.replace(/[^a-zA-Z0-9.]/g, '');
@@ -251,9 +306,12 @@ const login = async () => {
               v-model="form.password"
               :type="showPassword ? 'text' : 'password'"
               autocomplete="current-password"
+              :maxlength="PASSWORD_MAX_LENGTH"
               placeholder="비밀번호 입력"
               :class="{ 'input-error': fieldErrors.password }"
-              @input="clearFieldError('password')"
+              @input="onPasswordInput"
+              @compositionstart="onPasswordCompositionStart"
+              @compositionend="onPasswordCompositionEnd"
             />
             <button
               type="button"

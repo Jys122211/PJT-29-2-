@@ -7,6 +7,7 @@ import org.scoula.member.dto.SignupResponseDTO;
 import org.scoula.member.exception.DuplicateEmailException;
 import org.scoula.member.exception.InvalidSignupRequestException;
 import org.scoula.member.mapper.UserMapper;
+import org.scoula.member.support.PasswordPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -75,6 +76,9 @@ public class SignupServiceImpl implements SignupService {
         }
         if (isBlank(request.getPassword())) {
             throw new InvalidSignupRequestException("비밀번호를 입력해 주세요.");
+        }
+        if (PasswordPolicy.hasInvalidCharacter(request.getPassword())) {
+            throw new InvalidSignupRequestException(PasswordPolicy.invalidCharacterMessage());
         }
         if (request.getPassword().length() < PASSWORD_MIN_LENGTH) {
             throw new InvalidSignupRequestException(
