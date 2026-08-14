@@ -407,17 +407,22 @@ export const useProfitLossStore = defineStore('profitLoss', () => {
   const setJeonseEligibilityQuestions = (questions) => {
     const apiQuestions = Array.isArray(questions)
       ? questions.map((q) => {
-          let description = undefined;
-          if (
-            q.id === 4 ||
-            (q.text && q.text.includes('한국주택금융공사')) ||
-            (q.questionText && q.questionText.includes('한국주택금융공사'))
-          ) {
-            description =
-              '※ 한국주택금융공사(HF) 사이트에서 보증서 발급 가능 여부를 시뮬레이션해 볼 수 있어요.';
-          }
-          return { ...q, type: 'QUALIFICATION', description };
-        })
+        let description = undefined;
+        if (
+          (q.text && q.text.includes('한국주택금융공사')) ||
+          (q.questionText && q.questionText.includes('한국주택금융공사'))
+        ) {
+          description =
+            '※ 한국주택금융공사(HF) 사이트에서 보증서 발급 가능 여부를 시뮬레이션해 볼 수 있어요.';
+        } else if (
+          (q.text && q.text.includes('주택도시보증공사')) ||
+          (q.questionText && q.questionText.includes('주택도시보증공사'))
+        ) {
+          description =
+            '※ 주택도시보증공사(HUG) 사이트에서 보증서 발급 가능 여부를 시뮬레이션해 볼 수 있어요.';
+        }
+        return { ...q, type: 'QUALIFICATION', description };
+      })
       : [];
     state.jeonseEligibility.questions = [
       ...apiQuestions,

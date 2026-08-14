@@ -2,8 +2,10 @@ package org.scoula.profitLoss.service.calculator;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import lombok.extern.log4j.Log4j2;
 
 // 득실 계산 로직 명세서 STEP 4 — 상환 시뮬레이션. Spring 빈 아님, DB 접근 없음.
+@Log4j2
 public final class LoanSimulator {
 
     // 월이율 = 대출금리(%) / 100 / 12 = 대출금리 / 1200
@@ -48,6 +50,10 @@ public final class LoanSimulator {
         BigDecimal lumpSum = BigDecimal.valueOf(depositMaturityAmount).min(phaseA.endingBalance());
         long lumpSumPrincipal = roundToWon(lumpSum);
         BigDecimal remainingBalance = phaseA.endingBalance().subtract(lumpSum);
+        
+        log.info(String.format("[LoanSimulator] 만기 목돈 상환 발생: 상환금액 %d원 (현재잔액 %s원과 예금만기수령액 %d원 중 작은 값)", 
+                lumpSumPrincipal, phaseA.endingBalance(), depositMaturityAmount));
+        log.info(String.format("[LoanSimulator] 목돈 상환 후 잔액: %s원", remainingBalance));
 
         if (remainingBalance.compareTo(BigDecimal.ZERO) <= 0) {
             return new Method2Result(roundToWon(phaseA.totalInterest()), phaseA.months(), lumpSumPrincipal, false);
@@ -70,13 +76,25 @@ public final class LoanSimulator {
         BigDecimal totalInterest = BigDecimal.ZERO;
         int months = 0;
 
+        log.info("========== [LoanSimulator] 대출 상환 시뮬레이션 시작 ==========");
+        log.info(String.format("대출원금(시작잔액): %s원, 대출금리: %s%%, 월납입액: %s원", startingBalance, loanRate, payment));
+
         while (balance.compareTo(BigDecimal.ZERO) > 0 && (maxMonths < 0 || months < maxMonths)) {
             BigDecimal interest = calculateMonthlyInterest(balance, loanRate);
             BigDecimal actualPayment = payment.min(balance.add(interest));
+            
+            log.info(String.format("[LoanSimulator] %d회차 이자 계산: %s원 (계산식: 이전잔액 %s원 × %s / 1200)", 
+                    months + 1, interest, balance, loanRate));
+            log.info(String.format("[LoanSimulator] %d회차 실제 납입액: %s원", months + 1, actualPayment));
+            
             totalInterest = totalInterest.add(interest);
             balance = balance.add(interest).subtract(actualPayment);
+            
+            log.info(String.format("[LoanSimulator] %d회차 상환 후 잔액: %s원", months + 1, balance));
             months++;
         }
+
+        log.info("========== [LoanSimulator] 대출 상환 시뮬레이션 종료 ==========");
 
         return new SimulationStep(totalInterest, balance, months);
     }
