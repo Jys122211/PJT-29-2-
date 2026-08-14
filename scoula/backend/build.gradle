@@ -116,4 +116,11 @@ dependencies {
 
 test {
     useJUnitPlatform()
+
+    useJUnitPlatform()
+
+    // AccountCrypto 는 DEPOSIT_ENC_KEY 를 static 초기화 시점에 읽는다.
+    // 테스트는 톰캣 실행 구성을 물려받지 않으므로 여기서 따로 준다.
+    // 운영 키와 달라야 한다 — 암복호화 동작만 검증하면 되고, 실제 데이터는 쓰지 않는다.
+    environment 'DEPOSIT_ENC_KEY', System.getenv('DEPOSIT_ENC_KEY') ?: 'test-only-key-for-unit-test-32bytes!!'
 }
