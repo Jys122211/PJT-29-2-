@@ -5,10 +5,11 @@ import api from '@/api';
 import { useAuthStore } from '@/stores/auth';
 import { useRouter } from 'vue-router';
 import BottomNav from '@/components/mobile/BottomNav.vue';
-import { dDayText, toDisplayKbAccount } from '@/util/depositFormat';
+import { calcDDay, dDayText, toDisplayKbAccount } from '@/util/depositFormat';
 import { useLogout } from '@/composables/useLogout';
 import ConfirmModal from '@/components/ConfirmModal.vue';
 
+const URGENT_DAYS = 30;
 const auth = useAuthStore();
 const isMenuOpen = ref(false);
 const deposits = ref([]);
@@ -30,6 +31,11 @@ const totalDeposit = computed(() =>
   deposits.value.reduce((sum, d) => sum + d.balance, 0),
 );
 const formatDate = (isoDate) => isoDate.replaceAll('-', '.');
+
+function isUrgent(maturity) {
+  const days = calcDDay(maturity);
+  return days !== null && days <= URGENT_DAYS;
+}
 </script>
 
 <template>
@@ -84,7 +90,18 @@ const formatDate = (isoDate) => isoDate.replaceAll('-', '.');
 
     <!-- 내 예금 섹션 -->
     <div class="section-header">
-      <h2>내 예금</h2>
+      <div class="section-title">
+        <h2>내 예금</h2>
+        <button
+          v-if="deposits.length"
+          type="button"
+          class="add-icon-btn"
+          aria-label="새 예금 등록하기"
+          @click="goToAssetRegister"
+        >
+          <i class="fa-solid fa-plus"></i>
+        </button>
+      </div>
       <router-link :to="{ name: 'assetList' }" class="view-all">
         전체보기 ›
       </router-link>
@@ -103,7 +120,11 @@ const formatDate = (isoDate) => isoDate.replaceAll('-', '.');
           </p>
         </div>
         <div class="deposit-meta">
-          <span class="d-day-badge">{{ dDayText(d.maturityDate) }}</span>
+          <span
+            class="d-day-badge"
+            :class="{ urgent: isUrgent(d.maturityDate) }"
+            >{{ dDayText(d.maturityDate) }}</span
+          >
           <span class="deposit-maturity">{{ formatDate(d.maturityDate) }}</span>
         </div>
       </div>
@@ -477,7 +498,7 @@ const formatDate = (isoDate) => isoDate.replaceAll('-', '.');
 
 .section-header {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   width: calc(100% - 40px);
   margin: 26px auto 0;
@@ -493,13 +514,53 @@ const formatDate = (isoDate) => isoDate.replaceAll('-', '.');
   text-decoration: none;
 }
 
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.add-icon-btn {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  flex: none;
+  margin-top: -5px;
+  place-items: center;
+  border: 0;
+  border-radius: 7px;
+  font-size: 11px;
+  color: #26282b;
+  background: #ffbc00;
+  cursor: pointer;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.14s ease;
+}
+.add-icon-btn:hover {
+  transform: rotate(90deg);
+  box-shadow: 0 4px 10px rgba(255, 188, 0, 0.35);
+}
+.add-icon-btn:active {
+  transform: scale(0.9);
+}
+@media (prefers-reduced-motion: reduce) {
+  .add-icon-btn {
+    transition: none;
+  }
+  .add-icon-btn:hover,
+  .add-icon-btn:active {
+    transform: none;
+  }
+}
+
 .deposit-list {
   width: calc(100% - 40px);
   margin: 12px auto 0;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  max-height: 320px;
+  max-height: 350px;
   overflow-y: auto;
   border: 1px solid #efe9dd;
   border-radius: 16px;
@@ -553,6 +614,10 @@ const formatDate = (isoDate) => isoDate.replaceAll('-', '.');
   font-weight: 700;
   font-size: 11px;
   color: #8a6400;
+}
+.d-day-badge.urgent {
+  color: #fff;
+  background: #c0392b;
 }
 .deposit-maturity {
   font-size: 11px;
