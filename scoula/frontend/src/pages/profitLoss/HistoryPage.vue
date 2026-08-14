@@ -42,7 +42,7 @@ onMounted(load);
         <i class="fa-solid fa-chevron-left"></i>
       </button>
       <div class="head-titles">
-        <h1>내 비교 내역</h1>
+        <h1>나의 득실 기록</h1>
       </div>
       <span class="badge">총 {{ comparisons.length }}건</span>
     </header>
