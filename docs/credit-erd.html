@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="description" content="예금 중도해지와 대출 실행의 손익을 비교하는 서비스 득실 — 팀 프로젝트 포트폴리오">
+<title>신용대출 물리 모델</title>
+<style>*{box-sizing:border-box;}body{margin:0;}</style>
 </head>
 <body>
-<title>신용대출 물리 모델</title>
 <style>
 :root{
   --ink:#171A21; --ink-2:#4A505E; --ink-3:#79808F;
@@ -67,6 +67,16 @@ text{font-family:var(--mono);}
 .link{fill:none;stroke:var(--live);stroke-width:1.4;}
 .h .link{stroke:var(--hist);}
 .note{font-size:10.5px;fill:var(--ink-3);}
+.dict{margin-top:16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px;align-items:start;}
+.dt{background:var(--card);border:1px solid var(--rule);border-radius:12px;padding:15px 17px;}
+.dt h4{margin:0 0 11px;padding-bottom:10px;border-bottom:1px solid var(--rule-soft);font-family:var(--mono);font-size:12.5px;font-weight:500;color:var(--live-ink);overflow-wrap:anywhere;}
+.dt h4 i{font-style:normal;color:var(--ink-3);margin-right:6px;}
+.dt h4 em{display:block;margin-top:3px;font-family:var(--sans);font-style:normal;font-size:12px;color:var(--ink-2);}
+.dict.hist .dt h4{color:var(--hist-ink);}
+.dict.hist .dt li code{color:var(--hist-ink);}
+.dt ul{margin:0;padding:0;list-style:none;display:grid;gap:9px;}
+.dt li{font-size:12.5px;color:var(--ink-2);line-height:1.5;}
+.dt li code{display:block;margin-bottom:1px;font-family:var(--mono);font-size:11.5px;color:var(--ink);overflow-wrap:anywhere;}
 .legend{margin-top:14px;display:grid;gap:7px;font-family:var(--mono);font-size:12px;color:var(--ink-2);}
 .legend b{font-weight:500;color:var(--ink);}
 .legend .gap{height:6px;}
@@ -89,30 +99,45 @@ td.n{color:var(--warn);font-family:var(--mono);font-size:12px;}
 <div class="wrap">
 <section>
   <div class="canvas">
-  <svg width="1350" height="470" viewBox="0 0 1350 470" role="img" style="display:block;min-width:1350px">
+  <svg viewBox="0 0 1080 518" role="img" style="display:block;width:100%;height:auto">
     <title>신용대출 라이브 테이블 6개의 관계도</title>
     <desc>credit_loan_products를 중심으로 credit_loan_grade_rate, credit_loan_preferential_rate, credit_loan_qualification_condition이 연결되고, 뒤의 둘은 각각 질문 마스터 테이블을 참조합니다.</desc>
+    <defs>
+      <marker id="one-s" viewBox="0 0 12 12" refX="0" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto">
+        <path d="M6 1 V11" fill="none" stroke="context-stroke" stroke-width="1.4"/>
+      </marker>
+      <marker id="one-e" viewBox="0 0 12 12" refX="12" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto">
+        <path d="M6 1 V11" fill="none" stroke="context-stroke" stroke-width="1.4"/>
+      </marker>
+      <marker id="many-s" viewBox="0 0 12 12" refX="0" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto">
+        <path d="M12 6 L0 1 M12 6 H0 M12 6 L0 11" fill="none" stroke="context-stroke" stroke-width="1.4"/>
+      </marker>
+      <marker id="many-e" viewBox="0 0 12 12" refX="12" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto">
+        <path d="M0 6 L12 1 M0 6 H12 M0 6 L12 11" fill="none" stroke="context-stroke" stroke-width="1.4"/>
+      </marker>
+    </defs>
 
-    <path class="link" d="M245 111 V210"/>
-    <path class="link" d="M470 266 H495 V58.5 H520"/>
-    <path class="link" d="M1120 111 V210"/>
-    <path class="link" d="M910 255.5 H885 V58.5 H860"/>
-    <path class="link" d="M690 270 V195"/>
 
-    <g>
-      <rect class="hb" x="20" y="20" width="450" height="28" rx="4"/>
+    <path class="link" d="M390 107.5 H560" marker-start="url(#one-s)" marker-end="url(#many-e)"/>
+    <path class="link" d="M220 195 V245" marker-start="url(#one-s)" marker-end="url(#many-e)"/>
+    <path class="link" d="M500 301 H530 V290.5 H560" marker-start="url(#many-s)" marker-end="url(#one-e)"/>
+    <path class="link" d="M50 107.5 H25 V452.5 H50" marker-start="url(#one-s)" marker-end="url(#many-e)"/>
+    <path class="link" d="M470 452.5 H560" marker-start="url(#many-s)" marker-end="url(#one-e)"/>
+
+    <g transform="translate(540,225)">
+      <rect class="hb" x="20" y="20" width="490" height="28" rx="4"/>
       <text class="tname" x="30" y="38">credit_loan_preferential_condition_question</text>
-      <text class="tlabel" x="460" y="38" text-anchor="end">우대 질문</text>
-      <rect class="cell" x="20" y="48" width="450" height="21"/>
+      <text class="tlabel" x="500" y="38" text-anchor="end">우대 질문</text>
+      <rect class="cell" x="20" y="48" width="490" height="21"/>
       <text class="cn" x="30" y="62.5">credit_loan_preferential_condition_question_id</text><text class="ct" x="350" y="62.5">BIGINT</text><text class="cc" x="440" y="62.5">PK AI</text>
-      <rect class="cell" x="20" y="69" width="450" height="21"/>
+      <rect class="cell" x="20" y="69" width="490" height="21"/>
       <text class="cn" x="30" y="83.5">credit_loan_preferential_condition_question_name</text><text class="ct" x="350" y="83.5">VARCHAR(100)</text><text class="cc" x="440" y="83.5">NN</text>
-      <rect class="cell" x="20" y="90" width="450" height="21"/>
+      <rect class="cell" x="20" y="90" width="490" height="21"/>
       <text class="cn" x="30" y="104.5">credit_loan_preferential_condition_question_detail</text><text class="ct" x="350" y="104.5">VARCHAR(300)</text><text class="cc" x="440" y="104.5">NN</text>
-      <rect class="box" x="20" y="20" width="450" height="91" rx="4"/>
+      <rect class="box" x="20" y="20" width="490" height="91" rx="4"/>
     </g>
 
-    <g>
+    <g transform="translate(30,35)">
       <rect class="hb" x="20" y="210" width="450" height="28" rx="4"/>
       <text class="tname" x="30" y="228">credit_loan_preferential_rate</text>
       <text class="tlabel" x="460" y="228" text-anchor="end">상품–우대 연결 · 우대금리</text>
@@ -127,7 +152,7 @@ td.n{color:var(--warn);font-family:var(--mono);font-size:12px;}
       <rect class="box" x="20" y="210" width="450" height="112" rx="4"/>
     </g>
 
-    <g>
+    <g transform="translate(-470,0)">
       <rect class="hb" x="520" y="20" width="340" height="28" rx="4"/>
       <text class="tname" x="530" y="38">credit_loan_products</text>
       <text class="tlabel" x="850" y="38" text-anchor="end">신용대출 상품</text>
@@ -148,7 +173,7 @@ td.n{color:var(--warn);font-family:var(--mono);font-size:12px;}
       <rect class="box" x="520" y="20" width="340" height="175" rx="4"/>
     </g>
 
-    <g>
+    <g transform="translate(40,-250)">
       <rect class="hb" x="520" y="270" width="340" height="28" rx="4"/>
       <text class="tname" x="530" y="288">credit_loan_grade_rate</text>
       <text class="tlabel" x="850" y="288" text-anchor="end">등급·기간별 금리</text>
@@ -169,7 +194,7 @@ td.n{color:var(--warn);font-family:var(--mono);font-size:12px;}
       <rect class="box" x="520" y="270" width="340" height="175" rx="4"/>
     </g>
 
-    <g>
+    <g transform="translate(-350,387)">
       <rect class="hb" x="910" y="20" width="420" height="28" rx="4"/>
       <text class="tname" x="920" y="38">credit_loan_qualification_condition_question</text>
       <text class="tlabel" x="1320" y="38" text-anchor="end">자격 질문</text>
@@ -182,7 +207,7 @@ td.n{color:var(--warn);font-family:var(--mono);font-size:12px;}
       <rect class="box" x="910" y="20" width="420" height="91" rx="4"/>
     </g>
 
-    <g>
+    <g transform="translate(-860,197)">
       <rect class="hb" x="910" y="210" width="420" height="28" rx="4"/>
       <text class="tname" x="920" y="228">credit_loan_qualification_condition</text>
       <text class="tlabel" x="1320" y="228" text-anchor="end">상품–자격 연결</text>
@@ -196,28 +221,79 @@ td.n{color:var(--warn);font-family:var(--mono);font-size:12px;}
     </g>
   </svg>
   </div>
-  <div class="legend">
-    <div><b>[a]</b> credit_loan_products (loan_product_id, product_name, loan_limit, max_discount_rate, updated_at, is_deleted, last_batch_id)</div>
-    <div><b>[b]</b> credit_loan_grade_rate (loan_credit_grade_rate_id, loan_product_id, rate_period_months, credit_grade, base_rate, spread_rate, last_batch_id)</div>
-    <div><b>[c]</b> credit_loan_preferential_condition_question (credit_loan_preferential_condition_question_id, credit_loan_preferential_condition_question_name, credit_loan_preferential_condition_question_detail)</div>
-    <div><b>[d]</b> credit_loan_preferential_rate (credit_loan_preferential_rate_id, loan_product_id, credit_loan_preferential_condition_question_id, discount_rate)</div>
-    <div><b>[e]</b> credit_loan_qualification_condition_question (qualification_condition_question_id, question_text, crawl_source_key)</div>
-    <div><b>[f]</b> credit_loan_qualification_condition (qualification_condition_id, loan_product_id, credit_loan_qualification_condition_question_id)</div>
+  <div class="dict">
+    <div class="dt">
+      <h4><i>[a]</i> credit_loan_products <em>신용대출 상품</em></h4>
+      <ul>
+        <li><code>loan_product_id</code> 상품 ID</li>
+        <li><code>product_name</code> 상품이름</li>
+        <li><code>loan_limit</code> 대출 최고금액(원)</li>
+        <li><code>max_discount_rate</code> 최고 우대금리(%)</li>
+        <li><code>updated_at</code> 업데이트 날짜</li>
+        <li><code>is_deleted</code> N=판매중 / Y=판매종료(논리삭제)</li>
+        <li><code>last_batch_id</code> 현재값을 만든 배치</li>
+      </ul>
+    </div>
+    <div class="dt">
+      <h4><i>[b]</i> credit_loan_grade_rate <em>등급·기간별 금리</em></h4>
+      <ul>
+        <li><code>loan_credit_grade_rate_id</code> 등급별 금리 ID</li>
+        <li><code>loan_product_id</code> 신용대출 상품 ID</li>
+        <li><code>rate_period_months</code> 금리변동주기 3 / 6 / 12개월</li>
+        <li><code>credit_grade</code> 신용등급</li>
+        <li><code>base_rate</code> 기본금리(%)</li>
+        <li><code>spread_rate</code> 가산금리(%)</li>
+        <li><code>last_batch_id</code> 현재값을 만든 배치</li>
+      </ul>
+    </div>
+    <div class="dt">
+      <h4><i>[c]</i> credit_loan_preferential_condition_question <em>우대 질문</em></h4>
+      <ul>
+        <li><code>credit_loan_preferential_condition_question_id</code> 우대조건 질문 ID</li>
+        <li><code>credit_loan_preferential_condition_question_name</code> 우대조건 이름</li>
+        <li><code>credit_loan_preferential_condition_question_detail</code> 우대조건 상세설명</li>
+      </ul>
+    </div>
+    <div class="dt">
+      <h4><i>[d]</i> credit_loan_preferential_rate <em>상품·우대 연결</em></h4>
+      <ul>
+        <li><code>credit_loan_preferential_rate_id</code> 우대금리 ID</li>
+        <li><code>loan_product_id</code> 신용대출 상품 ID</li>
+        <li><code>credit_loan_preferential_condition_question_id</code> 우대조건 질문 ID</li>
+        <li><code>discount_rate</code> 우대금리(%)</li>
+      </ul>
+    </div>
+    <div class="dt">
+      <h4><i>[e]</i> credit_loan_qualification_condition_question <em>자격 질문</em></h4>
+      <ul>
+        <li><code>qualification_condition_question_id</code> 자격조건 질문 ID</li>
+        <li><code>question_text</code> 신청 조건</li>
+        <li><code>crawl_source_key</code> KB 페이지 원문에서 공백을 지운 값 · 기존 조건인지 판정할 때 사용</li>
+      </ul>
+    </div>
+    <div class="dt">
+      <h4><i>[f]</i> credit_loan_qualification_condition <em>상품·자격 연결</em></h4>
+      <ul>
+        <li><code>qualification_condition_id</code> 신용대출 자격조건 ID</li>
+        <li><code>loan_product_id</code> 신용대출 상품 ID</li>
+        <li><code>credit_loan_qualification_condition_question_id</code> 신용대출 자격조건 질문 ID</li>
+      </ul>
+    </div>
   </div>
 </section>
 
 <section>
   <div class="canvas">
-  <svg width="1250" height="400" viewBox="0 0 1250 400" role="img" class="h" style="display:block;min-width:1250px">
+  <svg viewBox="0 0 950 590" role="img" class="h" style="display:block;width:100%;height:auto">
     <title>신용대출 이력 테이블과 공용 배치 테이블의 관계도</title>
-    <desc>credit_crawling_batch_history에서 credit_loan_products_history로, 다시 credit_loan_grade_rate_history로 이어지는 2단 이력 구조입니다.</desc>
+    <desc>crawling_batch_history에서 credit_loan_products_history로, 다시 credit_loan_grade_rate_history로 이어지는 2단 이력 구조입니다.</desc>
 
-    <path class="link" d="M400 58.5 H420 V79.5 H440"/>
-    <path class="link" d="M840 58.5 H860 V79.5 H880"/>
+    <path class="link" d="M430 58.5 H475 V79.5 H520" marker-start="url(#one-s)" marker-end="url(#many-e)"/>
+    <path class="link" d="M720 321 V371" marker-start="url(#one-s)" marker-end="url(#many-e)"/>
 
-    <g>
+    <g transform="translate(30,0)">
       <rect class="hb" x="20" y="20" width="380" height="28" rx="4"/>
-      <text class="tname" x="30" y="38">credit_crawling_batch_history</text>
+      <text class="tname" x="30" y="38">crawling_batch_history</text>
       <text class="tlabel" x="390" y="38" text-anchor="end">신용·전세 공용</text>
       <rect class="cell" x="20" y="48" width="380" height="21"/>
       <text class="cn" x="30" y="62.5">crawl_batch_id</text><text class="ct" x="230" y="62.5">BIGINT</text><text class="cc" x="312" y="62.5">PK AI</text>
@@ -251,7 +327,7 @@ td.n{color:var(--warn);font-family:var(--mono);font-size:12px;}
       <text class="note" x="20" y="365">credit_loan_products · credit_loan_grade_rate 의 last_batch_id 도 이 표를 참조합니다.</text>
     </g>
 
-    <g>
+    <g transform="translate(80,0)">
       <rect class="hb" x="440" y="20" width="400" height="28" rx="4"/>
       <text class="tname" x="450" y="38">credit_loan_products_history</text>
       <text class="tlabel" x="830" y="38" text-anchor="end">상품 이력</text>
@@ -282,10 +358,9 @@ td.n{color:var(--warn);font-family:var(--mono);font-size:12px;}
       <rect class="cell" x="440" y="300" width="400" height="21"/>
       <text class="cn" x="450" y="314.5">snapshot_hash</text><text class="ct" x="655" y="314.5">CHAR(64)</text><text class="cc" x="740" y="314.5">NN IX</text>
       <rect class="box" x="440" y="20" width="400" height="301" rx="4"/>
-      <text class="note" x="440" y="344">전세 이력과 달리 bank_name 컬럼이 없습니다. 13컬럼입니다.</text>
     </g>
 
-    <g>
+    <g transform="translate(-360,351)">
       <rect class="hb" x="880" y="20" width="340" height="28" rx="4"/>
       <text class="tname" x="890" y="38">credit_loan_grade_rate_history</text>
       <text class="tlabel" x="1210" y="38" text-anchor="end">금리 이력</text>
@@ -306,18 +381,63 @@ td.n{color:var(--warn);font-family:var(--mono);font-size:12px;}
       <rect class="cell" x="880" y="195" width="340" height="21"/>
       <text class="cn" x="890" y="209.5">rate_type_raw</text><text class="ct" x="1075" y="209.5">VARCHAR(200)</text>
       <rect class="box" x="880" y="20" width="340" height="196" rx="4"/>
-      <text class="note" x="880" y="239">ON DELETE CASCADE — 상품 이력이 지워지면 함께 지워집니다.</text>
     </g>
   </svg>
   </div>
-  <div class="legend">
-    <div><b>[g]</b> credit_loan_products_history (products_history_id, crawl_batch_id, loan_product_id, product_name, product_name_key, detail_url, loan_limit, loan_limit_raw, max_discount_rate, source_state, collect_status, failure_reason, snapshot_hash)</div>
-    <div><b>[h]</b> credit_loan_grade_rate_history (grade_rate_history_id, products_history_id, rate_period_months, credit_grade, base_rate, spread_rate, rate_origin, rate_type_raw)</div>
-    <div><b>[i]</b> credit_crawling_batch_history (crawl_batch_id, batch_uuid, bank_name, product_category, status, started_at, finished_at, executed_by, finlife_disclosure_month, target_count, success_count, failed_count, applied_to_live_yn, warnings)</div>
+  <div class="dict hist">
+    <div class="dt">
+      <h4><i>[g]</i> credit_loan_products_history <em>상품 이력</em></h4>
+      <ul>
+        <li><code>products_history_id</code> 상품 이력 ID</li>
+        <li><code>crawl_batch_id</code> 배치 ID</li>
+        <li><code>loan_product_id</code> 라이브 상품 ID</li>
+        <li><code>product_name</code> 수집 당시 원본 상품명</li>
+        <li><code>product_name_key</code> 정규화한 상품명</li>
+        <li><code>detail_url</code> 실제로 수집에 성공한 상세 URL</li>
+        <li><code>loan_limit</code> 대출 최고금액 · 파싱 실패 시 NULL</li>
+        <li><code>loan_limit_raw</code> 한도 원문 텍스트 · 디버깅용</li>
+        <li><code>max_discount_rate</code> 최고 우대금리(%)</li>
+        <li><code>source_state</code> PRESENT=KB에 존재 / REMOVED=사라짐</li>
+        <li><code>collect_status</code> OK / FAILED</li>
+        <li><code>failure_reason</code> 수집 실패 원인</li>
+        <li><code>snapshot_hash</code> 내용 SHA-256 · 무변경 배치 스킵 판정용</li>
+      </ul>
+    </div>
+    <div class="dt">
+      <h4><i>[h]</i> credit_loan_grade_rate_history <em>등급별 금리 이력</em></h4>
+      <ul>
+        <li><code>grade_rate_history_id</code> 등급별 금리 이력 ID</li>
+        <li><code>products_history_id</code> 상품 이력 ID</li>
+        <li><code>rate_period_months</code> 금리변동주기 3 / 6 / 12개월</li>
+        <li><code>credit_grade</code> 신용등급 1 ~ 4</li>
+        <li><code>base_rate</code> 기준금리(%)</li>
+        <li><code>spread_rate</code> 가산금리(%)</li>
+        <li><code>rate_origin</code> CRAWLED=사이트 원본 / DERIVED=공시 비율 환산</li>
+        <li><code>rate_type_raw</code> 수집 당시 금리구분 원문 · 파싱 회귀 추적용</li>
+      </ul>
+    </div>
+    <div class="dt">
+      <h4><i>[i]</i> crawling_batch_history <em>신용·전세 공용 배치 이력</em></h4>
+      <ul>
+        <li><code>crawl_batch_id</code> 배치 ID</li>
+        <li><code>batch_uuid</code> 외부 추적·로그 대조용 UUID</li>
+        <li><code>bank_name</code> 수집 대상 은행</li>
+        <li><code>product_category</code> CREDIT_LOAN / JEONSE_LOAN</li>
+        <li><code>status</code> RUNNING / SUCCESS / PARTIAL / FAILED / REJECTED</li>
+        <li><code>started_at</code> 수집 시작 시각</li>
+        <li><code>finished_at</code> 수집 종료 시각</li>
+        <li><code>executed_by</code> 실행 주체 · scheduler 또는 수동 실행 계정</li>
+        <li><code>finlife_disclosure_month</code> 등급 환산에 사용한 공시월 YYYY-MM</li>
+        <li><code>target_count</code> 수집 대상 상품 수</li>
+        <li><code>success_count</code> 상세 수집 성공 수</li>
+        <li><code>failed_count</code> 상세 수집 실패 수</li>
+        <li><code>applied_to_live_yn</code> 라이브 반영 여부</li>
+        <li><code>warnings</code> 수집 경고 원문</li>
+      </ul>
+    </div>
   </div>
 </section>
 
 </div>
-
 </body>
 </html>
