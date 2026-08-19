@@ -103,6 +103,10 @@ function watchQuestionList(visibleQuestions, prefix) {
 watchQuestionList(visibleQualificationQuestions, 'qualification');
 watchQuestionList(visibleComparisonConditionQuestions, 'comparison-condition');
 
+// 건강보험자격득실확인서로 확인 가능한 자격질문의 마지막 id.
+// 안내문은 이 질문 바로 아래에 붙고, 뒤따르는 STAR CLUB 질문에는 해당하지 않는다.
+const HEALTH_INSURANCE_LAST_ID = 2;
+
 function selectedAnswer(questionId) {
   return profitLossStore.state.creditEligibility.answers[questionId];
 }
@@ -199,47 +203,50 @@ async function continueToNextStep() {
             </span>
           </p>
           <TransitionGroup name="question-fade" tag="div">
-            <article
-              v-for="item in visibleQualificationQuestions"
-              :key="item.id"
-              :ref="(el) => registerQuestion(`qualification-${item.id}`, el)"
-              class="kb-card question-card"
-            >
-              <h3>{{ item.text }}</h3>
+            <template v-for="item in visibleQualificationQuestions" :key="item.id">
+              <article
+                :ref="(el) => registerQuestion(`qualification-${item.id}`, el)"
+                class="kb-card question-card"
+              >
+                <h3>{{ item.text }}</h3>
 
-              <div class="description" v-if="item.description">
-                {{ item.description }}
-              </div>
+                <div class="description" v-if="item.description">
+                  {{ item.description }}
+                </div>
 
-              <div class="answer-options">
-                <button
-                  type="button"
-                  :class="{
-                    selected: selectedAnswer(item.id) === true,
-                  }"
-                  :aria-pressed="selectedAnswer(item.id) === true"
-                  @click="answerQuestion(item.id, true)"
-                >
-                  예
-                </button>
-                <button
-                  type="button"
-                  :class="{
-                    selected: selectedAnswer(item.id) === false,
-                  }"
-                  :aria-pressed="selectedAnswer(item.id) === false"
-                  @click="answerQuestion(item.id, false)"
-                >
-                  아니요
-                </button>
-              </div>
-            </article>
+                <div class="answer-options">
+                  <button
+                    type="button"
+                    :class="{
+                      selected: selectedAnswer(item.id) === true,
+                    }"
+                    :aria-pressed="selectedAnswer(item.id) === true"
+                    @click="answerQuestion(item.id, true)"
+                  >
+                    예
+                  </button>
+                  <button
+                    type="button"
+                    :class="{
+                      selected: selectedAnswer(item.id) === false,
+                    }"
+                    :aria-pressed="selectedAnswer(item.id) === false"
+                    @click="answerQuestion(item.id, false)"
+                  >
+                    아니요
+                  </button>
+                </div>
+              </article>
+
+              <p
+                v-if="item.id === HEALTH_INSURANCE_LAST_ID"
+                class="qualification-notice"
+              >
+                ※ 위 질문들은 건강보험관리공단 사이트에서 건강보험자격득실확인서로
+                확인 가능합니다.
+              </p>
+            </template>
           </TransitionGroup>
-
-          <p class="qualification-notice">
-            ※ 위 질문들은 건강보험관리공단 사이트에서 건강보험자격득실확인서로
-            확인 가능합니다.
-          </p>
         </div>
 
         <div

@@ -62,10 +62,15 @@
         where user_id = #{userId}
     </select>
 
+    <!--
+        이메일 중복 확인용. 탈퇴한 계정은 재가입을 막지 않아야 하므로 활성 회원만 조회한다.
+        (탈퇴 시 이메일을 익명화하지만, 익명화 이전에 탈퇴한 데이터를 위해 조건을 함께 둔다.)
+    -->
     <select id="findByEmail" resultMap="memberMap">
         SELECT *
         FROM users
         WHERE email = #{email}
+          AND is_deleted = 'N'
     </select>
 
     <insert id="insert">
@@ -90,8 +95,22 @@
         <!-- DB에 권한 테이블이 없으므로 빈 쿼리 또는 주석 처리 -->
     </insert>
 
-    <!-- 탈퇴 시 관련 데이터 삭제를 위한 쿼리들 -->
+    <!--
+        탈퇴 시 관련 데이터 삭제를 위한 쿼리들.
+
+        email 컬럼에 UNIQUE 제약(uk_users_email)이 걸려 있어, 논리 삭제만 하면 탈퇴한 행이
+        그 이메일을 계속 점유해 같은 주소로 재가입할 수 없다. 그래서 탈퇴 시점에 이메일을
+        실존하지 않는 값으로 바꿔 자리를 비워준다(개인정보 파기 원칙에도 부합).
+
+        user_id 뒤에 타임스탬프를 붙이는 것은, 만에 하나 같은 행이 두 번 탈퇴 처리되어도
+        익명화된 이메일끼리 충돌하지 않게 하기 위함이다.
+    -->
     <update id="deleteUser">
-        UPDATE users SET is_deleted = 'Y', updated_at = now() WHERE user_id = #{userId}
+        UPDATE users
+        SET is_deleted = 'Y',
+            email      = CONCAT('deleted_', user_id, '_', UNIX_TIMESTAMP(), '@deleted.local'),
+            updated_at = now()
+        WHERE user_id = #{userId}
+          AND is_deleted = 'N'
     </update>
 </mapper>

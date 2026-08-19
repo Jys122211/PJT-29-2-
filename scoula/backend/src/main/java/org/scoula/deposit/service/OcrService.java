@@ -188,6 +188,9 @@ public class OcrService {
      * 예금 화면이 아닌 이미지를 걸러낸다.
      * Gemini 는 값을 못 찾아도 전 필드를 null 로 채운 정상 응답을 돌려주므로,
      * 예금을 식별할 만큼 값이 채워졌는지 여기서 판단한다.
+     *
+     * 만기일·가입금액·적용금리가 없어도 통과시킨다. 읽어낸 값까지 버리면
+     * 사용자가 처음부터 다시 입력해야 하므로, 부족한 항목은 화면에서 안내한다.
      */
     private void requireDepositImage(OcrDepositResponseDTO r) {
         int filled = 0;
@@ -200,12 +203,7 @@ public class OcrService {
         if (r.getBaseRate() != null) filled++;
         if (r.getAppliedRate() != null) filled++;
 
-        boolean hasCore =
-                (r.getPrincipalAmount() != null && r.getPrincipalAmount() > 0)
-                        || r.getAppliedRate() != null
-                        || isPresent(r.getMaturityDate());
-
-        if (filled < 3 || !hasCore) {
+        if (filled < 2) {
             throw new IllegalStateException(
                     "예금 정보를 찾을 수 없는 이미지입니다.\n은행 앱의 예금 상세 화면을 올려주세요.");
         }

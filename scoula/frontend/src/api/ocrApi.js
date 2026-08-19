@@ -10,7 +10,8 @@ export default {
 
     const { data } = await api.post(`${BASE_URL}/extract`, formData, {
       // Content-Type은 브라우저가 multipart boundary와 함께 설정합니다.
-      timeout: 45000,
+      // 백엔드는 연결 5초 + 응답 35초까지 쓴다. 업로드 시간까지 감안해 넉넉히 잡는다.
+      timeout: 60000,
     });
     return data;
   },
