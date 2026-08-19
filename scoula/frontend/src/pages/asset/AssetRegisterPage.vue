@@ -16,6 +16,7 @@ import { useRouter } from 'vue-router';
 import depositApi from '@/api/depositApi';
 import BottomNav from '@/components/mobile/BottomNav.vue';
 import ocrApi from '@/api/ocrApi';
+import { shrinkForOcr } from '@/util/imageResize';
 import {
   caretPositionAfterFormat,
   countDigitsBeforeCaret,
@@ -32,9 +33,11 @@ import {
 
 const router = useRouter();
 
-/** ocrState : idle | loading | success | failed */
+/** ocrState : idle | loading | success | partial | failed */
 const ocrState = ref('idle');
 const ocrError = ref({ errorCode: null, message: '' });
+/** partial 상태에서 사용자가 직접 채워야 하는 항목 이름 */
+const ocrMissingLabels = ref([]);
 const ocrFilledFields = ref(new Set());
 const editedFields = ref(new Set());
 
@@ -443,19 +446,21 @@ async function onFileSelected(event) {
     return;
   }
 
-  await runOcr(file);
+  // 큰 캡처는 업로드에만 수십 초가 걸려 타임아웃이 난다. 보내기 전에 줄인다.
+  await runOcr(await shrinkForOcr(file));
 }
 
 async function runOcr(file) {
   ocrState.value = 'loading'; // 07-06
   ocrError.value = { errorCode: null, message: '' };
+  ocrMissingLabels.value = [];
 
   try {
     // 백엔드 OCR 호출 (ocrApi는 18행에서 이미 import 되어 있음)
     const extractedData = await ocrApi.extractImage(file);
     const filledCount = applyExtracted(extractedData);
 
-    if (filledCount < 3) {
+    if (filledCount < 2) {
       ocrError.value = {
         errorCode: 'OCR_NO_DEPOSIT',
         message: '예금 정보를 찾지 못했어요.\n은행 앱의 예금 상세 화면을 올려주세요.',
@@ -464,7 +469,9 @@ async function runOcr(file) {
       return;
     }
 
-    ocrState.value = 'success'; // 07-04
+    // 읽어낸 값은 그대로 살리고, 등록 필수값만 빠졌다면 안내만 한다.
+    ocrMissingLabels.value = missingRequiredLabels();
+    ocrState.value = ocrMissingLabels.value.length ? 'partial' : 'success'; // 07-04
   } catch (error) {
     console.error('OCR 분석 실패:', error);
     ocrError.value = error.response
@@ -472,6 +479,18 @@ async function runOcr(file) {
       : { errorCode: null, message: '이미지 분석에 실패했습니다.' };
     ocrState.value = 'failed'; // 07-05 / 07-08
   }
+}
+
+/** 등록에 반드시 필요한데 OCR이 채우지 못한 항목 */
+function missingRequiredLabels() {
+  const required = [
+    ['maturityDate', '만기일'],
+    ['principalAmount', '가입금액'],
+    ['appliedRate', '적용금리'],
+  ];
+  return required
+    .filter(([field]) => form[field] === '' || form[field] === null)
+    .map(([, label]) => label);
 }
 
 /** 07-04 : 추출값을 폼에 채우되 저장은 하지 않음 */
@@ -515,6 +534,7 @@ function applyExtracted(extracted = {}) {
 function switchToManual() {
   ocrState.value = 'idle';
   ocrError.value = { errorCode: null, message: '' };
+  ocrMissingLabels.value = [];
   ocrFilledFields.value = new Set();
   editedFields.value = new Set();
 }
@@ -587,6 +607,15 @@ onMounted(async () => {
       </div>
     </section>
 
+    <!-- 일부만 추출된 경우 -->
+    <section v-else-if="ocrState === 'partial'" class="ocr-banner warn">
+      <span class="ico warn"><i class="fa-solid fa-exclamation"></i></span>
+      <div class="tx">
+        <strong>일부 항목만 읽었어요</strong>
+        <small>못 찾은 항목 : {{ ocrMissingLabels.join(' · ') }}</small>
+      </div>
+    </section>
+
     <!-- 07-05 / 07-08 추출 실패 -->
     <section v-else-if="ocrState === 'failed'" class="ocr-banner fail">
       <span class="ico fail"><i class="fa-solid fa-xmark"></i></span>
@@ -629,6 +658,9 @@ onMounted(async () => {
 
     <p v-if="ocrState === 'success'" class="hint">
       노란 배경 = OCR 자동 입력값 · 확인 후 등록해주세요
+    </p>
+    <p v-if="ocrState === 'partial'" class="hint">
+      노란 배경 = OCR 자동 입력값 · 빈칸을 채우면 등록할 수 있어요
     </p>
     <p v-if="ocrState === 'failed'" class="hint">
       다시 시도하거나 아래에서 직접 입력할 수 있어요
@@ -863,6 +895,11 @@ onMounted(async () => {
   background: var(--kb-red);
 }
 
+.ocr-banner .ico.warn {
+  color: #26282b;
+  background: #f3a63a;
+}
+
 .ocr-banner .tx {
   flex: 1;
   min-width: 0;
@@ -875,6 +912,10 @@ onMounted(async () => {
 
 .ocr-banner.fail strong {
   color: #e8776a;
+}
+
+.ocr-banner.warn strong {
+  color: #f3b256;
 }
 
 .ocr-banner small {
