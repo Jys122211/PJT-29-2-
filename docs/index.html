@@ -103,16 +103,18 @@
         margin-top: 26px;
       }
       .logo {
-        width: 132px;
+        width: 96px;
         height: auto;
-        background: #ffffff;
-        border: 1px solid var(--line);
+        background: #f4f1ea;
+        border: 1px solid var(--accent-line);
         border-radius: 14px;
-        padding: 10px 12px;
+        padding: 8px 10px;
+        box-shadow: 0 0 0 4px var(--accent-bg);
       }
       @media print {
         .logo {
           border-color: #d3d8e0;
+          box-shadow: none;
         }
       }
       .pill {
@@ -164,6 +166,43 @@
       .concept b {
         color: var(--text);
         font-weight: 600;
+      }
+
+      .hero-result {
+        display: inline-block;
+        margin-top: 36px;
+        padding: 22px 30px;
+        background: var(--accent-bg);
+        border: 1px solid var(--accent);
+        border-radius: var(--r);
+        box-shadow: 0 0 0 1px var(--accent-line);
+      }
+      .hero-result-label {
+        display: block;
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--accent-2);
+        margin-bottom: 10px;
+      }
+      .hero-result-value {
+        margin: 0;
+        font-size: 1.5rem;
+        color: var(--text-2);
+      }
+      .hero-result-value .hero-result-product {
+        color: var(--text);
+        font-weight: 600;
+      }
+      .hero-result-value .hero-result-arrow {
+        color: var(--text-3);
+        margin: 0 6px;
+      }
+      .hero-result-value b {
+        color: var(--accent-2);
+        font-weight: 700;
+        font-size: 1.2em;
       }
 
       .tok-k {
@@ -291,9 +330,60 @@
         border-radius: 999px;
         font-size: 0.87rem;
         color: var(--text-2);
+        font-family: inherit;
+        cursor: pointer;
+        transition: background 0.15s, border-color 0.15s, color 0.15s;
+      }
+      .fstep:hover {
+        border-color: var(--accent-line);
+        color: var(--text);
+      }
+      .fstep.active {
+        background: var(--accent-bg);
+        border-color: var(--accent-line);
+        color: var(--accent-2);
+      }
+      .fstep:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
       }
       .farrow {
         color: var(--text-3);
+      }
+
+      .fscreen {
+        margin: 0 0 16px;
+        padding: 28px;
+        border: 1px solid var(--line);
+        border-radius: var(--r);
+        background: var(--sunk);
+        min-height: 340px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .fscreen img {
+        width: 100%;
+        max-width: 280px;
+        height: auto;
+        display: block;
+        border-radius: 14px;
+        border: 1px solid var(--line-2);
+      }
+      .fscreen-empty {
+        font-family: var(--mono);
+        font-size: 12px;
+        letter-spacing: 0.04em;
+        color: var(--text-3);
+      }
+      #features .tbl tbody tr {
+        cursor: pointer;
+      }
+      #features .tbl tbody tr:not(.active) {
+        display: none;
+      }
+      #features .tbl tbody tr.active td {
+        background: var(--accent-bg);
       }
 
       .feat {
@@ -580,6 +670,30 @@
       .ba .after {
         color: var(--ok-2);
       }
+      .shot {
+        margin-top: 14px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background: var(--sunk);
+        border: 1px solid var(--line);
+        border-radius: var(--r);
+        padding: 20px;
+      }
+      .shot img {
+        width: 100%;
+        max-width: 240px;
+        height: auto;
+        display: block;
+        border-radius: 12px;
+        border: 1px solid var(--line-2);
+      }
+      .shot-cap {
+        margin: 10px 0 0;
+        font-size: 0.82rem;
+        color: var(--text-3);
+        text-align: center;
+      }
 
       code {
         font-family: var(--mono);
@@ -675,8 +789,8 @@
         height: auto;
       }
       .erd .grp {
-        fill: var(--sunk);
-        stroke: var(--line-2);
+        fill: var(--surface-2);
+        stroke: var(--text-3);
         stroke-width: 1;
       }
       .erd .grp.acc {
@@ -689,8 +803,8 @@
       }
       .erd .ln {
         fill: none;
-        stroke: var(--line-2);
-        stroke-width: 1.8;
+        stroke: var(--text-3);
+        stroke-width: 2;
       }
       .erd text {
         font-family: var(--mono);
@@ -761,7 +875,7 @@
       }
       .erd .sq-m {
         font-size: 14px;
-        fill: var(--text-2);
+        fill: var(--text);
       }
       .erd .sq-t {
         font-size: 15.5px;
@@ -773,12 +887,12 @@
       }
       .erd .sq-a {
         fill: none;
-        stroke: var(--line-2);
+        stroke: var(--text-3);
         stroke-width: 2;
       }
       .erd .sq-l {
         fill: none;
-        stroke: var(--line);
+        stroke: var(--line-2);
         stroke-width: 1.4;
         stroke-dasharray: 4 6;
       }
@@ -895,6 +1009,118 @@
           grid-column: 2;
           margin-top: 8px;
         }
+      }
+
+      /* toc */
+      .toc {
+        position: fixed;
+        top: 50%;
+        right: 28px;
+        transform: translateY(-50%);
+        display: flex;
+        flex-direction: column;
+        gap: 13px;
+        z-index: 40;
+      }
+      .toc a {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 10px;
+        text-decoration: none;
+      }
+      .toc a:hover {
+        text-decoration: none;
+      }
+      .toc .toc-label {
+        font-family: var(--mono);
+        font-size: 10px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        white-space: nowrap;
+        color: var(--text-3);
+        opacity: 0;
+        transform: translateX(6px);
+        transition: opacity 0.15s, transform 0.15s, color 0.15s;
+      }
+      .toc .toc-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--line-2);
+        flex-shrink: 0;
+        transition: background 0.15s, transform 0.15s;
+      }
+      .toc a:hover .toc-label,
+      .toc a:focus-visible .toc-label {
+        opacity: 1;
+        transform: translateX(0);
+        color: var(--accent-2);
+      }
+      .toc a:hover .toc-dot,
+      .toc a:focus-visible .toc-dot {
+        background: var(--accent-2);
+      }
+      .toc a:focus-visible {
+        outline: none;
+      }
+      .toc a.active .toc-dot {
+        background: var(--accent);
+        transform: scale(1.4);
+      }
+      .toc a.active .toc-label {
+        opacity: 1;
+        transform: translateX(0);
+        color: var(--accent-2);
+      }
+      @media (max-width: 1360px) {
+        .toc {
+          display: none;
+        }
+      }
+
+      /* toc bar */
+      .toc-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 56px;
+        padding: 14px 16px;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: var(--r);
+      }
+      .toc-bar a {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 6px 13px;
+        border-radius: 999px;
+        background: var(--sunk);
+        border: 1px solid var(--line);
+        font-size: 0.85rem;
+        color: var(--text-2);
+        text-decoration: none;
+        white-space: nowrap;
+      }
+      .toc-bar a:hover {
+        border-color: var(--accent-line);
+        color: var(--text);
+        text-decoration: none;
+      }
+      .toc-bar .toc-bar-num {
+        font-family: var(--mono);
+        font-size: 10px;
+        letter-spacing: 0.08em;
+        color: var(--text-3);
+      }
+      .toc-bar a.active {
+        background: var(--accent-bg);
+        border-color: var(--accent-line);
+        color: var(--accent-2);
+      }
+      .toc-bar a.active .toc-bar-num {
+        color: var(--accent-2);
       }
 
       @media print {
@@ -1019,13 +1245,33 @@
         a.lnk[href^='http']::after {
           content: '';
         }
+        .toc {
+          display: none;
+        }
+        .toc-bar {
+          display: none;
+        }
       }
     </style>
+
+    <nav class="toc" aria-label="목차">
+      <a href="#about"><span class="toc-label">소개</span><span class="toc-dot"></span></a>
+      <a href="#features"><span class="toc-label">기능</span><span class="toc-dot"></span></a>
+      <a href="#team"><span class="toc-label">팀</span><span class="toc-dot"></span></a>
+      <a href="#skills"><span class="toc-label">기술</span><span class="toc-dot"></span></a>
+      <a href="#architecture"><span class="toc-label">구조</span><span class="toc-dot"></span></a>
+      <a href="#data-model"><span class="toc-label">데이터</span><span class="toc-dot"></span></a>
+      <a href="#pipeline"><span class="toc-label">파이프라인</span><span class="toc-dot"></span></a>
+      <a href="#sequence"><span class="toc-label">흐름도</span><span class="toc-dot"></span></a>
+      <a href="#problems"><span class="toc-label">트러블슈팅</span><span class="toc-dot"></span></a>
+      <a href="#feedback"><span class="toc-label">피드백</span><span class="toc-dot"></span></a>
+      <a href="#open-issues"><span class="toc-label">보완계획</span><span class="toc-dot"></span></a>
+    </nav>
 
     <div class="wrap">
       <div class="hero">
         <span class="pill"
-          ><i></i>KB IT&rsquo;s Your Life · 6인 팀 프로젝트</span
+          ><i></i>KB IT&rsquo;s Your Life · 29반 2팀 프로젝트</span
         >
         <div class="brand">
           <h1>득실</h1>
@@ -1037,10 +1283,18 @@
         </div>
         <p class="h1sub">예금 깰까, 돈 빌릴까?</p>
         <p class="concept">
-          목돈이 필요한 순간의 두 선택지를
-          <b>같은 시점 · 같은 세후 기준으로 환산</b>해 나란히 보여주는 손익 비교
-          서비스
+          목돈이 필요한 순간, 예금을 깨는 것과 대출받는 것 중
+          <b>뭐가 더 이득인지 정직하게 계산</b>해 보여주는 서비스
         </p>
+
+        <div class="hero-result">
+          <span class="hero-result-label">실제 계산 결과 예시</span>
+          <p class="hero-result-value">
+            <span class="hero-result-product">KB Star 정기예금</span
+            ><span class="hero-result-arrow">→</span>중도해지
+            <b>590,474원</b> 더 이득
+          </p>
+        </div>
 
         <div class="links">
           <span class="lnk"
@@ -1056,11 +1310,28 @@
         </div>
       </div>
 
+      <nav class="toc-bar" aria-label="목차">
+        <a href="#about"><span class="toc-bar-num">01</span>소개</a>
+        <a href="#features"><span class="toc-bar-num">02</span>기능</a>
+        <a href="#team"><span class="toc-bar-num">03</span>팀</a>
+        <a href="#skills"><span class="toc-bar-num">04</span>기술</a>
+        <a href="#architecture"><span class="toc-bar-num">05</span>구조</a>
+        <a href="#data-model"><span class="toc-bar-num">06</span>데이터</a>
+        <a href="#pipeline"><span class="toc-bar-num">07</span>파이프라인</a>
+        <a href="#sequence"><span class="toc-bar-num">08</span>흐름도</a>
+        <a href="#problems"><span class="toc-bar-num">09</span>트러블슈팅</a>
+        <a href="#feedback"><span class="toc-bar-num">10</span>피드백</a>
+        <a href="#open-issues"><span class="toc-bar-num">11</span>보완계획</a>
+      </nav>
+
       <section id="about">
         <div class="shead">
           <span class="num">01</span><span class="cap">about</span>
         </div>
         <h2>왜 만들었나</h2>
+        <p class="lede">
+          예금 해지와 대출 중 무엇이 유리한지, 비교가 어려운 이유입니다.
+        </p>
         <div class="two">
           <div class="card mark">
             <h3>사용자가 마주하는 상황</h3>
@@ -1070,15 +1341,10 @@
             </p>
             <p>
               어느 쪽이 나은지 알려면
-              <b
-                >중도해지이율 구간표, 남은 기간, 신용등급별 대출금리,
-                중도상환수수료</b
-              >를 전부 알아야 합니다.
-              <b
-                >금융 상품 구조에 익숙하지 않으면 비교의 출발점조차 잡기
-                어렵습니다.</b
-              >
-              결국 감으로 결정하거나 창구에 묻게 됩니다.
+              <b>중도해지 이율, 남은 기간, 대출금리, 중도상환수수료</b>를 다
+              따져봐야 합니다.
+              <b>낯선 용어투성이라 어디서부터 비교해야 할지도 막막합니다.</b>
+              결국 감으로 정하거나 은행 창구에 묻게 됩니다.
             </p>
           </div>
           <div class="card">
@@ -1102,14 +1368,19 @@
         <h2>주요 기능</h2>
         <p class="lede">단계형 사용자 시나리오</p>
         <div class="flow">
-          <span class="fstep">예금 등록</span><span class="farrow">→</span>
-          <span class="fstep">필요 금액 입력</span><span class="farrow">→</span>
-          <span class="fstep">비교할 예금 선택</span
-          ><span class="farrow">→</span> <span class="fstep">자격조건</span
-          ><span class="farrow">→</span> <span class="fstep">우대금리</span
+          <button type="button" class="fstep" data-step="1">예금 등록</button
           ><span class="farrow">→</span>
-          <span class="fstep">결과 비교</span>
+          <button type="button" class="fstep" data-step="2">필요 금액 입력</button
+          ><span class="farrow">→</span>
+          <button type="button" class="fstep" data-step="3">비교할 예금 선택</button
+          ><span class="farrow">→</span>
+          <button type="button" class="fstep" data-step="4">자격조건</button
+          ><span class="farrow">→</span>
+          <button type="button" class="fstep" data-step="5">우대금리</button
+          ><span class="farrow">→</span>
+          <button type="button" class="fstep" data-step="6">결과 비교</button>
         </div>
+        <div class="fscreen"></div>
         <div class="tbl">
           <table>
             <thead>
@@ -1119,7 +1390,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr>
+              <tr data-step="1">
                 <td><b>01<br />예금 등록</b></td>
                 <td>
                   <ul>
@@ -1134,7 +1405,7 @@
                   </ul>
                 </td>
               </tr>
-              <tr>
+              <tr data-step="2">
                 <td><b>02<br />필요 금액 입력</b></td>
                 <td>
                   <ul>
@@ -1149,7 +1420,7 @@
                   </ul>
                 </td>
               </tr>
-              <tr>
+              <tr data-step="3">
                 <td><b>03<br />비교할 예금 선택</b></td>
                 <td>
                   <ul>
@@ -1162,7 +1433,7 @@
                   </ul>
                 </td>
               </tr>
-              <tr>
+              <tr data-step="4">
                 <td><b>04<br />자격조건</b></td>
                 <td>
                   <ul>
@@ -1173,7 +1444,7 @@
                   </ul>
                 </td>
               </tr>
-              <tr>
+              <tr data-step="5">
                 <td><b>05<br />우대금리</b></td>
                 <td>
                   <ul>
@@ -1187,22 +1458,21 @@
                   </ul>
                 </td>
               </tr>
-              <tr>
+              <tr data-step="6">
                 <td><b>06<br />결과 비교</b></td>
                 <td>
                   <ul>
                     <li>
-                      예금을 깬 경우와 대출을 받은 경우를
+                      예금 해지와 대출 실행을
                       <b>같은 시점·같은 세후 기준</b>으로 환산해 나란히 제시.
                     </li>
-                    <li>신용대출과 전세대출은 규칙이 달라 각각 계산.</li>
                     <li>
-                      부분해지 가능 여부와 만기 목돈 상환 여부에 따라 네 가지
-                      경우로 분기.
+                      신용대출·전세대출은 규칙이 달라, 부분해지·만기상환 여부에
+                      따라 네 가지 경우로 나눠 계산.
                     </li>
                     <li>
-                      결과는 비교 시점의 상품명·금리와 함께 저장되어, 상품 정보가
-                      바뀌어도 과거 기록은 유지.
+                      비교 시점의 상품명·금리로 저장되어, 이후 상품 정보가
+                      바뀌어도 과거 기록은 그대로 유지.
                     </li>
                   </ul>
                 </td>
@@ -1217,6 +1487,9 @@
           <span class="num">03</span><span class="cap">team</span>
         </div>
         <h2>팀 구성과 역할</h2>
+        <p class="lede">
+          총 6명, 담당 기능마다 프론트부터 백엔드까지 함께 구현했습니다.
+        </p>
         <div class="team">
           <div class="mem">
             <div class="nm">조윤상</div>
@@ -1274,6 +1547,9 @@
           <span class="num">04</span><span class="cap">skills</span>
         </div>
         <h2>기술 스택</h2>
+        <p class="lede">
+          강조색으로 표시한 항목은 직접 구현 난이도가 있었던 기술 요소입니다.
+        </p>
         <div class="skill">
           <div class="srow">
             <b>Frontend</b>
@@ -1329,6 +1605,10 @@
           <span class="num">05</span><span class="cap">architecture</span>
         </div>
         <h2>시스템 구성</h2>
+        <p class="lede">
+          입력값이 서비스 계층을 거쳐 저장되고, OCR은 외부 Gemini API를
+          호출합니다.
+        </p>
         <div class="erd">
           <svg
             viewBox="0 0 1040 760"
@@ -1448,18 +1728,20 @@
             <rect class="grp" x="44" y="396" width="456" height="92" rx="10" />
             <text class="a-no" x="62" y="422">03</text>
             <text class="a-tit" x="92" y="422">신용대출 조건</text>
-            <text class="a-sub" x="62" y="448">자격질문 기반 상품 판정</text>
-            <text class="a-sub" x="62" y="472">
-              우대금리 합산 · 등급별 금리 조회
+            <text class="a-sub" x="62" y="448">
+              자격조건 판정 → 우대금리 합산
             </text>
+            <text class="a-sub" x="62" y="472">신용등급별 금리 조회</text>
 
             <rect class="grp" x="544" y="396" width="456" height="92" rx="10" />
             <text class="a-no" x="562" y="422">04</text>
             <text class="a-tit" x="592" y="422">전세대출 조건</text>
             <text class="a-sub" x="562" y="448">
-              자격질문 매칭 · 우대항목 선택
+              자격조건 판정 → 우대항목 선택
             </text>
-            <text class="a-sub" x="562" y="472">금리옵션별 시뮬레이션</text>
+            <text class="a-sub" x="562" y="472">
+              금리옵션별 상환 시뮬레이션
+            </text>
 
             <rect
               class="grp res"
@@ -1475,7 +1757,7 @@
               만기이자 · 중도해지이자 · 중도상환수수료 계산
             </text>
             <text class="a-sub" x="62" y="576">
-              해지안과 대출안을 비교한 뒤 결과와 근거 금리를 함께 저장
+              해지안 · 대출안 비교 결과 + 근거 금리 저장
             </text>
 
             <rect class="grp" x="20" y="632" width="620" height="100" rx="12" />
@@ -1509,6 +1791,7 @@
           <span class="num">06</span><span class="cap">data model</span>
         </div>
         <h2>데이터 모델</h2>
+        <p class="lede">총 21개 테이블로 구성했습니다.</p>
         <div class="erd">
           <svg
             viewBox="0 0 1040 820"
@@ -1518,7 +1801,7 @@
             <title>득실 데이터베이스 물리 설계도 — 21개 테이블</title>
             <desc>
               수집 배치 테이블을 중심으로 전세대출이 위, 신용대출이 아래에
-              놓이고 각각 라이브와 이력 테이블로 나뉩니다. 아래쪽에 사용자
+              놓이고 각각 라이브와 히스토리 테이블로 나뉩니다. 아래쪽에 사용자
               예금과 통합 비교결과 테이블이 있습니다.
             </desc>
             <defs>
@@ -1658,7 +1941,7 @@
               rx="3"
             />
             <text class="td" x="380" y="801">
-              이력 테이블 5개
+              히스토리 테이블 5개
             </text>
           </svg>
         </div>
@@ -1675,24 +1958,22 @@
               <tr>
                 <td class="m">사용자</td>
                 <td class="m">3</td>
-                <td>
-                  계좌번호 컬럼 암호화 · 탈퇴 시 이메일 익명화 · 예금 변경 이력 기록
-                </td>
+                <td>회원 · 보유 예금 · 예금 변경 히스토리</td>
               </tr>
               <tr>
                 <td class="m">신용대출</td>
                 <td class="m">8</td>
-                <td>상품 · 등급별 금리 · 우대 · 자격 + 이력 2</td>
+                <td>상품 · 등급별 금리 · 우대 · 자격 + 히스토리 2</td>
               </tr>
               <tr>
                 <td class="m">전세대출</td>
                 <td class="m">8</td>
-                <td>상품 · 금리옵션 · 우대 · 자격 + 이력 2</td>
+                <td>상품 · 금리옵션 · 우대 · 자격 + 히스토리 2</td>
               </tr>
               <tr>
                 <td class="m">수집 · 결과</td>
                 <td class="m">2</td>
-                <td>배치 이력(신용·전세 공용) · 비교 결과 이력</td>
+                <td>배치 히스토리(신용·전세 공용) · 비교 결과 히스토리</td>
               </tr>
             </tbody>
           </table>
@@ -1700,16 +1981,16 @@
         <div class="docs">
           <a
             class="doc"
-            href="https://claude.ai/code/artifact/401ff785-de0f-4d38-b973-109f200a29ec"
+            href="https://claude.ai/code/artifact/8648f9e5-2551-4a0f-b509-6ae03c9ce3e3"
             ><div class="t">신용대출 물리 모델</div>
-            <div class="d">라이브 6 · 이력 2 · 공용 배치</div>
+            <div class="d">라이브 6 · 히스토리 2 · 공용 배치</div>
             <span class="go">문서 보기 →</span></a
           >
           <a
             class="doc"
-            href="https://claude.ai/code/artifact/325d2fcc-eed8-4fd3-83cc-71ca3897dadf"
+            href="https://claude.ai/code/artifact/9a559542-fc03-4cc6-96ee-e5f77fdf9b31"
             ><div class="t">전세대출 물리 모델</div>
-            <div class="d">라이브 6 · 이력 2 · 공용 배치</div>
+            <div class="d">라이브 6 · 히스토리 2 · 공용 배치</div>
             <span class="go">문서 보기 →</span></a
           >
         </div>
@@ -1723,7 +2004,7 @@
         <p class="lede">신용대출과 전세대출 데이터의 크롤링 과정입니다.</p>
         <div class="erd">
           <svg
-            viewBox="0 0 1070 822"
+            viewBox="0 0 1070 765"
             role="img"
             preserveAspectRatio="xMidYMin meet"
           >
@@ -1777,84 +2058,68 @@
 
             <text class="a-no" x="572" y="166">기록되는 테이블</text>
 
-            <rect class="grp" x="20" y="176" width="500" height="92" rx="10" />
+            <rect class="grp" x="20" y="176" width="500" height="67" rx="10" />
             <text class="a-no" x="42" y="201">01</text>
             <text class="a-tit" x="76" y="201">배치 시작</text>
             <text class="a-sub" x="42" y="226">
-              크롤링 시작 전 배치 행 생성
+              배치 행 생성 · 실패해도 기록 보존
             </text>
-            <text class="a-sub" x="42" y="251">
-              수집 실패 시에도 시도 기록 보존
-            </text>
-            <path class="sq-l" d="M520 222 H556" />
+            <path class="sq-l" d="M520 209 H556" />
             <text class="tn" x="572" y="201">crawling_batch_history</text>
-            <path class="ln" d="M270 268 V298" marker-end="url(#pl)" />
+            <path class="ln" d="M270 243 V273" marker-end="url(#pl)" />
 
-            <rect class="grp" x="20" y="300" width="500" height="92" rx="10" />
-            <text class="a-no" x="42" y="325">02</text>
-            <text class="a-tit" x="76" y="325">크롤링 · 파싱</text>
-            <text class="a-sub" x="42" y="350">
-              상품 정보 · 금리표 · 우대항목 · 자격질문 추출
+            <rect class="grp" x="20" y="275" width="500" height="67" rx="10" />
+            <text class="a-no" x="42" y="300">02</text>
+            <text class="a-tit" x="76" y="300">크롤링 · 파싱</text>
+            <text class="a-sub" x="42" y="325">
+              상품 · 금리 · 우대조건 추출
             </text>
-            <text class="a-sub" x="42" y="375">
-              신용대출은 공시 API 비율로 등급별 금리 환산
-            </text>
-            <path class="ln" d="M270 392 V422" marker-end="url(#pl)" />
+            <path class="ln" d="M270 342 V372" marker-end="url(#pl)" />
 
-            <rect class="grp" x="20" y="424" width="500" height="117" rx="10" />
-            <text class="a-no" x="42" y="449">03</text>
-            <text class="a-tit" x="76" y="449">이력 저장</text>
-            <text class="a-sub" x="42" y="474">
-              수집값 전체를 SHA-256 지문으로 직전 값과 비교
+            <rect class="grp" x="20" y="374" width="500" height="117" rx="10" />
+            <text class="a-no" x="42" y="423">03</text>
+            <text class="a-tit" x="76" y="423">이력 저장</text>
+            <text class="a-sub" x="42" y="448">
+              SHA-256 지문 비교 후 변경분만 저장
             </text>
-            <text class="a-sub" x="42" y="499">
-              같으면 건너뛰고 다르면 새 행으로 적재
-            </text>
-            <text class="a-sub" x="42" y="524">한 트랜잭션으로 묶어 커밋</text>
-            <path class="sq-l" d="M520 482 H556" />
-            <text class="tn" x="572" y="449">credit_loan_products_history</text>
-            <text class="tn" x="572" y="474">
+            <path class="sq-l" d="M520 432 H556" />
+            <text class="tn" x="572" y="399">credit_loan_products_history</text>
+            <text class="tn" x="572" y="424">
               credit_loan_grade_rate_history
             </text>
-            <text class="tn" x="572" y="499">jeonse_products_history</text>
-            <text class="tn" x="572" y="524">jeonse_rate_option_history</text>
-            <path class="ln" d="M270 541 V571" marker-end="url(#pl)" />
+            <text class="tn" x="572" y="449">jeonse_products_history</text>
+            <text class="tn" x="572" y="474">jeonse_rate_option_history</text>
+            <path class="ln" d="M270 491 V521" marker-end="url(#pl)" />
 
-            <rect class="grp" x="20" y="573" width="500" height="117" rx="10" />
-            <text class="a-no" x="42" y="598">04</text>
-            <text class="a-tit" x="76" y="598">라이브 반영</text>
-            <text class="a-sub" x="42" y="623">
-              UPDATE 후 0행이면 INSERT — 중복 없이 갱신
+            <rect class="grp" x="20" y="523" width="500" height="117" rx="10" />
+            <text class="a-no" x="42" y="572">04</text>
+            <text class="a-tit" x="76" y="572">라이브 반영</text>
+            <text class="a-sub" x="42" y="597">
+              UPSERT · 실패 시 전부 롤백
             </text>
-            <text class="a-sub" x="42" y="648">
-              금리 · 조건을 같은 트랜잭션으로 처리
-            </text>
-            <text class="a-sub" x="42" y="673">
-              실패 시 전부 롤백 — 이력은 보존
-            </text>
-            <path class="sq-l" d="M520 631 H556" />
-            <text class="tn" x="572" y="598">
+            <path class="sq-l" d="M520 581 H556" />
+            <text class="tn" x="572" y="548">
               credit_loan_products · credit_loan_grade_rate
             </text>
-            <text class="tn" x="572" y="623">
+            <text class="tn" x="572" y="573">
               credit_loan_preferential_* · credit_loan_qualification_*
             </text>
-            <text class="tn" x="572" y="648">
+            <text class="tn" x="572" y="598">
               jeonse_product · jeonse_rate_option
             </text>
-            <text class="tn" x="572" y="673">
+            <text class="tn" x="572" y="623">
               jeonse_preferential_* · jeonse_eligibility_*
             </text>
-            <path class="ln" d="M270 690 V720" marker-end="url(#pl)" />
+            <path class="ln" d="M270 640 V670" marker-end="url(#pl)" />
 
-            <rect class="grp" x="20" y="729" width="500" height="67" rx="10" />
-            <text class="a-no" x="42" y="754">05</text>
-            <text class="a-tit" x="76" y="754">배치 마무리</text>
-            <text class="a-sub" x="42" y="779">
+            <rect class="grp" x="20" y="672" width="500" height="67" rx="10" />
+            <text class="a-no" x="42" y="697">05</text>
+            <text class="a-tit" x="76" y="697">배치 마무리</text>
+            <text class="a-sub" x="42" y="722">
               SUCCESS · PARTIAL · FAILED 중 하나로 종료
             </text>
-            <path class="sq-l" d="M520 762 H556" />
-            <text class="tn" x="572" y="754">crawling_batch_history</text>
+            <path class="sq-l" d="M520 705 H556" />
+            <text class="tn" x="572" y="697">crawling_batch_history</text>
           </svg>
         </div>
 
@@ -1876,12 +2141,11 @@
                   <span class="mono">대출신청자격</span>,
                   <span class="mono">금리 및 이율</span>이 표시된 시점의 HTML 수집
                 </li>
+                <li>전세대출 : 완성된 정적 HTML → Jsoup으로 직접 요청해 수집</li>
                 <li>
-                  전세대출 : 완성된 정적 HTML 제공 → Jsoup으로 직접 요청하여 HTML
-                  수집
+                  두 크롤러 모두 상품 상세 주소 단위로 수집하고, 파싱은 공통으로
+                  Jsoup 사용
                 </li>
-                <li>두 크롤러 모두 상품 상세 주소 단위로 수집</li>
-                <li>수집한 HTML의 파싱은 공통으로 Jsoup 사용</li>
               </ul>
             </td>
           </tr>
@@ -1890,10 +2154,10 @@
             <td>
               <ul>
                 <li>
-                  <span class="mono">crawling_batch_history</span> 생성 후 상태를
+                  <span class="mono">crawling_batch_history</span> 생성, 배치
+                  UUID·은행명·상품 구분·시작 시각·실행자를 함께 저장하고 상태를
                   <span class="mono">RUNNING</span>으로 기록
                 </li>
-                <li>배치 UUID, 은행명, 상품 구분, 시작 시각, 실행자 저장</li>
                 <li>
                   배치 이력은 별도 트랜잭션으로 즉시 커밋하여 후속 작업 실패
                   시에도 기록 보존
@@ -1906,10 +2170,9 @@
             <td>
               <ul>
                 <li>
-                      신용대출 : Playwright로 동적 렌더링 완료 후 Jsoup으로 HTML 수집, 공시 API 데이터를 반영해 신용등급별 금리로 환산
-                    </li>
-                <li>전세대출 : Jsoup으로 정적 HTML 직접 수집</li>
-                <li>공통 : Jsoup으로 상품 정보 · 금리표 · 우대조건 파싱</li>
+                  공통으로 Jsoup을 사용해 상품 정보 · 금리표 · 우대조건 파싱
+                </li>
+                <li>신용대출은 공시 API 데이터를 반영해 신용등급별 금리로 환산</li>
               </ul>
             </td>
           </tr>
@@ -1917,10 +2180,13 @@
             <td><b>03<br />이력 저장</b></td>
             <td>
               <ul>
-                <li>수집 데이터 기반 <span class="mono">SHA-256</span> 지문 생성</li>
-                <li>직전 지문과 비교하여 변경 없으면 저장 생략</li>
-                <li>변경 시 상품 이력과 금리 이력을 함께 저장</li>
-                <li>이력 저장 전체를 하나의 트랜잭션으로 커밋</li>
+                <li>
+                  <span class="mono">SHA-256</span> 지문을 생성해 직전 값과 비교,
+                  변경 없으면 저장 생략
+                </li>
+                <li>
+                  변경 시 상품 이력과 금리 이력을 함께 하나의 트랜잭션으로 커밋
+                </li>
               </ul>
             </td>
           </tr>
@@ -1929,13 +2195,13 @@
             <td>
               <ul>
                 <li>
-                  상품명 기준 기존 상품은 <span class="mono">UPDATE</span>, 신규
-                  상품은 <span class="mono">INSERT</span>
+                  상품은 상품명, 금리는 (상품 · 금리주기 · 신용등급) 기준으로
+                  <span class="mono">UPDATE</span> 또는
+                  <span class="mono">INSERT</span>
                 </li>
-                <li>금리는 (상품 · 금리주기 · 신용등급) 기준으로 갱신 또는 추가</li>
                 <li>우대 · 자격조건은 미등록시에만 추가</li>
                 <li>
-                  전체 반영 작업은 하나의 트랜잭션으로 처리하여 실패 시 전체 롤백
+                  전체 작업은 하나의 트랜잭션으로 처리해 실패 시 모두 롤백
                 </li>
               </ul>
             </td>
@@ -1944,11 +2210,11 @@
             <td><b>05<br />배치 마무리</b></td>
             <td>
               <ul>
-                <li>대상 건수 · 성공 건수 · 라이브 반영 여부 기록</li>
                 <li>
-                  실행 결과를 <span class="mono">SUCCESS</span> /
+                  대상 · 성공 건수와 라이브 반영 여부를
+                  <span class="mono">SUCCESS</span> /
                   <span class="mono">PARTIAL</span> /
-                  <span class="mono">FAILED</span>로 확정
+                  <span class="mono">FAILED</span> 중 하나로 확정
                 </li>
               </ul>
             </td>
@@ -1963,6 +2229,9 @@
           <span class="num">08</span><span class="cap">sequence</span>
         </div>
         <h2>손익 비교 흐름</h2>
+        <p class="lede">
+          예금 선택부터 결과 저장까지, 서버가 처리하는 흐름입니다.
+        </p>
         <div class="erd">
           <svg
             viewBox="0 0 1070 1270"
@@ -2133,6 +2402,7 @@
           <span class="num">09</span><span class="cap">troubleshooting</span>
         </div>
         <h2>트러블슈팅</h2>
+        <p class="lede">실제로 겪은 문제입니다.</p>
         <div class="proj">
           <div class="proj-head">
             <h3>금리와 상환기간의 상호 의존 문제 발생</h3>
@@ -2146,8 +2416,8 @@
               근데 어떤 주기가 맞는지 알려면
               <b>실제로 몇 개월 만에 다 갚는지</b> 먼저 알아야 하고, 그 상환
               개월수를 계산하려면 <b>금리가 먼저 있어야</b> 합니다.<br />
-              서로가 서로를 필요로 하는 상황이라, 잘못 고르면 사용자한테
-              실제보다 비싼 금리가 보여지는 문제였습니다.
+              닭이 먼저냐 달걀이 먼저냐 같은 상황이라, 잘못 고르면 사용자한테
+              실제보다 비싼 금리가 보이는 문제였습니다.
             </p>
           </div>
           <div class="blk a">
@@ -2185,7 +2455,7 @@
           <div class="blk r">
             <p class="lbl">result</p>
             <p>
-              금리와 실제 상환개월이 한 번의 탐색으로 같이 확정됩니다. 일찍 다
+              금리와 실제 상환 개월 수가 한 번에 같이 정해집니다. 일찍 다
               갚든 12개월을 넘기든, 조건에 맞는 가장 짧은 주기가 잡혀서 사용자가
               받을 수 있는 제일 낮은 금리가 나옵니다.
             </p>
@@ -2197,9 +2467,19 @@
               단, 12개월 안에도 다 갚지 못하면 <b>최장 금리변동주기</b>인 12개월로 확정됩니다.
             </p>
             <div class="measure">
-              <b>측정</b> 만기에 목돈으로 갚는 경우와 아닌 경우, 금리 주기
+              <b>테스트</b> 만기에 목돈으로 갚는 경우와 아닌 경우, 금리 주기
               3가지를 모두 조합해서 단위 테스트로 검증했습니다. 직접 손으로
               계산한 명세서 4건과 비교해봤고, 전부 일치했습니다.
+            </div>
+            <div class="shot">
+              <img
+                src="assets/screens/trouble-rate-period.png"
+                alt="결과 화면 — 대출금리 연 5.21%(12개월)로 확정된 실제 비교 결과"
+              />
+              <p class="shot-cap">
+                실제 비교 결과 화면 — 대출금리가 연 5.21%(12개월)로
+                확정됐습니다
+              </p>
             </div>
           </div>
           <div class="blk l">
@@ -2209,7 +2489,7 @@
               생각해보니 은행이 제공하는 금리 주기는
               <b>3개월·6개월·12개월, 딱 세 가지뿐</b>이었습니다. 무한히 어려운
               문제가 아니라, 세 개 중에 고르면 되는 문제로 바뀌었습니다. 기술로
-              풀기 전에, 먼저 실제 상황(도메인)을 제대로 봤어야 했습니다.
+              풀기 전에, 먼저 실제 상황을 제대로 봤어야 했습니다.
             </p>
           </div>
         </div>
@@ -2219,13 +2499,14 @@
           <span class="num">10</span><span class="cap">feedback</span>
         </div>
         <h2>피드백과 개선</h2>
+        <p class="lede"></p>
 
         <div class="tbl">
           <table>
             <thead>
               <tr>
                 <th>멘토</th>
-                <th>지적</th>
+                <th>피드백</th>
                 <th>대응</th>
               </tr>
             </thead>
@@ -2307,7 +2588,7 @@
           <span class="num">11</span><span class="cap">open issues</span>
         </div>
         <h2>보완 계획</h2>
-        <p class="lede">발표 시점까지 마무리하지 못한 항목입니다.</p>
+        <p class="lede"></p>
         <div class="open">
           <ul>
             <li>
@@ -2335,5 +2616,86 @@
         Your Life 2026
       </footer>
     </div>
+
+    <script>
+      (function () {
+        var links = Array.prototype.slice.call(
+          document.querySelectorAll('.toc a, .toc-bar a')
+        );
+        if (!links.length) return;
+        var byId = {};
+        links.forEach(function (a) {
+          var id = a.getAttribute('href').slice(1);
+          (byId[id] = byId[id] || []).push(a);
+        });
+        var obs = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              var group = byId[entry.target.id];
+              if (!group || !entry.isIntersecting) return;
+              links.forEach(function (l) {
+                l.classList.remove('active');
+              });
+              group.forEach(function (link) {
+                link.classList.add('active');
+              });
+            });
+          },
+          { rootMargin: '-40% 0px -55% 0px', threshold: 0 }
+        );
+        document.querySelectorAll('section[id]').forEach(function (sec) {
+          obs.observe(sec);
+        });
+      })();
+
+      (function () {
+        var steps = Array.prototype.slice.call(
+          document.querySelectorAll('#features .fstep')
+        );
+        var rows = Array.prototype.slice.call(
+          document.querySelectorAll('#features tbody tr')
+        );
+        var screenEl = document.querySelector('#features .fscreen');
+        if (!steps.length || !screenEl) return;
+        var images = {
+          1: 'assets/screens/step1.png',
+          2: 'assets/screens/step2.png',
+          3: 'assets/screens/step3.png',
+          4: 'assets/screens/step4.png',
+          5: 'assets/screens/step5.png',
+          6: 'assets/screens/step6.png',
+        };
+        function show(n) {
+          steps.forEach(function (s) {
+            s.classList.toggle('active', s.dataset.step === String(n));
+          });
+          rows.forEach(function (r) {
+            r.classList.toggle('active', r.dataset.step === String(n));
+          });
+          var img = new Image();
+          img.alt = n + '단계 화면';
+          img.onload = function () {
+            screenEl.innerHTML = '';
+            screenEl.appendChild(img);
+          };
+          img.onerror = function () {
+            screenEl.innerHTML =
+              '<span class="fscreen-empty">' + n + '단계 화면 캡처 예정</span>';
+          };
+          img.src = images[n];
+        }
+        steps.forEach(function (s) {
+          s.addEventListener('click', function () {
+            show(s.dataset.step);
+          });
+        });
+        rows.forEach(function (r) {
+          r.addEventListener('click', function () {
+            show(r.dataset.step);
+          });
+        });
+        show(1);
+      })();
+    </script>
 </body>
 </html>
