@@ -357,15 +357,17 @@
         border: 1px solid var(--line);
         border-radius: var(--r);
         background: var(--sunk);
-        min-height: 340px;
+        min-height: 480px;
         display: flex;
         align-items: center;
         justify-content: center;
       }
+      /* 캡처마다 가로 폭이 달라(1539~2058) 가로 기준으로 맞추면 단계별
+         확대율이 어긋난다. 세로는 모두 2445px이므로 세로를 기준 삼는다. */
       .fscreen img {
-        width: 100%;
-        max-width: 280px;
-        height: auto;
+        max-height: 700px;
+        width: auto;
+        max-width: 100%;
         display: block;
         border-radius: 14px;
         border: 1px solid var(--line-2);
@@ -1290,9 +1292,9 @@
         <div class="hero-result">
           <span class="hero-result-label">실제 계산 결과 예시</span>
           <p class="hero-result-value">
-            <span class="hero-result-product">KB Star 정기예금</span
-            ><span class="hero-result-arrow">→</span>중도해지
-            <b>590,474원</b> 더 이득
+            <span class="hero-result-product">일반정기예금</span
+            ><span class="hero-result-arrow">→</span>신용대출
+            <b>58,660원</b> 더 이득
           </p>
         </div>
 
@@ -1332,30 +1334,85 @@
         <p class="lede">
           예금 해지와 대출 중 무엇이 유리한지, 비교가 어려운 이유입니다.
         </p>
+        <div class="erd">
+          <svg viewBox="0 0 1040 580" role="img" preserveAspectRatio="xMidYMin meet">
+            <title>목돈이 필요할 때의 두 갈래와 비교 방식</title>
+            <desc>
+              목돈이 필요한 상황에서 예금을 깨는 길과 대출을 받는 길로 갈라지고,
+              각각 잃는 것이 다릅니다. 득실은 두 결과를 만기 때 손에 남는 돈으로
+              바꿔서 나란히 놓고 견줍니다.
+            </desc>
+            <defs>
+              <marker id="ab" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                <path d="M1 1L8 5L1 9" fill="none" stroke="context-stroke" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+              </marker>
+            </defs>
+
+            <rect class="grp acc" x="300" y="20" width="440" height="84" rx="12" />
+            <text class="a-tit" x="520" y="54" text-anchor="middle">당장 500만원이 필요하다</text>
+            <text class="a-sub" x="520" y="82" text-anchor="middle">가입한 지 10개월 된 예금이 하나 있다</text>
+
+            <path class="ln" d="M520 104 V134" />
+            <path class="ln" d="M250 134 H790" />
+            <path class="ln" d="M250 134 V166" marker-end="url(#ab)" />
+            <path class="ln" d="M790 134 V166" marker-end="url(#ab)" />
+
+            <rect class="grp" x="60" y="172" width="380" height="110" rx="12" />
+            <text class="a-tit" x="88" y="210">예금을 깬다</text>
+            <text class="a-sub" x="88" y="240">그동안 쌓인 이자를</text>
+            <text class="a-sub" x="88" y="264">대부분 못 받는다</text>
+
+            <rect class="grp" x="600" y="172" width="380" height="110" rx="12" />
+            <text class="a-tit" x="628" y="210">대출을 받는다</text>
+            <text class="a-sub" x="628" y="240">이자를 새로 내고</text>
+            <text class="a-sub" x="628" y="264">수수료도 든다</text>
+
+            <path class="ln" d="M250 282 V318" />
+            <path class="ln" d="M790 282 V318" />
+            <path class="ln" d="M250 318 H790" />
+            <path class="ln" d="M520 318 V350" marker-end="url(#ab)" />
+
+            <rect class="grp res" x="140" y="356" width="760" height="200" rx="12" />
+            <text class="a-band" x="520" y="394" text-anchor="middle">만기 때 손에 남는 돈으로 바꿔서 나란히 놓는다</text>
+
+            <path class="sq-l" d="M520 420 V488" />
+            <text class="a-sub" x="330" y="440" text-anchor="middle">깼을 때</text>
+            <text class="a-lbl" x="330" y="474" text-anchor="middle">10,239,700원</text>
+            <text class="a-sub" x="710" y="440" text-anchor="middle">빌렸을 때</text>
+            <text class="a-lbl" x="710" y="474" text-anchor="middle">10,298,360원</text>
+
+            <text class="a-tit" x="520" y="526" text-anchor="middle">대출이 58,660원 이득</text>
+          </svg>
+        </div>
         <div class="two">
           <div class="card mark">
             <h3>사용자가 마주하는 상황</h3>
             <p>
-              갑작스럽게 목돈이 필요해진 상황. 만기 7개월 남은 예금을 깨면
-              쌓아둔 이자를 대부분 잃고, 대출을 받으면 이자를 새로 냅니다.
+              당장 500만원이 필요합니다. 가입한 지 10개월 된 예금이 하나 있고요.
             </p>
             <p>
-              어느 쪽이 나은지 알려면
-              <b>중도해지 이율, 남은 기간, 대출금리, 중도상환수수료</b>를 다
-              따져봐야 합니다.
-              <b>낯선 용어투성이라 어디서부터 비교해야 할지도 막막합니다.</b>
-              결국 감으로 정하거나 은행 창구에 묻게 됩니다.
+              깨자니 그동안 쌓인 이자를 대부분 못 받습니다. 빌리자니 이자를 새로
+              내야 하고요.
+            </p>
+            <p>
+              어느 쪽이 덜 손해인지 알려면
+              <b>깰 때 받는 이자, 남은 기간, 대출금리, 먼저 갚을 때 무는
+              수수료</b>를 다 맞춰봐야 합니다.
+              <b>은행 용어에 익숙하지 않으면 어디부터 봐야 할지조차 잡히지
+              않습니다.</b>
+              결국 감으로 정하거나 창구에 묻게 됩니다.
             </p>
           </div>
           <div class="card">
             <h3>서비스가 하는 일</h3>
+            <p>가진 예금과 필요한 금액만 넣으면 됩니다.</p>
             <p>
-              보유 예금과 필요 금액만 입력하면, 두 선택지의 총비용을
-              <b>같은 시점 · 같은 세후 기준</b>으로 환산해 비교합니다.
+              두 선택지를 <b>만기 때 손에 남는 돈</b>으로 바꿔서 나란히
+              보여줍니다. 세금까지 뗀 금액이라 그대로 견주면 됩니다.
             </p>
             <p>
-              해지가 유리하면 해지하라고 말합니다. 상품을 파는 계산기가 아니라,
-              사용자가 스스로 판단할 근거를 주는 것을 목표로 했습니다.
+              깨는 쪽이 나으면 깨라고 말합니다. 대출을 권하는 계산기가 아니라,
+              스스로 판단할 근거를 주는 게 목표였습니다.
             </p>
           </div>
         </div>
@@ -1366,7 +1423,9 @@
           <span class="num">02</span><span class="cap">features</span>
         </div>
         <h2>주요 기능</h2>
-        <p class="lede">단계형 사용자 시나리오</p>
+        <p class="lede">
+          단계형 사용자 시나리오 — 02·03은 실제로 한 화면에서 함께 입력받습니다.
+        </p>
         <div class="flow">
           <button type="button" class="fstep" data-step="1">예금 등록</button
           ><span class="farrow">→</span>
@@ -1429,6 +1488,10 @@
                     <li>
                       고른 예금의 원금·금리·만기일이 해지했을 때를 계산하는
                       기준이 됨.
+                    </li>
+                    <li>
+                      <b>02와 같은 화면.</b> 신용점수·월 상환 가능 금액·대출
+                      종류(신용/전세)도 여기서 함께 입력받음.
                     </li>
                   </ul>
                 </td>
@@ -2474,22 +2537,23 @@
             <div class="shot">
               <img
                 src="assets/screens/trouble-rate-period.png"
-                alt="결과 화면 — 대출금리 연 5.21%(12개월)로 확정된 실제 비교 결과"
+                alt="결과 화면 — 대출금리 연 5.19%(6개월)로 확정된 실제 비교 결과"
               />
               <p class="shot-cap">
-                실제 비교 결과 화면 — 대출금리가 연 5.21%(12개월)로
-                확정됐습니다
+                실제 비교 결과 화면 — 12개월까지 가지 않고 <b>6개월에서</b>
+                멈춰 연 5.19%로 확정됐습니다
               </p>
             </div>
           </div>
           <div class="blk l">
             <p class="lbl">lesson learned</p>
             <p>
-              처음엔 이걸 수학 공식처럼 한 번에 풀려고 하다가 막혔습니다. 근데
-              생각해보니 은행이 제공하는 금리 주기는
-              <b>3개월·6개월·12개월, 딱 세 가지뿐</b>이었습니다. 무한히 어려운
-              문제가 아니라, 세 개 중에 고르면 되는 문제로 바뀌었습니다. 기술로
-              풀기 전에, 먼저 실제 상황을 제대로 봤어야 했습니다.
+              서로를 필요로 하는 두 값을 방정식으로 한 번에 풀어내려다 한참을
+              헤맸습니다. 정작 먼저 확인했어야 할 것은 금리주기가 몇 개나
+              되는지였습니다. 은행이 제공하는 주기는
+              <b>3개월·6개월·12개월, 딱 세 가지뿐</b>이라, 풀어낼 필요 없이 세
+              번 대입하면 끝나는 문제였습니다. 어려운 문제였던 게 아니라, 문제의
+              크기를 재보지 않은 것이 문제였습니다.
             </p>
           </div>
         </div>
