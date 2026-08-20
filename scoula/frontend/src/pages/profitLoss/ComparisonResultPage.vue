@@ -115,6 +115,17 @@ const loanLoss = computed(() =>
 
 const maxLoss = computed(() => Math.max(depositLoss.value, loanLoss.value));
 
+// 급전이 예금 원금보다 크면 예금을 다 깨도 모자라 그만큼을 추가로 빌린다.
+// 그때는 해지안에도 대출비용이 섞이므로 라벨과 설명이 달라져야 한다.
+// (원금 = finalBalance - withdrawalProfit : 96~100행과 같은 역산)
+const hasShortfall = computed(() => {
+  if (!comparison.value) return false;
+  const principal =
+    comparison.value.deposit.finalBalance -
+    comparison.value.deposit.withdrawalProfit;
+  return comparison.value.urgentAmount > principal;
+});
+
 const loanBarWidth = computed(() => {
   if (!comparison.value || maxLoss.value === 0) return 0;
   return (loanLoss.value / maxLoss.value) * 100;
@@ -316,13 +327,21 @@ const closeDoneModal = () => {
               </div>
               <div class="detail-row">
                 <span>총비용</span>
-                <span class="detail-value">
-                  {{ won(comparison.loan.cost) }}원
-                  <small class="detail-sub"
-                    >이자 {{ won(comparison.loan.interest) }} + 수수료
-                    {{ won(comparison.loan.penalty) }}</small
-                  >
-                </span>
+                <span class="detail-value"
+                  >{{ won(comparison.loan.cost) }}원</span
+                >
+              </div>
+              <div class="detail-row breakdown">
+                <span>대출이자</span>
+                <span class="detail-value"
+                  >{{ won(comparison.loan.interest) }}원</span
+                >
+              </div>
+              <div class="detail-row breakdown">
+                <span>중도상환 수수료</span>
+                <span class="detail-value"
+                  >{{ won(comparison.loan.penalty) }}원</span
+                >
               </div>
               <div class="detail-row">
                 <span>만기이자</span>
@@ -347,15 +366,16 @@ const closeDoneModal = () => {
       <!-- 5. 바 차트 카드 -->
       <section class="card chart-card">
         <div class="chart-header">
-          <span>손실 비교</span>
+          <span>어느 쪽이 덜 손해일까요</span>
           <span class="gold">차이 {{ won(comparison.savingAmount) }}원</span>
         </div>
 
         <div class="chart-row">
           <div class="chart-row-label">
-            <span>{{ loanTypeLabel }}</span>
+            <span>대출을 받으면</span>
             <strong>{{ won(loanLoss) }}원</strong>
           </div>
+          <p class="chart-row-note">대출이자 + 중도상환 수수료</p>
           <div class="chart-bar-track">
             <div
               class="chart-bar-fill"
@@ -367,9 +387,12 @@ const closeDoneModal = () => {
 
         <div class="chart-row">
           <div class="chart-row-label">
-            <span>중도해지</span>
+            <span>{{ hasShortfall ? '예금을 깨고 대출도 받으면' : '예금을 깨면' }}</span>
             <strong>{{ won(depositLoss) }}원</strong>
           </div>
+          <p class="chart-row-note">
+            못 받게 되는 예금이자<span v-if="hasShortfall"> + 모자랄 때, 대출로 빌리는 비용</span>
+          </p>
           <div class="chart-bar-track">
             <div
               class="chart-bar-fill"
@@ -380,10 +403,10 @@ const closeDoneModal = () => {
         </div>
       </section>
 
-      <!-- 6. 월 예상 상환액 -->
+      <!-- 6. 월 상환 가능 금액 -->
       <section class="card monthly-card">
         <div class="detail-row">
-          <span>월 예상 상환액</span>
+          <span>월 상환 가능 금액</span>
           <span class="detail-value strong"
             >{{ won(comparison.monthlyPayment) }}원</span
           >
@@ -480,7 +503,9 @@ button {
   --gs-text-sub: #9a938a;
   --gs-gold: #ffbc00;
   --gs-gold-soft: #fff8df;
-  --gs-gold-deep: #c8bfae;
+  /* 추천하지 않는 쪽 막대. 트랙(--gs-line)과 대비 3.6:1 이상이라야
+     100% 채워진 막대가 빈 막대로 보이지 않는다. */
+  --gs-gold-deep: #7d7261;
   --gs-warn-bg: #fdecef;
   --gs-warn-line: #ffb8d6;
   --gs-warn-text: #99295a;
@@ -784,6 +809,24 @@ button {
   white-space: normal;
 }
 
+/* 총비용을 이루는 항목. 한 칸 들여써서 윗줄에 딸린 내역임을 드러내고,
+   왼쪽 칸을 그대로 쓰므로 이름을 줄이지 않아도 된다. */
+.detail-row.breakdown {
+  margin-bottom: 6px;
+  padding-left: 6px;
+  font-size: 11px;
+  /* 카드 안쪽이 123px뿐이라 이름과 금액이 한 줄에 안 들어갈 때가 있다.
+     nowrap인 금액과 keep-all인 이름은 둘 다 줄지 않으므로, 넘칠 때는
+     금액을 아랫줄로 흘려보낸다. margin-left로 오른쪽 정렬은 유지한다. */
+  flex-wrap: wrap;
+}
+
+.detail-row.breakdown .detail-value {
+  margin-left: auto;
+  color: var(--gs-text-sub);
+  font-size: 11px;
+}
+
 .detail-note {
   margin: 8px 0 0;
   font-size: 11px;
@@ -801,6 +844,14 @@ button {
 
 .chart-header .gold {
   font-size: 13px;
+}
+
+/* 금액이 무엇으로 이루어졌는지. 훑을 때 걸리지 않게 본문보다 작고 흐리게. */
+.chart-row-note {
+  margin: -6px 0 8px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--gs-text-sub);
 }
 
 .chart-row + .chart-row {
@@ -834,7 +885,7 @@ button {
   background: var(--gs-gold-deep);
 }
 
-/* 6. 월 예상 상환액 — 행이 하나뿐이라 detail-row의 margin-bottom을 지운다. */
+/* 6. 월 상환 가능 금액 — 행이 하나뿐이라 detail-row의 margin-bottom을 지운다. */
 .monthly-card .detail-row {
   margin-bottom: 0;
 }
