@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>전세대출 물리 모델</title>
+<style>*{box-sizing:border-box;}body{margin:0;}</style>
+</head>
+<body>
+<style>
+:root{
+  --ink:#edeef2; --ink-2:#9da1ae; --ink-3:#6e7280;
+  --paper:#0a0a0c; --card:#131419;
+  --rule:#2e3039; --rule-soft:#23242c;
+  --live:#332c5e; --live-bg:#17142c; --live-ink:#a899ff;
+  --hist:#1e4638; --hist-bg:#0e241d; --hist-ink:#8be3c6;
+  --warn:#e5a75f; --warn-bg:#241b10; --warn-rule:#4a3820;
+  --mono:'Cascadia Mono',Consolas,ui-monospace,SFMono-Regular,Menlo,monospace;
+  --sans:'Pretendard Variable',Pretendard,'Apple SD Gothic Neo',ui-sans-serif,system-ui,-apple-system,'Segoe UI','Malgun Gothic',sans-serif;
+}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);line-height:1.7;margin:0;padding:28px 0 48px;}
+.wrap{max-width:1180px;margin:0 auto;padding:0 24px;}
+header{padding:56px 0 8px;}
+h1{font-family:var(--mono);font-size:26px;font-weight:500;letter-spacing:-.01em;margin:0 0 8px;text-wrap:balance;}
+.sub{color:var(--ink-2);font-size:15px;margin:0;}
+.meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px;}
+.chip{font-family:var(--mono);font-size:12px;padding:3px 10px;border-radius:999px;border:1px solid var(--rule);color:var(--ink-2);background:var(--card);}
+.chip.l{border-color:var(--live);color:var(--live-ink);background:var(--live-bg);}
+.chip.h{border-color:var(--hist);color:var(--hist-ink);background:var(--hist-bg);}
+section{margin-top:28px;}
+h2{font-size:18px;font-weight:500;margin:0 0 4px;display:flex;align-items:baseline;gap:12px;}
+h2 .n{font-family:var(--mono);font-size:12px;color:var(--ink-3);letter-spacing:.06em;text-transform:uppercase;}
+.lede{color:var(--ink-2);font-size:14px;margin:0 0 20px;max-width:62ch;}
+.canvas{overflow-x:auto;background:var(--card);border:1px solid var(--rule);border-radius:12px;padding:8px;}
+text{font-family:var(--mono);}
+.tname{font-size:12px;fill:var(--live-ink);}
+.tlabel{font-size:10px;fill:var(--live-ink);}
+.h .tname{fill:var(--hist-ink);}
+.h .tlabel{fill:var(--hist-ink);}
+.cn{font-size:10.5px;fill:var(--ink);}
+.ct{font-size:10px;fill:var(--ink-2);}
+.cc{font-size:10px;fill:var(--live-ink);}
+.h .cc{fill:var(--hist-ink);}
+.hb{fill:var(--live-bg);stroke:var(--live);stroke-width:1;}
+.h .hb{fill:var(--hist-bg);stroke:var(--hist);}
+.cell{fill:var(--card);stroke:var(--rule-soft);stroke-width:1;}
+.box{fill:none;stroke:var(--live);stroke-width:1.4;}
+.h .box{stroke:var(--hist);}
+.link{fill:none;stroke:var(--live);stroke-width:1.4;}
+.h .link{stroke:var(--hist);}
+.note{font-size:10.5px;fill:var(--ink-3);}
+.legend{margin-top:14px;display:grid;gap:7px;font-family:var(--mono);font-size:12px;color:var(--ink-2);}
+.legend b{font-weight:500;color:var(--ink);}
+.legend .gap{height:6px;}
+.dict{margin-top:16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px;align-items:start;}
+.dt{background:var(--card);border:1px solid var(--rule);border-radius:12px;padding:15px 17px;}
+.dt h4{margin:0 0 11px;padding-bottom:10px;border-bottom:1px solid var(--rule-soft);font-family:var(--mono);font-size:12.5px;font-weight:500;color:var(--live-ink);overflow-wrap:anywhere;}
+.dt h4 i{font-style:normal;color:var(--ink-3);margin-right:6px;}
+.dt h4 em{display:block;margin-top:3px;font-family:var(--sans);font-style:normal;font-size:12px;color:var(--ink-2);}
+.dict.hist .dt h4{color:var(--hist-ink);}
+.dict.hist .dt li code{color:var(--hist-ink);}
+.dt ul{margin:0;padding:0;list-style:none;display:grid;gap:9px;}
+.dt li{font-size:12.5px;color:var(--ink-2);line-height:1.5;}
+.dt li code{display:block;margin-bottom:1px;font-family:var(--mono);font-size:11.5px;color:var(--ink);overflow-wrap:anywhere;}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin-top:22px;}
+.card{background:var(--card);border:1px solid var(--rule);border-radius:12px;padding:16px 18px;}
+.card h3{font-family:var(--mono);font-size:13px;font-weight:500;margin:0 0 8px;color:var(--ink);}
+.card p{margin:0;font-size:13.5px;color:var(--ink-2);}
+.card.w{background:var(--warn-bg);border-color:var(--warn-rule);}
+.card.w h3{color:var(--warn);}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl{overflow-x:auto;background:var(--card);border:1px solid var(--rule);border-radius:12px;margin-top:14px;}
+th,td{text-align:left;padding:9px 14px;border-bottom:1px solid var(--rule-soft);}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);font-weight:500;}
+tr:last-child td{border-bottom:none;}
+td.m{font-family:var(--mono);font-size:12px;font-variant-numeric:tabular-nums;}
+td.y{color:var(--hist);font-family:var(--mono);font-size:12px;}
+td.n{color:var(--warn);font-family:var(--mono);font-size:12px;}
+</style>
+
+<div class="wrap">
+<section>
+  <div class="canvas">
+  <svg viewBox="0 0 1180 480" role="img" style="display:block;width:100%;height:auto">
+    <title>전세대출 라이브 테이블 6개의 관계도</title>
+    <desc>jeonse_product를 중심으로 jeonse_rate_option, jeonse_preferential_condition, jeonse_eligibility_condition이 연결되고, 연결 테이블은 각각 jeonse_preferential_item과 jeonse_eligibility_question을 참조합니다.</desc>
+
+    <path class="link" d="M190 153 V210"/>
+    <path class="link" d="M360 255.5 H375 V58.5 H390"/>
+    <path class="link" d="M980 111 V210"/>
+    <path class="link" d="M800 255.5 H783 V58.5 H770"/>
+    <path class="link" d="M580 300 V237"/>
+
+    <g>
+      <rect class="hb" x="20" y="20" width="340" height="28" rx="4"/>
+      <text class="tname" x="30" y="38">jeonse_preferential_item</text>
+      <text class="tlabel" x="350" y="38" text-anchor="end">우대 항목</text>
+      <rect class="cell" x="20" y="48" width="340" height="21"/>
+      <text class="cn" x="30" y="62.5">preferential_item_id</text><text class="ct" x="210" y="62.5">BIGINT</text><text class="cc" x="290" y="62.5">PK AI</text>
+      <rect class="cell" x="20" y="69" width="340" height="21"/>
+      <text class="cn" x="30" y="83.5">condition_name</text><text class="ct" x="210" y="83.5">VARCHAR(100)</text>
+      <rect class="cell" x="20" y="90" width="340" height="21"/>
+      <text class="cn" x="30" y="104.5">condition_detail</text><text class="ct" x="210" y="104.5">VARCHAR(255)</text>
+      <rect class="cell" x="20" y="111" width="340" height="21"/>
+      <text class="cn" x="30" y="125.5">preferential_rate</text><text class="ct" x="210" y="125.5">DECIMAL(4,2)</text><text class="cc" x="290" y="125.5">NN</text>
+      <rect class="cell" x="20" y="132" width="340" height="21"/>
+      <text class="cn" x="30" y="146.5">crawl_source_key</text><text class="ct" x="210" y="146.5">VARCHAR(300)</text><text class="cc" x="290" y="146.5">UK</text>
+      <rect class="box" x="20" y="20" width="340" height="133" rx="4"/>
+    </g>
+
+    <g>
+      <rect class="hb" x="20" y="210" width="340" height="28" rx="4"/>
+      <text class="tname" x="30" y="228">jeonse_preferential_condition</text>
+      <text class="tlabel" x="350" y="228" text-anchor="end">상품–우대 연결</text>
+      <rect class="cell" x="20" y="238" width="340" height="21"/>
+      <text class="cn" x="30" y="252.5">condition_id</text><text class="ct" x="210" y="252.5">BIGINT</text><text class="cc" x="290" y="252.5">PK AI</text>
+      <rect class="cell" x="20" y="259" width="340" height="21"/>
+      <text class="cn" x="30" y="273.5">product_id</text><text class="ct" x="210" y="273.5">BIGINT</text><text class="cc" x="290" y="273.5">FK NN UK</text>
+      <rect class="cell" x="20" y="280" width="340" height="21"/>
+      <text class="cn" x="30" y="294.5">preferential_item_id</text><text class="ct" x="210" y="294.5">BIGINT</text><text class="cc" x="290" y="294.5">FK NN UK</text>
+      <rect class="box" x="20" y="210" width="340" height="91" rx="4"/>
+    </g>
+
+    <g transform="translate(-50,0)">
+      <rect class="hb" x="440" y="20" width="380" height="28" rx="4"/>
+      <text class="tname" x="450" y="38">jeonse_product</text>
+      <text class="tlabel" x="810" y="38" text-anchor="end">전세대출 상품</text>
+      <rect class="cell" x="440" y="48" width="380" height="21"/>
+      <text class="cn" x="450" y="62.5">product_id</text><text class="ct" x="650" y="62.5">BIGINT</text><text class="cc" x="735" y="62.5">PK AI</text>
+      <rect class="cell" x="440" y="69" width="380" height="21"/>
+      <text class="cn" x="450" y="83.5">product_name</text><text class="ct" x="650" y="83.5">VARCHAR(100)</text><text class="cc" x="735" y="83.5">NN</text>
+      <rect class="cell" x="440" y="90" width="380" height="21"/>
+      <text class="cn" x="450" y="104.5">bank_name</text><text class="ct" x="650" y="104.5">VARCHAR(50)</text><text class="cc" x="735" y="104.5">NN</text>
+      <rect class="cell" x="440" y="111" width="380" height="21"/>
+      <text class="cn" x="450" y="125.5">max_loan_limit</text><text class="ct" x="650" y="125.5">BIGINT</text><text class="cc" x="735" y="125.5">NN</text>
+      <rect class="cell" x="440" y="132" width="380" height="21"/>
+      <text class="cn" x="450" y="146.5">detail_url</text><text class="ct" x="650" y="146.5">VARCHAR(500)</text><text class="cc" x="735" y="146.5">NN</text>
+      <rect class="cell" x="440" y="153" width="380" height="21"/>
+      <text class="cn" x="450" y="167.5">collected_at</text><text class="ct" x="650" y="167.5">DATETIME</text><text class="cc" x="735" y="167.5">NN DEF</text>
+      <rect class="cell" x="440" y="174" width="380" height="21"/>
+      <text class="cn" x="450" y="188.5">max_preferential_rate</text><text class="ct" x="650" y="188.5">DECIMAL(4,2)</text><text class="cc" x="735" y="188.5">NN</text>
+      <rect class="cell" x="440" y="195" width="380" height="21"/>
+      <text class="cn" x="450" y="209.5">last_batch_id</text><text class="ct" x="650" y="209.5">BIGINT</text><text class="cc" x="735" y="209.5">FK</text>
+      <rect class="cell" x="440" y="216" width="380" height="21"/>
+      <text class="cn" x="450" y="230.5">is_deleted</text><text class="ct" x="650" y="230.5">CHAR(1)</text><text class="cc" x="735" y="230.5">NN DEF CHK</text>
+      <rect class="box" x="440" y="20" width="380" height="217" rx="4"/>
+    </g>
+
+    <g transform="translate(-50,0)">
+      <rect class="hb" x="440" y="300" width="380" height="28" rx="4"/>
+      <text class="tname" x="450" y="318">jeonse_rate_option</text>
+      <text class="tlabel" x="810" y="318" text-anchor="end">금리 옵션</text>
+      <rect class="cell" x="440" y="328" width="380" height="21"/>
+      <text class="cn" x="450" y="342.5">rate_option_id</text><text class="ct" x="650" y="342.5">BIGINT</text><text class="cc" x="735" y="342.5">PK AI</text>
+      <rect class="cell" x="440" y="349" width="380" height="21"/>
+      <text class="cn" x="450" y="363.5">product_id</text><text class="ct" x="650" y="363.5">BIGINT</text><text class="cc" x="735" y="363.5">FK NN</text>
+      <rect class="cell" x="440" y="370" width="380" height="21"/>
+      <text class="cn" x="450" y="384.5">rate_type</text><text class="ct" x="650" y="384.5">VARCHAR(20)</text><text class="cc" x="735" y="384.5">NN</text>
+      <rect class="cell" x="440" y="391" width="380" height="21"/>
+      <text class="cn" x="450" y="405.5">base_rate</text><text class="ct" x="650" y="405.5">DECIMAL(4,2)</text><text class="cc" x="735" y="405.5">NN</text>
+      <rect class="cell" x="440" y="412" width="380" height="21"/>
+      <text class="cn" x="450" y="426.5">spread_rate</text><text class="ct" x="650" y="426.5">DECIMAL(4,2)</text><text class="cc" x="735" y="426.5">NN</text>
+      <rect class="cell" x="440" y="433" width="380" height="21"/>
+      <text class="cn" x="450" y="447.5">last_batch_id</text><text class="ct" x="650" y="447.5">BIGINT</text><text class="cc" x="735" y="447.5">FK</text>
+      <rect class="box" x="440" y="300" width="380" height="154" rx="4"/>
+    </g>
+
+    <g transform="translate(-90,0)">
+      <rect class="hb" x="890" y="20" width="360" height="28" rx="4"/>
+      <text class="tname" x="900" y="38">jeonse_eligibility_question</text>
+      <text class="tlabel" x="1240" y="38" text-anchor="end">자격 질문</text>
+      <rect class="cell" x="890" y="48" width="360" height="21"/>
+      <text class="cn" x="900" y="62.5">eligibility_question_id</text><text class="ct" x="1095" y="62.5">BIGINT</text><text class="cc" x="1178" y="62.5">PK AI</text>
+      <rect class="cell" x="890" y="69" width="360" height="21"/>
+      <text class="cn" x="900" y="83.5">question_text</text><text class="ct" x="1095" y="83.5">TEXT</text>
+      <rect class="cell" x="890" y="90" width="360" height="21"/>
+      <text class="cn" x="900" y="104.5">crawl_source_key</text><text class="ct" x="1095" y="104.5">TEXT</text>
+      <rect class="box" x="890" y="20" width="360" height="91" rx="4"/>
+    </g>
+
+    <g transform="translate(-90,0)">
+      <rect class="hb" x="890" y="210" width="360" height="28" rx="4"/>
+      <text class="tname" x="900" y="228">jeonse_eligibility_condition</text>
+      <text class="tlabel" x="1240" y="228" text-anchor="end">상품–자격 연결</text>
+      <rect class="cell" x="890" y="238" width="360" height="21"/>
+      <text class="cn" x="900" y="252.5">eligibility_condition_id</text><text class="ct" x="1095" y="252.5">BIGINT</text><text class="cc" x="1178" y="252.5">PK AI</text>
+      <rect class="cell" x="890" y="259" width="360" height="21"/>
+      <text class="cn" x="900" y="273.5">product_id</text><text class="ct" x="1095" y="273.5">BIGINT</text><text class="cc" x="1178" y="273.5">FK NN UK</text>
+      <rect class="cell" x="890" y="280" width="360" height="21"/>
+      <text class="cn" x="900" y="294.5">eligibility_question_id</text><text class="ct" x="1095" y="294.5">BIGINT</text><text class="cc" x="1178" y="294.5">FK NN UK</text>
+      <rect class="box" x="890" y="210" width="360" height="91" rx="4"/>
+    </g>
+  </svg>
+  </div>
+  <div class="dict">
+    <div class="dt">
+      <h4><i>[a]</i> jeonse_product <em>전세대출 상품</em></h4>
+      <ul>
+        <li><code>product_id</code> 상품 ID</li>
+        <li><code>product_name</code> 상품이름</li>
+        <li><code>bank_name</code> 취급 은행</li>
+        <li><code>max_loan_limit</code> 대출 최고금액(원)</li>
+        <li><code>detail_url</code> 상세 페이지 URL</li>
+        <li><code>collected_at</code> 수집 시각</li>
+        <li><code>max_preferential_rate</code> 최고 우대금리(%)</li>
+        <li><code>last_batch_id</code> 현재값을 만든 배치</li>
+        <li><code>is_deleted</code> N=판매중 / Y=판매종료(논리삭제)</li>
+      </ul>
+    </div>
+    <div class="dt">
+      <h4><i>[b]</i> jeonse_rate_option <em>금리 옵션</em></h4>
+      <ul>
+        <li><code>rate_option_id</code> 금리 옵션 ID</li>
+        <li><code>product_id</code> 전세대출 상품 ID</li>
+        <li><code>rate_type</code> 금리 유형</li>
+        <li><code>base_rate</code> 기준금리(%)</li>
+        <li><code>spread_rate</code> 가산금리(%)</li>
+        <li><code>last_batch_id</code> 현재값을 만든 배치</li>
+      </ul>
+    </div>
+    <div class="dt">
+      <h4><i>[c]</i> jeonse_preferential_item <em>우대 항목</em></h4>
+      <ul>
+        <li><code>preferential_item_id</code> 우대 항목 ID</li>
+        <li><code>condition_name</code> 우대조건 이름</li>
+        <li><code>condition_detail</code> 우대조건 상세설명</li>
+        <li><code>preferential_rate</code> 우대금리(%)</li>
+        <li><code>crawl_source_key</code> KB 페이지 원문에서 공백을 지운 값 · 기존 조건인지 판정할 때 사용</li>
+      </ul>
+    </div>
+    <div class="dt">
+      <h4><i>[d]</i> jeonse_preferential_condition <em>상품·우대 연결</em></h4>
+      <ul>
+        <li><code>condition_id</code> 연결 ID</li>
+        <li><code>product_id</code> 전세대출 상품 ID</li>
+        <li><code>preferential_item_id</code> 우대 항목 ID</li>
+      </ul>
+    </div>
+    <div class="dt">
+      <h4><i>[e]</i> jeonse_eligibility_question <em>자격 질문</em></h4>
+      <ul>
+        <li><code>eligibility_question_id</code> 자격조건 질문 ID</li>
+        <li><code>question_text</code> 신청 조건</li>
+        <li><code>crawl_source_key</code> KB 페이지 원문에서 공백을 지운 값 · 기존 조건인지 판정할 때 사용</li>
+      </ul>
+    </div>
+    <div class="dt">
+      <h4><i>[f]</i> jeonse_eligibility_condition <em>상품·자격 연결</em></h4>
+      <ul>
+        <li><code>eligibility_condition_id</code> 연결 ID</li>
+        <li><code>product_id</code> 전세대출 상품 ID</li>
+        <li><code>eligibility_question_id</code> 자격조건 질문 ID</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="canvas">
+  <svg viewBox="0 0 1235 400" role="img" class="h" style="display:block;width:100%;height:auto">
+    <title>전세대출 이력 테이블과 공용 배치 테이블의 관계도</title>
+    <desc>credit_crawling_batch_history에서 jeonse_products_history로, 다시 jeonse_rate_option_history로 이어지는 2단 이력 구조입니다.</desc>
+
+    <path class="link" d="M400 58.5 H413 V79.5 H425"/>
+    <path class="link" d="M835 58.5 H848 V79.5 H860"/>
+
+    <g>
+      <rect class="hb" x="20" y="20" width="380" height="28" rx="4"/>
+      <text class="tname" x="30" y="38">credit_crawling_batch_history</text>
+      <text class="tlabel" x="390" y="38" text-anchor="end">신용·전세 공용</text>
+      <rect class="cell" x="20" y="48" width="380" height="21"/>
+      <text class="cn" x="30" y="62.5">crawl_batch_id</text><text class="ct" x="230" y="62.5">BIGINT</text><text class="cc" x="312" y="62.5">PK AI</text>
+      <rect class="cell" x="20" y="69" width="380" height="21"/>
+      <text class="cn" x="30" y="83.5">batch_uuid</text><text class="ct" x="230" y="83.5">CHAR(36)</text><text class="cc" x="312" y="83.5">NN UK</text>
+      <rect class="cell" x="20" y="90" width="380" height="21"/>
+      <text class="cn" x="30" y="104.5">bank_name</text><text class="ct" x="230" y="104.5">VARCHAR(50)</text><text class="cc" x="312" y="104.5">NN DEF</text>
+      <rect class="cell" x="20" y="111" width="380" height="21"/>
+      <text class="cn" x="30" y="125.5">product_category</text><text class="ct" x="230" y="125.5">VARCHAR(20)</text><text class="cc" x="312" y="125.5">NN CHK</text>
+      <rect class="cell" x="20" y="132" width="380" height="21"/>
+      <text class="cn" x="30" y="146.5">status</text><text class="ct" x="230" y="146.5">VARCHAR(20)</text><text class="cc" x="312" y="146.5">NN CHK</text>
+      <rect class="cell" x="20" y="153" width="380" height="21"/>
+      <text class="cn" x="30" y="167.5">started_at</text><text class="ct" x="230" y="167.5">DATETIME(3)</text><text class="cc" x="312" y="167.5">NN IX</text>
+      <rect class="cell" x="20" y="174" width="380" height="21"/>
+      <text class="cn" x="30" y="188.5">finished_at</text><text class="ct" x="230" y="188.5">DATETIME(3)</text>
+      <rect class="cell" x="20" y="195" width="380" height="21"/>
+      <text class="cn" x="30" y="209.5">executed_by</text><text class="ct" x="230" y="209.5">VARCHAR(100)</text><text class="cc" x="312" y="209.5">NN</text>
+      <rect class="cell" x="20" y="216" width="380" height="21"/>
+      <text class="cn" x="30" y="230.5">finlife_disclosure_month</text><text class="ct" x="230" y="230.5">CHAR(7)</text>
+      <rect class="cell" x="20" y="237" width="380" height="21"/>
+      <text class="cn" x="30" y="251.5">target_count</text><text class="ct" x="230" y="251.5">INT</text><text class="cc" x="312" y="251.5">NN DEF</text>
+      <rect class="cell" x="20" y="258" width="380" height="21"/>
+      <text class="cn" x="30" y="272.5">success_count</text><text class="ct" x="230" y="272.5">INT</text><text class="cc" x="312" y="272.5">NN DEF</text>
+      <rect class="cell" x="20" y="279" width="380" height="21"/>
+      <text class="cn" x="30" y="293.5">failed_count</text><text class="ct" x="230" y="293.5">INT</text><text class="cc" x="312" y="293.5">NN DEF</text>
+      <rect class="cell" x="20" y="300" width="380" height="21"/>
+      <text class="cn" x="30" y="314.5">applied_to_live_yn</text><text class="ct" x="230" y="314.5">CHAR(1)</text><text class="cc" x="312" y="314.5">NN DEF CHK</text>
+      <rect class="cell" x="20" y="321" width="380" height="21"/>
+      <text class="cn" x="30" y="335.5">warnings</text><text class="ct" x="230" y="335.5">TEXT</text>
+      <rect class="box" x="20" y="20" width="380" height="322" rx="4"/>
+      <text class="note" x="20" y="365">jeonse_product · jeonse_rate_option 의 last_batch_id 도 이 표를 참조합니다.</text>
+    </g>
+
+    <g transform="translate(-15,0)">
+      <rect class="hb" x="440" y="20" width="410" height="28" rx="4"/>
+      <text class="tname" x="450" y="38">jeonse_products_history</text>
+      <text class="tlabel" x="840" y="38" text-anchor="end">상품 이력</text>
+      <rect class="cell" x="440" y="48" width="410" height="21"/>
+      <text class="cn" x="450" y="62.5">jeonse_products_history_id</text><text class="ct" x="670" y="62.5">BIGINT</text><text class="cc" x="758" y="62.5">PK AI</text>
+      <rect class="cell" x="440" y="69" width="410" height="21"/>
+      <text class="cn" x="450" y="83.5">crawl_batch_id</text><text class="ct" x="670" y="83.5">BIGINT</text><text class="cc" x="758" y="83.5">FK NN UK</text>
+      <rect class="cell" x="440" y="90" width="410" height="21"/>
+      <text class="cn" x="450" y="104.5">jeonse_product_id</text><text class="ct" x="670" y="104.5">BIGINT</text><text class="cc" x="758" y="104.5">IX</text>
+      <rect class="cell" x="440" y="111" width="410" height="21"/>
+      <text class="cn" x="450" y="125.5">product_name</text><text class="ct" x="670" y="125.5">VARCHAR(200)</text><text class="cc" x="758" y="125.5">NN</text>
+      <rect class="cell" x="440" y="132" width="410" height="21"/>
+      <text class="cn" x="450" y="146.5">product_name_key</text><text class="ct" x="670" y="146.5">VARCHAR(200)</text><text class="cc" x="758" y="146.5">NN UK</text>
+      <rect class="cell" x="440" y="153" width="410" height="21"/>
+      <text class="cn" x="450" y="167.5">bank_name</text><text class="ct" x="670" y="167.5">VARCHAR(50)</text><text class="cc" x="758" y="167.5">NN DEF</text>
+      <rect class="cell" x="440" y="174" width="410" height="21"/>
+      <text class="cn" x="450" y="188.5">detail_url</text><text class="ct" x="670" y="188.5">VARCHAR(500)</text>
+      <rect class="cell" x="440" y="195" width="410" height="21"/>
+      <text class="cn" x="450" y="209.5">max_loan_limit</text><text class="ct" x="670" y="209.5">BIGINT</text>
+      <rect class="cell" x="440" y="216" width="410" height="21"/>
+      <text class="cn" x="450" y="230.5">max_loan_limit_raw</text><text class="ct" x="670" y="230.5">VARCHAR(300)</text>
+      <rect class="cell" x="440" y="237" width="410" height="21"/>
+      <text class="cn" x="450" y="251.5">max_preferential_rate</text><text class="ct" x="670" y="251.5">DECIMAL(4,2)</text>
+      <rect class="cell" x="440" y="258" width="410" height="21"/>
+      <text class="cn" x="450" y="272.5">source_state</text><text class="ct" x="670" y="272.5">VARCHAR(10)</text><text class="cc" x="758" y="272.5">NN CHK</text>
+      <rect class="cell" x="440" y="279" width="410" height="21"/>
+      <text class="cn" x="450" y="293.5">collect_status</text><text class="ct" x="670" y="293.5">VARCHAR(10)</text><text class="cc" x="758" y="293.5">NN CHK</text>
+      <rect class="cell" x="440" y="300" width="410" height="21"/>
+      <text class="cn" x="450" y="314.5">failure_reason</text><text class="ct" x="670" y="314.5">VARCHAR(500)</text>
+      <rect class="cell" x="440" y="321" width="410" height="21"/>
+      <text class="cn" x="450" y="335.5">snapshot_hash</text><text class="ct" x="670" y="335.5">CHAR(64)</text><text class="cc" x="758" y="335.5">NN IX</text>
+      <rect class="box" x="440" y="20" width="410" height="322" rx="4"/>
+    </g>
+
+    <g transform="translate(-30,0)">
+      <rect class="hb" x="890" y="20" width="360" height="28" rx="4"/>
+      <text class="tname" x="900" y="38">jeonse_rate_option_history</text>
+      <text class="tlabel" x="1240" y="38" text-anchor="end">금리 이력</text>
+      <rect class="cell" x="890" y="48" width="360" height="21"/>
+      <text class="cn" x="900" y="62.5">jeonse_rate_option_history_id</text><text class="ct" x="1100" y="62.5">BIGINT</text><text class="cc" x="1182" y="62.5">PK AI</text>
+      <rect class="cell" x="890" y="69" width="360" height="21"/>
+      <text class="cn" x="900" y="83.5">jeonse_products_history_id</text><text class="ct" x="1100" y="83.5">BIGINT</text><text class="cc" x="1182" y="83.5">FK NN UK</text>
+      <rect class="cell" x="890" y="90" width="360" height="21"/>
+      <text class="cn" x="900" y="104.5">rate_type</text><text class="ct" x="1100" y="104.5">VARCHAR(20)</text><text class="cc" x="1182" y="104.5">NN UK</text>
+      <rect class="cell" x="890" y="111" width="360" height="21"/>
+      <text class="cn" x="900" y="125.5">base_rate</text><text class="ct" x="1100" y="125.5">DECIMAL(4,2)</text>
+      <rect class="cell" x="890" y="132" width="360" height="21"/>
+      <text class="cn" x="900" y="146.5">spread_rate</text><text class="ct" x="1100" y="146.5">DECIMAL(4,2)</text>
+      <rect class="box" x="890" y="20" width="360" height="133" rx="4"/>
+      <text class="note" x="890" y="176">ON DELETE CASCADE — 상품 이력이 지워지면 함께 지워집니다.</text>
+    </g>
+  </svg>
+  </div>
+  <div class="dict hist">
+    <div class="dt">
+      <h4><i>[g]</i> jeonse_products_history <em>상품 이력</em></h4>
+      <ul>
+        <li><code>jeonse_products_history_id</code> 상품 이력 ID</li>
+        <li><code>crawl_batch_id</code> 배치 ID</li>
+        <li><code>jeonse_product_id</code> 라이브 상품 ID</li>
+        <li><code>product_name</code> 수집 당시 원본 상품명</li>
+        <li><code>product_name_key</code> 정규화한 상품명</li>
+        <li><code>bank_name</code> 취급 은행</li>
+        <li><code>detail_url</code> 실제로 수집에 성공한 상세 URL</li>
+        <li><code>max_loan_limit</code> 대출 최고금액 · 파싱 실패 시 NULL</li>
+        <li><code>max_loan_limit_raw</code> 한도 원문 텍스트 · 디버깅용</li>
+        <li><code>max_preferential_rate</code> 최고 우대금리(%)</li>
+        <li><code>source_state</code> PRESENT=KB에 존재 / REMOVED=사라짐</li>
+        <li><code>collect_status</code> OK / FAILED</li>
+        <li><code>failure_reason</code> 수집 실패 원인</li>
+        <li><code>snapshot_hash</code> 내용 SHA-256 · 무변경 배치 스킵 판정용</li>
+      </ul>
+    </div>
+    <div class="dt">
+      <h4><i>[h]</i> jeonse_rate_option_history <em>금리 이력</em></h4>
+      <ul>
+        <li><code>jeonse_rate_option_history_id</code> 금리 이력 ID</li>
+        <li><code>jeonse_products_history_id</code> 상품 이력 ID</li>
+        <li><code>rate_type</code> 금리 유형</li>
+        <li><code>base_rate</code> 기준금리(%)</li>
+        <li><code>spread_rate</code> 가산금리(%)</li>
+      </ul>
+    </div>
+    <div class="dt">
+      <h4><i>[i]</i> credit_crawling_batch_history <em>신용·전세 공용 배치 이력</em></h4>
+      <ul>
+        <li><code>crawl_batch_id</code> 배치 ID</li>
+        <li><code>batch_uuid</code> 외부 추적·로그 대조용 UUID</li>
+        <li><code>bank_name</code> 수집 대상 은행</li>
+        <li><code>product_category</code> CREDIT_LOAN / JEONSE_LOAN</li>
+        <li><code>status</code> RUNNING / SUCCESS / PARTIAL / FAILED / REJECTED</li>
+        <li><code>started_at</code> 수집 시작 시각</li>
+        <li><code>finished_at</code> 수집 종료 시각</li>
+        <li><code>executed_by</code> 실행 주체 · scheduler 또는 수동 실행 계정</li>
+        <li><code>finlife_disclosure_month</code> 등급 환산에 사용한 공시월 YYYY-MM</li>
+        <li><code>target_count</code> 수집 대상 상품 수</li>
+        <li><code>success_count</code> 상세 수집 성공 수</li>
+        <li><code>failed_count</code> 상세 수집 실패 수</li>
+        <li><code>applied_to_live_yn</code> 라이브 반영 여부</li>
+        <li><code>warnings</code> 수집 경고 원문</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+</div>
+
+</body>
+</html>

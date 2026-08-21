@@ -203,7 +203,8 @@
         FROM jeonse_rate_option r
         JOIN jeonse_product p
              ON p.product_id = r.product_id
-        WHERE r.product_id IN
+        WHERE p.is_deleted = 'N'
+          AND r.product_id IN
         <foreach collection="productIds" item="productId" open="(" separator="," close=")">
             #{productId}
         </foreach>

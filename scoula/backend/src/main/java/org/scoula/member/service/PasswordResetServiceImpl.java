@@ -133,6 +133,9 @@ public class PasswordResetServiceImpl implements PasswordResetService {
         if (newPassword == null || newPassword.trim().isEmpty()) {
             throw new InvalidPasswordResetException("새 비밀번호를 입력해 주세요.");
         }
+        if (PasswordPolicy.hasInvalidCharacter(newPassword)) {
+            throw new InvalidPasswordResetException(PasswordPolicy.invalidCharacterMessage());
+        }
         if (PasswordPolicy.isTooShort(newPassword)) {
             throw new InvalidPasswordResetException(PasswordPolicy.tooShortMessage());
         }

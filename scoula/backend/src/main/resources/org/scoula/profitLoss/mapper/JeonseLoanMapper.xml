@@ -4,18 +4,38 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.scoula.profitLoss.mapper.JeonseLoanMapper">
 
+    <!-- question_text 가 NULL = 크롤러가 새 조건을 찾았지만 사람이 아직 화면 문구를 안 쓴 상태.
+         그대로 내려보내면 빈 카드가 뜨므로 화면에서 뺀다.
+         대신 그 질문을 요구하는 상품은 비교에서 탈락한다(사용자가 답할 방법이 없으므로).
+         미작성 질문은 아래로 확인할 수 있다:
+           SELECT q.eligibility_question_id, a.source_text
+             FROM jeonse_eligibility_question q
+             JOIN jeonse_eligibility_question_alias a
+               ON a.eligibility_question_id = q.eligibility_question_id
+            WHERE q.question_text IS NULL; -->
     <select id="findAllEligibilityQuestions" resultType="org.scoula.profitLoss.dto.JeonseEligibilityQuestionDTO">
         SELECT eligibility_question_id as id, question_text as text
         FROM jeonse_eligibility_question
+        WHERE question_text IS NOT NULL
     </select>
 
+    <!-- condition_name 이 NULL = 크롤러가 새 우대조건을 찾았지만 사람이 아직 화면 문구를 안 쓴 상태.
+         프론트가 conditionName.includes(...) 로 분기하므로 NULL 이 내려가면 화면이 깨진다.
+         미작성 항목은 아래로 확인한다:
+           SELECT preferential_item_id, preferential_rate, source_text
+             FROM jeonse_preferential_item WHERE condition_name IS NULL; -->
     <select id="findAllPreferentialItems" resultType="org.scoula.profitLoss.dto.JeonsePreferentialItemDTO">
         SELECT preferential_item_id as id, condition_name as conditionName, condition_detail as conditionDetail, preferential_rate as preferentialRate
         FROM jeonse_preferential_item
+        WHERE condition_name IS NOT NULL
     </select>
 
+    <!-- 비교 대상 상품을 고르는 최초 관문. 판매종료(is_deleted='Y') 상품은 여기서 걸러낸다.
+         크롤러는 'N'만 찍는다 — 페이지에 잡히면 판매중이라는 뜻이다.
+         'Y'는 사람이 직접 표시한다(크롤러는 소실을 판단하지 않음). -->
     <select id="findAllProductIds" resultType="Long">
         SELECT product_id FROM jeonse_product
+        WHERE is_deleted = 'N'
     </select>
 
     <select id="findEligibilityQuestionIdsByProductId" resultType="Long">
